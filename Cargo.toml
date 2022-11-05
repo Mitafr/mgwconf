@@ -1,0 +1,26 @@
+[package]
+name = "mgwconf"
+version = "0.1.0"
+edition = "2021"
+authors = ["Martin P."]
+
+[dependencies]
+tokio = { version = "1.21", features = ["full"] }
+async-trait = { version = "^0.1" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+log4rs = "1.2.0"
+log = "0.4"
+clap = { version = "4.0.19", features = ["derive"] }
+regex = "1.6.0"
+lazy_static = "1.4.0"
+tui = { version = "0.16.0", features = ["crossterm"], default-features = false }
+crossterm = "0.25.0"
+anyhow = "1.0"
+reqwest = { version = "0.11", features = ["json"] }
+whoami = "1"
+
+[[bin]]
+bench = false
+path = "src/main.rs"
+name = "mgwc"
