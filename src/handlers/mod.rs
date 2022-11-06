@@ -1,3 +1,5 @@
+mod configuration;
+
 use crossterm::event::{KeyCode, KeyEvent};
 
 use crate::app::{ActiveBlock, App};
@@ -8,13 +10,21 @@ pub fn handle_app(key: KeyEvent, app: &mut App) {
         KeyCode::Esc => {
             handle_escape(app);
         }
-        KeyCode::Char('v') => app.push_navigation_stack(crate::app::RouteId::SecretsDialog, ActiveBlock::Dialog),
-        KeyCode::Char('a') => app.push_navigation_stack(crate::app::RouteId::Configuration, ActiveBlock::Home),
-        _ => {}
+        k if k == KeyCode::Char('a') && app.get_current_route().id != crate::app::RouteId::Configuration => app.push_navigation_stack(crate::app::RouteId::Configuration, ActiveBlock::Home),
+        _ => handle_route(key, app),
     }
 }
 
-pub fn input_handler(key: KeyEvent, app: &mut App) {
+fn handle_route(key: KeyEvent, app: &mut App) {
+    let current_route = app.get_current_route();
+    match current_route.id {
+        crate::app::RouteId::Home => todo!(),
+        crate::app::RouteId::Configuration => configuration::handler(key, app),
+        crate::app::RouteId::SecretsDialog => todo!(),
+    }
+}
+
+pub fn handle_input(key: KeyEvent, app: &mut App) {
     let key_code = key.code;
     match key_code {
         KeyCode::Esc => {
@@ -22,11 +32,11 @@ pub fn input_handler(key: KeyEvent, app: &mut App) {
             handle_escape(app);
         }
         KeyCode::Enter => {
-            app.set_secret(Some(app.input.clone()));
+            app.set_current_secret(Some(app.input.clone()));
             app.input.clear();
         }
         KeyCode::Backspace => {
-            if app.input.len() > 0 {
+            if !app.input.is_empty() {
                 app.input.pop();
             }
         }

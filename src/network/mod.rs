@@ -17,10 +17,10 @@ pub struct Network<'a> {
 }
 
 impl<'a> Network<'a> {
-    pub fn new(app: &'a Arc<Mutex<App>>, config: &Config) -> Self {
-        let certificate = get_mgw_root_cert(config).unwrap();
-        let client = reqwest::Client::builder().local_address(config.remote_ip).add_root_certificate(certificate).build().unwrap();
-        Network { app, client }
+    pub fn new(app: &'a Arc<Mutex<App>>, config: &Config) -> Result<Self, anyhow::Error> {
+        let certificate = get_mgw_root_cert(config)?;
+        let client = reqwest::Client::builder().local_address(config.remote_ip).add_root_certificate(certificate).build()?;
+        Ok(Network { app, client })
     }
 
     pub async fn ping_mgw(&mut self) -> Result<Response, reqwest::Error> {
@@ -30,10 +30,11 @@ impl<'a> Network<'a> {
         Ok(res)
     }
 
-    pub async fn handle_network_event(&mut self, io_event: IoEvent) {
+    pub async fn handle_network_event(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
         match io_event {
-            IoEvent::Ping => self.ping_mgw().await.unwrap(),
+            IoEvent::Ping => self.ping_mgw().await?,
         };
+        Ok(())
     }
 }
 

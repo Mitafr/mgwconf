@@ -6,10 +6,10 @@ use crate::ui::{
     utils::get_main_layout_margin,
 };
 
-mod configuration;
-mod home;
-mod prelude;
-mod utils;
+pub mod configuration;
+pub mod home;
+pub mod prelude;
+pub mod utils;
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
 where
@@ -46,12 +46,11 @@ where
             draw_home(f, app, chunks[1]);
         }
         RouteId::Configuration => {
-            if current_route.active_block != ActiveBlock::Empty {
+            if current_route.active_block == ActiveBlock::Empty {
                 draw_configuration(f, app, chunks[1]);
             }
             draw_configuration_user_block(f, app, chunks[0]);
         }
-        RouteId::Error => {}
         RouteId::SecretsDialog => {
             draw_secrets_dialog(f, app);
         }

@@ -1,6 +1,8 @@
+use log::error;
 use network::{IoEvent, Network};
 use std::{
-    io::stdout,
+    io::{self, stdout, Stdout},
+    panic,
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -36,26 +38,47 @@ async fn main() -> Result<()> {
     config.init_logging();
 
     let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
+    let mut app = App::new(sync_io_tx, config.clone()).await;
+    if !config.debug {
+        app.ask_secrets()?;
+    }
 
-    let app = Arc::new(Mutex::new(App::new(sync_io_tx, config.clone()).await));
+    let app = Arc::new(Mutex::new(app));
+
     let cloned_app = Arc::clone(&app);
+    let orig = panic::take_hook();
+    panic::set_hook(Box::new(move |panic_info| {
+        error!("{}", panic_info);
+        close_application(None).unwrap();
+        orig(panic_info);
+        std::process::exit(1);
+    }));
     std::thread::spawn(move || {
-        let mut net = Network::new(&app, &config);
+        let mut net = Network::new(&app, &config).expect("Network Error");
         start_tokio(sync_io_rx, &mut net);
     });
-    // The UI must run in the "main" thread
-    start_ui(&cloned_app).await?;
+    start_ui(&cloned_app).await.unwrap();
     Ok(())
 }
 
 #[tokio::main]
-async fn start_tokio<'a>(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network) {
+async fn start_tokio(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network) {
     while let Ok(io_event) = io_rx.recv() {
-        network.handle_network_event(io_event).await;
+        network.handle_network_event(io_event).await.expect("Network Error");
     }
 }
-async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
-    // Terminal initialization
+
+fn close_application(terminal: Option<&mut Terminal<CrosstermBackend<Stdout>>>) -> Result<()> {
+    if let Some(term) = terminal {
+        term.show_cursor()?;
+    }
+    disable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, LeaveAlternateScreen, DisableMouseCapture)?;
+    Ok(())
+}
+
+async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     enable_raw_mode()?;
@@ -69,22 +92,19 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
 
     let tick_rate = Duration::from_millis(33);
     let mut last_tick = Instant::now();
+
     'main: loop {
         let mut app = app.lock().await;
-        app.init().await;
+        app.init().await.unwrap();
         // Get the size of the screen on each loop to account for resize event
         if let Ok(size) = terminal.backend().size() {
-            // Reset the help menu is the terminal was resized
             if is_first_render || app.size != size {
                 app.size = size;
             }
         };
 
-        let current_route = app.get_current_route();
-        terminal.draw(|mut f| match current_route.active_block {
-            _ => {
-                ui::draw_main_layout(&mut f, &app);
-            }
+        terminal.draw(|f| {
+            ui::draw_main_layout(f, &app);
         })?;
 
         // if current_route.active_block == ActiveBlock::Input {
@@ -114,21 +134,15 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<()> {
                     _ => {}
                 }
                 if app.get_current_route().active_block == ActiveBlock::Dialog {
-                    handlers::input_handler(key, &mut app);
+                    handlers::handle_input(key, &mut app);
                 } else {
                     handlers::handle_app(key, &mut app)
                 }
             }
         }
         if last_tick.elapsed() >= tick_rate {
-            //app.on_tick();
             last_tick = Instant::now();
         }
     }
-
-    disable_raw_mode()?;
-    execute!(terminal.backend_mut(), LeaveAlternateScreen, DisableMouseCapture)?;
-    terminal.show_cursor()?;
-
-    Ok(())
+    close_application(Some(&mut terminal))
 }

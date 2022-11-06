@@ -1,21 +1,24 @@
-use std::sync::mpsc::Sender;
+use anyhow::Result;
+use std::{
+    io::{stdin, stdout, Write},
+    slice::Iter,
+    sync::mpsc::Sender,
+};
 use tui::layout::Rect;
 
-use crate::{config::Config, network::IoEvent};
+use crate::{config::Config, network::IoEvent, ui::configuration::CONFIGURATION_USER_TAB};
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum ActiveBlock {
     Empty,
     Error,
     HelpMenu,
     Home,
-    BasicView,
     Dialog,
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub enum RouteId {
-    Error,
     Home,
     Configuration,
     SecretsDialog,
@@ -40,6 +43,13 @@ pub enum SecretType {
     Monitoring,
     Management,
     Encrypt,
+}
+
+impl SecretType {
+    pub fn iterator() -> Iter<'static, SecretType> {
+        static SECRETTYPES: [SecretType; 4] = [SecretType::Configuration, SecretType::Monitoring, SecretType::Management, SecretType::Encrypt];
+        SECRETTYPES.iter()
+    }
 }
 
 impl Default for SecretType {
@@ -69,6 +79,47 @@ pub struct SecretsVault {
     pub current_secret: SecretType,
 }
 
+pub struct ConfigurationState {
+    tab_id: usize,
+    tab_len: usize,
+    selected_tab: Option<usize>,
+}
+
+impl Default for ConfigurationState {
+    fn default() -> Self {
+        ConfigurationState {
+            tab_id: 0,
+            tab_len: CONFIGURATION_USER_TAB.len(),
+            selected_tab: None,
+        }
+    }
+}
+
+impl ConfigurationState {
+    pub fn next(&mut self) {
+        if self.tab_id + 1 >= self.tab_len {
+            self.tab_id = 0;
+        } else {
+            self.tab_id += 1;
+        }
+    }
+
+    pub fn current(&self) -> usize {
+        self.tab_id
+    }
+
+    pub fn current_selected(&self) -> usize {
+        if let Some(t) = self.selected_tab {
+            return t;
+        }
+        0
+    }
+
+    pub fn select_current(&mut self) {
+        self.selected_tab = Some(self.tab_id);
+    }
+}
+
 pub struct App {
     pub size: Rect,
     navigation_stack: Vec<Route>,
@@ -78,6 +129,9 @@ pub struct App {
     pub connectivity_test: bool,
     io_tx: Option<Sender<IoEvent>>,
     pub config: Option<Config>,
+    pub configuration_state: ConfigurationState,
+
+    initialized: bool,
 }
 
 impl Default for App {
@@ -91,6 +145,8 @@ impl Default for App {
             connectivity_test: false,
             io_tx: None,
             config: None,
+            initialized: false,
+            configuration_state: ConfigurationState::default(),
         }
     }
 }
@@ -104,11 +160,16 @@ impl App {
         }
     }
 
-    pub async fn init(&self) {
-        self.io_tx.as_ref().unwrap().send(IoEvent::Ping).unwrap();
+    pub async fn init(&mut self) -> Result<(), anyhow::Error> {
+        if self.initialized {
+            return Ok(());
+        }
+        self.io_tx.as_ref().unwrap().send(IoEvent::Ping)?;
+        self.initialized = true;
+        Ok(())
     }
 
-    pub fn set_secret(&mut self, value: Option<String>) {
+    pub fn set_current_secret(&mut self, value: Option<String>) {
         match self.vault.current_secret {
             SecretType::Configuration => self.vault.configuration = value,
             SecretType::Monitoring => self.vault.monitoring = value,
@@ -118,10 +179,36 @@ impl App {
         self.validate_secret(self.vault.current_secret);
     }
 
+    pub fn set_secret(&mut self, stype: SecretType, value: Option<String>) {
+        match stype {
+            SecretType::Configuration => self.vault.configuration = value,
+            SecretType::Monitoring => self.vault.monitoring = value,
+            SecretType::Management => self.vault.management = value,
+            SecretType::Encrypt => self.vault.encrypt = value,
+        }
+        self.validate_secret(self.vault.current_secret);
+    }
+
+    pub fn ask_secrets(&mut self) -> Result<()> {
+        let mut secret = String::new();
+        for s in SecretType::iterator() {
+            self.ask_secret(&mut secret, *s);
+        }
+        print!("\x1B[2J\x1B[1;1H");
+        Ok(())
+    }
+
+    fn ask_secret(&mut self, s: &mut String, stype: SecretType) {
+        println!("Pleaser enter {} API KEY", stype);
+        let _ = stdout().flush();
+        stdin().read_line(s).expect("Did not enter a correct string");
+        self.set_secret(stype, Some(s.to_owned()));
+        s.clear()
+    }
+
     pub fn validate_secret(&self, _stype: SecretType) {}
 
     pub fn get_current_route(&self) -> &Route {
-        // if for some reason there is no route return the default
         self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
     }
 

@@ -42,11 +42,7 @@ pub fn get_color((is_active, is_hovered): (bool, bool)) -> Style {
 }
 
 pub fn get_main_layout_margin(app: &App) -> u16 {
-    if app.size.height > SMALL_TERMINAL_HEIGHT {
-        1
-    } else {
-        0
-    }
+    u16::from(app.size.height > SMALL_TERMINAL_HEIGHT)
 }
 
 /// helper function to create a centered rect using up certain percentage of the available rect `r`
