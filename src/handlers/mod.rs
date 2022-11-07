@@ -10,7 +10,7 @@ pub fn handle_app(key: KeyEvent, app: &mut App) {
         KeyCode::Esc => {
             handle_escape(app);
         }
-        k if k == KeyCode::Char('a') && app.get_current_route().id != crate::app::RouteId::Configuration => app.push_navigation_stack(crate::app::RouteId::Configuration, ActiveBlock::Home),
+        k if k == KeyCode::Char('a') && app.get_current_route().id != crate::app::RouteId::Configuration => app.push_navigation_stack(crate::app::RouteId::Configuration, ActiveBlock::Tab),
         _ => handle_route(key, app),
     }
 }
@@ -56,6 +56,10 @@ fn handle_escape(app: &mut App) {
         }
         ActiveBlock::Home => {
             app.pop_navigation_stack();
+        }
+        ActiveBlock::TabSelected => {
+            app.set_current_route_state(Some(ActiveBlock::Tab), None);
+            app.reset_selected_states();
         }
         ActiveBlock::Dialog => app.reset_navigation_stack(),
         _ => {

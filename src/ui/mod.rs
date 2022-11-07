@@ -25,7 +25,6 @@ where
     if app.get_current_route().id == RouteId::Home {
         draw_home(f, app, parent_layout[0]);
     } else {
-        // Nested main block with potential routes
         draw_routes(f, app, parent_layout[0]);
     }
 }
@@ -46,7 +45,7 @@ where
             draw_home(f, app, chunks[1]);
         }
         RouteId::Configuration => {
-            if current_route.active_block == ActiveBlock::Empty {
+            if current_route.active_block == ActiveBlock::TabSelected && app.configuration_state.is_tab_selected() {
                 draw_configuration(f, app, chunks[1]);
             }
             draw_configuration_user_block(f, app, chunks[0]);

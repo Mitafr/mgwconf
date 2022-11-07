@@ -11,7 +11,7 @@ where
         .vertical_margin(2)
         .split(layout_chunk);
 
-    let welcome = Block::default().title(Span::styled("Welcome!", Style::default())).borders(Borders::ALL);
+    let welcome = Block::default().title(Span::styled("Home", Style::default())).title_alignment(Alignment::Left).borders(Borders::ALL);
     let current_user = whoami::username();
     let paragraph = Paragraph::new(format!(
         "Utilisateur : {}\nRemote IP : {}\nRemote Port : {}\nConnectivity : {}",

@@ -1,4 +1,4 @@
-use log::error;
+use log::{error, info};
 use network::{IoEvent, Network};
 use std::{
     io::{self, stdout, Stdout},
@@ -64,7 +64,14 @@ async fn main() -> Result<()> {
 #[tokio::main]
 async fn start_tokio(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network) {
     while let Ok(io_event) = io_rx.recv() {
-        network.handle_network_event(io_event).await.expect("Network Error");
+        match network.handle_network_event(io_event).await {
+            Ok(r) => {
+                info!("{:#?}", r)
+            }
+            Err(e) => {
+                error!("{:?}", e);
+            }
+        }
     }
 }
 
@@ -122,7 +129,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
             if let Event::Key(key) = event::read()? {
                 match key.code {
                     KeyCode::Esc => {
-                        if app.get_current_route().active_block == ActiveBlock::Empty {
+                        if app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab {
                             break 'main;
                         }
                     }

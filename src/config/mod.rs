@@ -60,15 +60,13 @@ impl Config {
         if !log_path.is_file() {
             warn!("logs file doesn't exist and will be created");
         }
-        let stdout = ConsoleAppender::builder().encoder(Box::new(PatternEncoder::new("{d(%H:%M:%S.%f)} {l} {M}:{L} - {m}{n}"))).build();
         let in_file = FileAppender::builder().encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S.%f)} {l} - {m}{n}"))).build(log_path).unwrap();
 
         let filter = if self.debug { LevelFilter::Debug } else { LevelFilter::Info };
 
         let config = log4rs::Config::builder()
-            .appender(Appender::builder().filter(Box::new(ThresholdFilter::new(LevelFilter::Info))).build("stdout", Box::new(stdout)))
             .appender(Appender::builder().filter(Box::new(ThresholdFilter::new(filter))).build("in_file", Box::new(in_file)))
-            .build(Root::builder().appender("stdout").appender("in_file").build(filter))
+            .build(Root::builder().appender("in_file").build(filter))
             .unwrap();
 
         log4rs::init_config(config).unwrap();

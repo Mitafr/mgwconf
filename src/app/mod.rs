@@ -14,6 +14,8 @@ pub enum ActiveBlock {
     Error,
     HelpMenu,
     Home,
+    Tab,
+    TabSelected,
     Dialog,
 }
 
@@ -83,6 +85,8 @@ pub struct ConfigurationState {
     tab_id: usize,
     tab_len: usize,
     selected_tab: Option<usize>,
+
+    in_panel: bool,
 }
 
 impl Default for ConfigurationState {
@@ -91,6 +95,7 @@ impl Default for ConfigurationState {
             tab_id: 0,
             tab_len: CONFIGURATION_USER_TAB.len(),
             selected_tab: None,
+            in_panel: false,
         }
     }
 }
@@ -101,6 +106,14 @@ impl ConfigurationState {
             self.tab_id = 0;
         } else {
             self.tab_id += 1;
+        }
+    }
+
+    pub fn back(&mut self) {
+        if self.tab_id <= 0 {
+            self.tab_id = self.tab_len - 1;
+        } else {
+            self.tab_id -= 1;
         }
     }
 
@@ -117,6 +130,16 @@ impl ConfigurationState {
 
     pub fn select_current(&mut self) {
         self.selected_tab = Some(self.tab_id);
+        self.in_panel = true;
+    }
+
+    pub fn unselect_current(&mut self) {
+        self.selected_tab = None;
+        self.in_panel = false;
+    }
+
+    pub fn is_tab_selected(&self) -> bool {
+        self.selected_tab.is_some()
     }
 }
 
@@ -160,7 +183,7 @@ impl App {
         }
     }
 
-    pub async fn init(&mut self) -> Result<(), anyhow::Error> {
+    pub async fn init(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
         }
@@ -202,6 +225,7 @@ impl App {
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
         stdin().read_line(s).expect("Did not enter a correct string");
+        s.pop();
         self.set_secret(stype, Some(s.to_owned()));
         s.clear()
     }
@@ -243,5 +267,14 @@ impl App {
     pub fn reset_navigation_stack(&mut self) {
         self.navigation_stack.clear();
         self.navigation_stack.push(DEFAULT_ROUTE);
+    }
+
+    pub fn reset_selected_states(&mut self) {
+        self.configuration_state.unselect_current();
+    }
+
+    pub fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
+        self.io_tx.as_ref().unwrap().send(io_event)?;
+        Ok(())
     }
 }
