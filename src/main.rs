@@ -58,8 +58,9 @@ async fn main() -> Result<()> {
     });
     if args.ui {
         start_ui(&cloned_app).await.unwrap();
-    } else {
-        let app = cloned_app.lock().await;
+    } else if args.create_secret {
+        let mut app = cloned_app.lock().await;
+        app.ask_secrets()?;
         println!("{:?}", app.vault);
     }
     Ok(())

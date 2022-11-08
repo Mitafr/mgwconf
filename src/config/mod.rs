@@ -16,9 +16,12 @@ pub struct Args {
     /// Debug mode
     #[clap(short = 'd', long, action = clap::ArgAction::SetTrue, default_value = "false")]
     debug: bool,
-    /// Debug mode
+    /// ui mode
     #[clap(short = 'u', long, action = clap::ArgAction::SetTrue, default_value = "false")]
     pub ui: bool,
+    /// create secret
+    #[clap(long = "create_secret", action = clap::ArgAction::SetTrue, default_value = "false")]
+    pub create_secret: bool,
 }
 
 #[derive(Debug, Clone)]

@@ -1,5 +1,8 @@
 use anyhow::Result;
-use std::sync::mpsc::Sender;
+use std::{
+    io::{stdin, stdout, Write},
+    sync::mpsc::Sender,
+};
 use tui::layout::Rect;
 
 pub mod vault;
@@ -206,5 +209,23 @@ impl App {
     pub fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
         self.io_tx.as_ref().unwrap().send(io_event)?;
         Ok(())
+    }
+
+    pub fn ask_secrets(&mut self) -> Result<()> {
+        let mut secret = String::new();
+        for s in SecretType::iterator() {
+            self.ask_secret(&mut secret, *s);
+        }
+        print!("\x1B[2J\x1B[1;1H");
+        Ok(())
+    }
+
+    fn ask_secret(&mut self, s: &mut String, stype: SecretType) {
+        println!("Pleaser enter {} API KEY", stype);
+        let _ = stdout().flush();
+        stdin().read_line(s).expect("Did not enter a correct string");
+        s.pop();
+        self.vault.as_ref().unwrap().create_secret(stype, s.to_owned());
+        s.clear()
     }
 }
