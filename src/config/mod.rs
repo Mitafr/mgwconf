@@ -2,7 +2,7 @@ use std::{error::Error, net::IpAddr, path::PathBuf};
 
 use log::{debug, info, warn, LevelFilter};
 use log4rs::{
-    append::{console::ConsoleAppender, file::FileAppender},
+    append::file::FileAppender,
     config::{Appender, Root},
     encode::pattern::PatternEncoder,
     filter::threshold::ThresholdFilter,
@@ -16,6 +16,9 @@ pub struct Args {
     /// Debug mode
     #[clap(short = 'd', long, action = clap::ArgAction::SetTrue, default_value = "false")]
     debug: bool,
+    /// Debug mode
+    #[clap(short = 'u', long, action = clap::ArgAction::SetTrue, default_value = "false")]
+    pub ui: bool,
 }
 
 #[derive(Debug, Clone)]

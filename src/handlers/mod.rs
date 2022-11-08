@@ -32,7 +32,6 @@ pub fn handle_input(key: KeyEvent, app: &mut App) {
             handle_escape(app);
         }
         KeyCode::Enter => {
-            app.set_current_secret(Some(app.input.clone()));
             app.input.clear();
         }
         KeyCode::Backspace => {

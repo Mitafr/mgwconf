@@ -32,7 +32,7 @@ pub fn draw_secrets_dialog<B>(f: &mut Frame<B>, app: &App)
 where
     B: Backend,
 {
-    let current_secret = &app.vault.current_secret;
+    let current_secret = &app.vault.as_ref().unwrap().current_secret;
 
     let block = Block::default().title(format!("{} (use tabs to switch to other secrets)", current_secret)).borders(Borders::ALL);
     let area = centered_rect(80, 40, f.size());

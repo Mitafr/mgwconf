@@ -47,11 +47,15 @@ impl<'a> Network<'a> {
     pub async fn get_all_sags(&mut self) -> Result<Option<Response>> {
         let app = self.app.lock().await;
         let mut header = HeaderMap::new();
-        header.append("X-API-KEY", HeaderValue::from_str(&app.vault.configuration.as_ref().unwrap()).unwrap());
+        header.append(
+            "X-API-KEY",
+            HeaderValue::from_str(&app.vault.as_ref().expect("Vault not initialized correctly").configuration.as_ref().unwrap()).unwrap(),
+        );
         let res = self.client.get("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0/sag").headers(header).send().await?;
         if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {
             return Err(anyhow::Error::msg(format!("{:?}", res)));
         }
+        info!("{:?}", res);
         Ok(Some(res))
     }
 }

@@ -1,7 +1,7 @@
 use log::{error, info};
 use network::{IoEvent, Network};
 use std::{
-    io::{self, stdout, Stdout},
+    io::{self, stdin, stdout, Stdout, Write},
     panic,
     sync::Arc,
     time::{Duration, Instant},
@@ -37,11 +37,10 @@ async fn main() -> Result<()> {
     let mut config = Config::init(&args).expect("Could not init config");
     config.init_logging();
 
+    let vault_key = ask_master_key();
     let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
-    let mut app = App::new(sync_io_tx, config.clone()).await;
-    if !config.debug {
-        app.ask_secrets()?;
-    }
+    let mut app = App::new(sync_io_tx, config.clone(), &vault_key).await;
+    app.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
 
     let app = Arc::new(Mutex::new(app));
 
@@ -57,7 +56,12 @@ async fn main() -> Result<()> {
         let mut net = Network::new(&app, &config).expect("Network Error");
         start_tokio(sync_io_rx, &mut net);
     });
-    start_ui(&cloned_app).await.unwrap();
+    if args.ui {
+        start_ui(&cloned_app).await.unwrap();
+    } else {
+        let app = cloned_app.lock().await;
+        println!("{:?}", app.vault);
+    }
     Ok(())
 }
 
@@ -73,6 +77,16 @@ async fn start_tokio(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Ne
             }
         }
     }
+}
+
+fn ask_master_key() -> String {
+    let mut vault_key = String::new();
+    println!("Pleaser enter MASTER VAULT KEY");
+    let _ = stdout().flush();
+    stdin().read_line(&mut vault_key).expect("Did not enter a correct string");
+    vault_key.pop();
+    print!("\x1B[2J\x1B[1;1H");
+    vault_key
 }
 
 fn close_application(terminal: Option<&mut Terminal<CrosstermBackend<Stdout>>>) -> Result<()> {
