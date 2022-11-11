@@ -4,10 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Martin P."]
 
-#[profile.release]
-#lto = true
-#opt-level = "z"
-#strip = true
+[profile.release]
+lto = true
+opt-level = "z"
+strip = true
 
 [dependencies]
 tokio = { version = "1.21", features = ["full"] }
@@ -16,14 +16,14 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 log4rs = "1.2.0"
 log = "0.4"
-clap = { version = "4.0.19", features = ["derive"] }
-regex = "1.6.0"
+clap = { version = "4.0", features = ["derive"] }
+regex = "1.7.0"
 lazy_static = "1.4.0"
 tui = { version = "0.19.0", features = ["crossterm"], default-features = false }
 crossterm = "0.25.0"
 anyhow = "1.0"
 reqwest = { version = "0.11", features = ["json"] }
-whoami = "1"
+whoami = "1.2"
 cbc = "0.1.2"
 aes = "0.8"
 base64 = "0.13.1"
