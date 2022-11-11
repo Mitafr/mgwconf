@@ -1,3 +1,4 @@
+use event::Key;
 use log::{error, info};
 use network::{IoEvent, Network};
 use std::{
@@ -13,7 +14,7 @@ use app::{ActiveBlock, App};
 use clap::Parser;
 use crossterm::{
     cursor::MoveTo,
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
+    event::{DisableMouseCapture, EnableMouseCapture},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
@@ -25,6 +26,7 @@ use tui::{
 
 mod app;
 mod config;
+mod event;
 mod handlers;
 mod network;
 mod ui;
@@ -37,7 +39,7 @@ async fn main() -> Result<()> {
     let mut config = Config::init(&args).expect("Could not init config");
     config.init_logging();
 
-    let vault_key = ask_master_key();
+    let vault_key = if args.vault_key.is_some() { args.vault_key.unwrap() } else { ask_master_key() };
     let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
     let app = App::new(sync_io_tx, config.clone(), &vault_key).await;
 
@@ -112,7 +114,8 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
 
     let is_first_render = true;
 
-    let tick_rate = Duration::from_millis(33);
+    let tick_rate = Duration::from_millis(app.lock().await.config.as_ref().unwrap().tick_rate);
+    let events = event::Events::new(app.lock().await.config.as_ref().unwrap().tick_rate);
     let mut last_tick = Instant::now();
 
     'main: loop {
@@ -129,39 +132,32 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
             ui::draw_main_layout(f, &app);
         })?;
 
-        // if current_route.active_block == ActiveBlock::Input {
-        //     terminal.show_cursor()?;
-        // } else {
-        //     terminal.hide_cursor()?;
-        // }
         terminal.hide_cursor()?;
 
         let cursor_offset = 2;
         terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
 
-        let timeout = tick_rate.checked_sub(last_tick.elapsed()).unwrap_or_else(|| Duration::from_secs(0));
-        if crossterm::event::poll(timeout)? {
-            if let Event::Key(key) = event::read()? {
-                match key.code {
-                    KeyCode::Esc => {
-                        if app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab {
-                            break 'main;
-                        }
+        match events.next()? {
+            event::Event::Input(key) => {
+                if key == Key::Esc {
+                    if app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab {
+                        break 'main;
                     }
-                    KeyCode::Char('c') => {
-                        if key.modifiers == KeyModifiers::CONTROL {
-                            break 'main;
-                        }
-                    }
-                    _ => {}
                 }
-                if app.get_current_route().active_block == ActiveBlock::Dialog {
+
+                let current_active_block = app.get_current_route().active_block;
+
+                if current_active_block == ActiveBlock::Dialog {
                     handlers::handle_input(key, &mut app);
                 } else {
                     handlers::handle_app(key, &mut app)
                 }
             }
+            event::Event::Tick => {
+                app.update_on_tick();
+            }
         }
+
         if last_tick.elapsed() >= tick_rate {
             last_tick = Instant::now();
         }

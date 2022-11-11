@@ -22,6 +22,9 @@ pub struct Args {
     /// create secret
     #[clap(long = "create_secret", action = clap::ArgAction::SetTrue, default_value = "false")]
     pub create_secret: bool,
+    /// pass vault key
+    #[clap(short = 'k')]
+    pub vault_key: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +34,8 @@ pub struct Config {
     pub remote_ip: IpAddr,
     pub remote_port: u16,
     pub root_ca_path: String,
+
+    pub tick_rate: u64,
 }
 
 impl Config {
@@ -42,6 +47,7 @@ impl Config {
             remote_ip,
             remote_port: 9003,
             root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
+            tick_rate: 133,
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);

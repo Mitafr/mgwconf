@@ -5,18 +5,15 @@ use std::{
 };
 use tui::layout::Rect;
 
+pub mod state;
 pub mod vault;
 
-use crate::{
-    config::Config,
-    network::{
-        model::{certificate::CertificateEntities, sag::SagEntities},
-        IoEvent,
-    },
-    ui::configuration::CONFIGURATION_USER_TAB,
-};
+use crate::{config::Config, network::IoEvent};
 
-use self::vault::{SecretType, SecretsVault};
+use self::{
+    state::{configuration::ConfigurationState, State},
+    vault::{SecretType, SecretsVault},
+};
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum ActiveBlock {
@@ -58,83 +55,17 @@ impl std::fmt::Display for SecretType {
         }
     }
 }
-
-pub struct ConfigurationState {
-    tab_id: usize,
-    tab_len: usize,
-    selected_tab: Option<usize>,
-
-    in_panel: bool,
-    pub sags: SagEntities,
-    pub certificates: CertificateEntities,
-}
-
-impl Default for ConfigurationState {
-    fn default() -> Self {
-        ConfigurationState {
-            tab_id: 0,
-            tab_len: CONFIGURATION_USER_TAB.len(),
-            selected_tab: None,
-            in_panel: false,
-            sags: SagEntities::default(),
-            certificates: CertificateEntities::default(),
-        }
-    }
-}
-
-impl ConfigurationState {
-    pub fn next(&mut self) {
-        if self.tab_id + 1 >= self.tab_len {
-            self.tab_id = 0;
-        } else {
-            self.tab_id += 1;
-        }
-    }
-
-    pub fn back(&mut self) {
-        if self.tab_id == 0 {
-            self.tab_id = self.tab_len - 1;
-        } else {
-            self.tab_id -= 1;
-        }
-    }
-
-    pub fn current(&self) -> usize {
-        self.tab_id
-    }
-
-    pub fn current_selected(&self) -> usize {
-        if let Some(t) = self.selected_tab {
-            return t;
-        }
-        0
-    }
-
-    pub fn select_current(&mut self) {
-        self.selected_tab = Some(self.tab_id);
-        self.in_panel = true;
-    }
-
-    pub fn unselect_current(&mut self) {
-        self.selected_tab = None;
-        self.in_panel = false;
-    }
-
-    pub fn is_tab_selected(&self) -> bool {
-        self.selected_tab.is_some()
-    }
-}
-
+#[derive(Debug)]
 pub struct App {
-    pub size: Rect,
-    navigation_stack: Vec<Route>,
-    pub selected_configuration_tab: Option<usize>,
-    pub vault: Option<SecretsVault>,
-    pub input: String,
-    pub connectivity_test: bool,
-    io_tx: Option<Sender<IoEvent>>,
     pub config: Option<Config>,
     pub configuration_state: ConfigurationState,
+    pub connectivity_test: bool,
+    io_tx: Option<Sender<IoEvent>>,
+    pub input: String,
+    navigation_stack: Vec<Route>,
+    pub size: Rect,
+    pub selected_configuration_tab: Option<usize>,
+    pub vault: Option<SecretsVault>,
 
     initialized: bool,
 }
@@ -142,16 +73,16 @@ pub struct App {
 impl Default for App {
     fn default() -> Self {
         App {
-            size: Rect::default(),
-            navigation_stack: vec![DEFAULT_ROUTE],
-            selected_configuration_tab: None,
-            vault: None,
-            input: String::new(),
+            config: None,
+            configuration_state: ConfigurationState::default(),
             connectivity_test: false,
             io_tx: None,
-            config: None,
+            input: String::new(),
+            navigation_stack: vec![DEFAULT_ROUTE],
+            size: Rect::default(),
+            selected_configuration_tab: None,
+            vault: None,
             initialized: false,
-            configuration_state: ConfigurationState::default(),
         }
     }
 }
@@ -159,8 +90,8 @@ impl Default for App {
 impl App {
     pub async fn new(io_tx: Sender<IoEvent>, config: Config, vault_key: &str) -> App {
         App {
-            io_tx: Some(io_tx),
             config: Some(config),
+            io_tx: Some(io_tx),
             vault: Some(SecretsVault::new(vault_key)),
             ..Default::default()
         }
@@ -237,5 +168,11 @@ impl App {
         s.pop();
         self.vault.as_ref().unwrap().create_secret(stype, s.to_owned());
         s.clear()
+    }
+
+    pub fn update_on_tick(&mut self) {
+        if !self.configuration_state.waiting_for_load() {
+            self.configuration_state.update_pan_len();
+        }
     }
 }

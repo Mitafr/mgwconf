@@ -1,21 +1,21 @@
 mod configuration;
 mod home;
 
-use crossterm::event::{KeyCode, KeyEvent};
+use crate::{
+    app::{ActiveBlock, App},
+    event::Key,
+};
 
-use crate::app::{ActiveBlock, App};
-
-pub fn handle_app(key: KeyEvent, app: &mut App) {
-    let key_code = key.code;
-    match key_code {
-        KeyCode::Esc => {
+pub fn handle_app(key: Key, app: &mut App) {
+    match key {
+        Key::Esc => {
             handle_escape(app);
         }
         _ => handle_route(key, app),
     }
 }
 
-fn handle_route(key: KeyEvent, app: &mut App) {
+fn handle_route(key: Key, app: &mut App) {
     let current_route = app.get_current_route();
     match current_route.id {
         crate::app::RouteId::Home => home::handler(key, app),
@@ -23,22 +23,21 @@ fn handle_route(key: KeyEvent, app: &mut App) {
     }
 }
 
-pub fn handle_input(key: KeyEvent, app: &mut App) {
-    let key_code = key.code;
-    match key_code {
-        KeyCode::Esc => {
+pub fn handle_input(key: Key, app: &mut App) {
+    match key {
+        Key::Esc => {
             app.input.clear();
             handle_escape(app);
         }
-        KeyCode::Enter => {
+        Key::Enter => {
             app.input.clear();
         }
-        KeyCode::Backspace => {
+        Key::Backspace => {
             if !app.input.is_empty() {
                 app.input.pop();
             }
         }
-        KeyCode::Char(c) => {
+        Key::Char(c) => {
             if app.input.len() < 48 {
                 app.input.push(c);
             }

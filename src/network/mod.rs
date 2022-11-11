@@ -8,7 +8,11 @@ use reqwest::{
 };
 use tokio::sync::Mutex;
 
-use crate::{app::App, config::Config, network::model::sag::SagEntities};
+use crate::{
+    app::{state::State, App},
+    config::Config,
+    network::model::sag::SagEntities,
+};
 
 use self::model::{
     certificate::{CertificateEntities, CertificateEntity},
@@ -74,6 +78,7 @@ impl<'a> Network<'a> {
         }
         debug!("{:#?}", res);
         app.configuration_state.sags = res.json::<SagEntities>().await?;
+        app.configuration_state.set_loaded();
         Ok(())
     }
 
@@ -112,6 +117,7 @@ impl<'a> Network<'a> {
         }
         debug!("{:#?}", res);
         app.configuration_state.certificates = res.json::<CertificateEntities>().await?;
+        app.configuration_state.set_loaded();
         Ok(())
     }
 
