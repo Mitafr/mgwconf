@@ -49,7 +49,7 @@ impl<'a> Network<'a> {
         let mut header = HeaderMap::new();
         header.append(
             "X-API-KEY",
-            HeaderValue::from_str(&app.vault.as_ref().expect("Vault not initialized correctly").configuration.as_ref().unwrap()).unwrap(),
+            HeaderValue::from_str(app.vault.as_ref().expect("Vault not initialized correctly").configuration.as_ref().unwrap()).unwrap(),
         );
         let res = self.client.get("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0/sag").headers(header).send().await?;
         if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {

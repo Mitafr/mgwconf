@@ -29,10 +29,6 @@ pub fn draw_configuration_sags<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rec
 where
     B: Backend,
 {
-    let mut sags = Vec::new();
-    sags.push(String::from("SAG1"));
-    sags.push(String::from("SAG2"));
-    sags.push(String::from("SAG3"));
-
+    let sags = vec![String::from("SAG1"), String::from("SAG2"), String::from("SAG3")];
     draw_selectable_list(f, app, layout_chunk, "", &sags, (true, true), Some(0), Borders::NONE);
 }

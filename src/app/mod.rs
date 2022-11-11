@@ -82,7 +82,7 @@ impl ConfigurationState {
     }
 
     pub fn back(&mut self) {
-        if self.tab_id <= 0 {
+        if self.tab_id == 0 {
             self.tab_id = self.tab_len - 1;
         } else {
             self.tab_id -= 1;

@@ -39,8 +39,7 @@ async fn main() -> Result<()> {
 
     let vault_key = ask_master_key();
     let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
-    let mut app = App::new(sync_io_tx, config.clone(), &vault_key).await;
-    app.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
+    let app = App::new(sync_io_tx, config.clone(), &vault_key).await;
 
     let app = Arc::new(Mutex::new(app));
 
@@ -57,6 +56,7 @@ async fn main() -> Result<()> {
         start_tokio(sync_io_rx, &mut net);
     });
     if args.ui {
+        cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
         start_ui(&cloned_app).await.unwrap();
     } else if args.create_secret {
         let mut app = cloned_app.lock().await;

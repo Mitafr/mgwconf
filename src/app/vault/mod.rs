@@ -1,9 +1,12 @@
+use aes::cipher::block_padding::Pkcs7;
+use aes::cipher::generic_array::GenericArray;
+use aes::cipher::{typenum, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use base64::encode;
+use rand::Rng;
+use std::fs::File;
+use std::io::prelude::*;
 use std::num::ParseIntError;
 use std::slice::Iter;
-
-use aes::cipher::block_padding::Pkcs7;
-use aes::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit};
-use base64::encode;
 
 type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
@@ -38,10 +41,7 @@ pub struct SecretsVault {
 
     pub current_secret: SecretType,
     key: [u8; 16],
-    iv: [u8; 16],
-    secret_len: u8,
     pt_len: usize,
-    buf_len: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -77,13 +77,11 @@ fn decode_hex(s: &str) -> Result<Vec<u8>, DecodeHexError> {
 
 impl SecretsVault {
     pub fn new(key: &str) -> SecretsVault {
-        let mut vault = SecretsVault::default();
-        vault.key = decode_hex(key).unwrap()[..16].try_into().unwrap();
-        vault.iv = [0x2, 0x2, 0x2, 0x2, 0x2, 0x3, 0x3, 0x3, 0x3, 0x3, 0x2, 0x3, 0x2, 0x3, 0x2, 0x3];
-        vault.secret_len = 16;
-        vault.pt_len = 48;
-        vault.buf_len = 64;
-        vault
+        SecretsVault {
+            key: decode_hex(key).unwrap()[..16].try_into().unwrap(),
+            pt_len: 48,
+            ..Default::default()
+        }
     }
 
     pub fn create_secret(&self, stype: SecretType, mut value: String) {
@@ -95,15 +93,25 @@ impl SecretsVault {
 
         let mut buf = [0u8; 64];
         buf[..self.pt_len].copy_from_slice(text);
-        Aes128CbcEnc::new(&self.key.into(), &self.iv.into()).encrypt_padded_mut::<Pkcs7>(&mut buf, self.pt_len).unwrap();
-
-        std::fs::write(format!("./vault/vault.{}", stype), buf).unwrap();
+        let mut rng = rand::thread_rng();
+        let mut iv: [u8; 16] = [0; 16];
+        for x in iv.iter_mut() {
+            *x = rng.gen();
+        }
+        let enc = Aes128CbcEnc::new(&self.key.into(), &iv.into());
+        enc.encrypt_padded_mut::<Pkcs7>(&mut buf, self.pt_len).unwrap();
+        let mut output = File::create(format!("./vault/vault.{}", stype)).unwrap();
+        let cipher = [iv.as_slice(), buf.as_slice()].concat();
+        output.write_all(&cipher).unwrap();
+        output.flush().unwrap();
     }
 
     pub fn read_secret_from_file(&mut self, stype: SecretType) {
-        let mut buf = std::fs::read(format!("./vault/vault.{}", stype)).unwrap();
-        Aes128CbcDec::new(&self.key.into(), &self.iv.into()).decrypt_padded_mut::<Pkcs7>(&mut buf).unwrap();
-        let utf8 = String::from_utf8(buf[..self.pt_len].to_vec()).unwrap();
+        let buf = std::fs::read(format!("./vault/vault.{}", stype)).unwrap();
+        let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
+        let cipher = &mut buf.clone()[16..];
+        Aes128CbcDec::new(&self.key.into(), iv).decrypt_padded_mut::<Pkcs7>(cipher).unwrap();
+        let utf8 = String::from_utf8(cipher[..self.pt_len].to_vec()).unwrap();
         let bytes = String::from_utf8(base64::decode_config(utf8.as_bytes(), base64::STANDARD).unwrap()[..16].to_vec()).unwrap();
         match stype {
             SecretType::Configuration => self.configuration = Some(bytes),

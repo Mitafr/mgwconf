@@ -27,6 +27,7 @@ whoami = "1"
 cbc = "0.1.2"
 aes = "0.8"
 base64 = "0.13.1"
+rand = "0.8.5"
 
 [[bin]]
 bench = false
