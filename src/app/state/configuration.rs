@@ -46,12 +46,10 @@ impl State for ConfigurationState {
             } else {
                 self.pan_id += 1;
             }
+        } else if self.tab_id + 1 >= self.tab_len {
+            self.tab_id = 0;
         } else {
-            if self.tab_id + 1 >= self.tab_len {
-                self.tab_id = 0;
-            } else {
-                self.tab_id += 1;
-            }
+            self.tab_id += 1;
         }
     }
 
@@ -62,12 +60,10 @@ impl State for ConfigurationState {
             } else {
                 self.pan_id -= 1;
             }
+        } else if self.tab_id == 0 {
+            self.tab_id = self.tab_len - 1;
         } else {
-            if self.tab_id == 0 {
-                self.tab_id = self.tab_len - 1;
-            } else {
-                self.tab_id -= 1;
-            }
+            self.tab_id -= 1;
         }
     }
 
@@ -118,11 +114,11 @@ impl State for ConfigurationState {
         self.waiting = true;
     }
     fn waiting_for_load(&self) -> bool {
-        return self.waiting;
+        self.waiting
     }
 
     fn is_loaded(&self) -> bool {
-        return self.loaded;
+        self.loaded
     }
 
     fn set_loaded(&mut self) {

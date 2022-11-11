@@ -139,10 +139,8 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
 
         match events.next()? {
             event::Event::Input(key) => {
-                if key == Key::Esc {
-                    if app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab {
-                        break 'main;
-                    }
+                if key == Key::Esc && (app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab) {
+                    break 'main;
                 }
 
                 let current_active_block = app.get_current_route().active_block;
