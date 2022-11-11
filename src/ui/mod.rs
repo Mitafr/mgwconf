@@ -2,7 +2,7 @@ use crate::ui::prelude::*;
 
 use crate::ui::{
     configuration::{draw_configuration, draw_configuration_user_block},
-    home::{draw_home, draw_secrets_dialog},
+    home::draw_home,
     utils::get_main_layout_margin,
 };
 
@@ -49,9 +49,6 @@ where
                 draw_configuration(f, app, chunks[1]);
             }
             draw_configuration_user_block(f, app, chunks[0]);
-        }
-        RouteId::SecretsDialog => {
-            draw_secrets_dialog(f, app);
         }
     };
 }

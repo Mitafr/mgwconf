@@ -7,7 +7,14 @@ use tui::layout::Rect;
 
 pub mod vault;
 
-use crate::{config::Config, network::IoEvent, ui::configuration::CONFIGURATION_USER_TAB};
+use crate::{
+    config::Config,
+    network::{
+        model::{certificate::CertificateEntities, sag::SagEntities},
+        IoEvent,
+    },
+    ui::configuration::CONFIGURATION_USER_TAB,
+};
 
 use self::vault::{SecretType, SecretsVault};
 
@@ -26,12 +33,11 @@ pub enum ActiveBlock {
 pub enum RouteId {
     Home,
     Configuration,
-    SecretsDialog,
 }
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
-    active_block: ActiveBlock::Empty,
+    active_block: ActiveBlock::Home,
     hovered_block: ActiveBlock::Empty,
 };
 
@@ -59,6 +65,8 @@ pub struct ConfigurationState {
     selected_tab: Option<usize>,
 
     in_panel: bool,
+    pub sags: SagEntities,
+    pub certificates: CertificateEntities,
 }
 
 impl Default for ConfigurationState {
@@ -68,6 +76,8 @@ impl Default for ConfigurationState {
             tab_len: CONFIGURATION_USER_TAB.len(),
             selected_tab: None,
             in_panel: false,
+            sags: SagEntities::default(),
+            certificates: CertificateEntities::default(),
         }
     }
 }

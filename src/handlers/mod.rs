@@ -1,4 +1,5 @@
 mod configuration;
+mod home;
 
 use crossterm::event::{KeyCode, KeyEvent};
 
@@ -10,7 +11,6 @@ pub fn handle_app(key: KeyEvent, app: &mut App) {
         KeyCode::Esc => {
             handle_escape(app);
         }
-        k if k == KeyCode::Char('a') && app.get_current_route().id != crate::app::RouteId::Configuration => app.push_navigation_stack(crate::app::RouteId::Configuration, ActiveBlock::Tab),
         _ => handle_route(key, app),
     }
 }
@@ -18,9 +18,8 @@ pub fn handle_app(key: KeyEvent, app: &mut App) {
 fn handle_route(key: KeyEvent, app: &mut App) {
     let current_route = app.get_current_route();
     match current_route.id {
-        crate::app::RouteId::Home => todo!(),
+        crate::app::RouteId::Home => home::handler(key, app),
         crate::app::RouteId::Configuration => configuration::handler(key, app),
-        crate::app::RouteId::SecretsDialog => todo!(),
     }
 }
 
