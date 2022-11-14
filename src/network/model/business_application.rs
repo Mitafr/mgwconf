@@ -1,17 +1,8 @@
 pub use super::prelude::*;
 
 #[derive(Serialize, Deserialize, Debug, DeriveModel)]
-pub struct BusinessApplications {
-    pub route: String,
-}
-
-impl Default for BusinessApplications {
-    fn default() -> BusinessApplications {
-        Self {
-            route: "mgw-configuration-api/2.0.0/business-application".to_owned(),
-        }
-    }
-}
+#[mgw_conf(route = "mgw-configuration-api/2.0.0/business-application")]
+pub struct BusinessApplications {}
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct Entities(pub Vec<Entity>);

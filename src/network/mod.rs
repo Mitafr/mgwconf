@@ -21,6 +21,9 @@ pub enum IoEvent {
     PostBusinessApplication,
     PostCertificate,
     PostSag,
+    DeleteBusinessApplication,
+    DeleteCertificate,
+    DeleteSag,
 }
 
 #[derive(Clone)]
@@ -53,12 +56,15 @@ impl<'a> Network<'a> {
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => self.app.lock().await.configuration_state.sags = model::sag::SagEntities::get(self.app.lock().await, &self.client, self.config).await?, //sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
             IoEvent::PostSag => model::sag::SagEntities::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteSag => model::sag::SagEntities::delete(self.app.lock().await, &self.client, self.config).await?,
             IoEvent::GetAllCertificates => self.app.lock().await.configuration_state.certificates = model::certificate::CertificateEntities::get(self.app.lock().await, &self.client, self.config).await?,
             IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteCertificate => model::certificate::CertificateEntities::delete(self.app.lock().await, &self.client, self.config).await?,
             IoEvent::GetAllBusinessApplications => {
                 self.app.lock().await.configuration_state.business_applications = model::business_application::BusinessApplications::get(self.app.lock().await, &self.client, self.config).await?
             }
             IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteBusinessApplication => model::business_application::BusinessApplications::delete(self.app.lock().await, &self.client, self.config).await?,
         };
         Ok(())
     }

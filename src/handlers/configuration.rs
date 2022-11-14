@@ -51,6 +51,12 @@ fn handle_inner_conf(key: &Key, app: &mut App) {
             2 => app.dispatch(IoEvent::PostBusinessApplication).unwrap(),
             _ => {}
         },
+        k if *k == Key::Delete => match app.configuration_state.current_selected() {
+            0 => app.dispatch(IoEvent::DeleteCertificate).unwrap(),
+            1 => app.dispatch(IoEvent::DeleteSag).unwrap(),
+            2 => app.dispatch(IoEvent::DeleteBusinessApplication).unwrap(),
+            _ => {}
+        },
         _ => {}
     }
 }

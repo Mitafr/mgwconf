@@ -21,4 +21,5 @@ pub trait ModelTrait {
 
     async fn get(app: MutexGuard<'_, App>, client: &Client, config: &Config) -> Result<Self::Entity, anyhow::Error>;
     async fn post(app: MutexGuard<'_, App>, client: &Client, config: &Config) -> Result<(), anyhow::Error>;
+    async fn delete(app: MutexGuard<'_, App>, client: &Client, config: &Config) -> Result<(), anyhow::Error>;
 }
