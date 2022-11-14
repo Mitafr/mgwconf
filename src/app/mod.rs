@@ -68,6 +68,7 @@ pub struct App {
     pub vault: Option<SecretsVault>,
 
     initialized: bool,
+    pub force_exit: bool,
 }
 
 impl Default for App {
@@ -83,6 +84,7 @@ impl Default for App {
             selected_configuration_tab: None,
             vault: None,
             initialized: false,
+            force_exit: false,
         }
     }
 }
@@ -115,6 +117,11 @@ impl App {
     }
 
     pub fn pop_navigation_stack(&mut self) {
+        log::info!("{}", self.navigation_stack.len());
+        log::info!("{:#?}", self.navigation_stack);
+        if self.navigation_stack.len() <= 1 {
+            self.force_exit = true;
+        }
         self.navigation_stack.pop();
     }
 

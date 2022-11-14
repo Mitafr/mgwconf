@@ -1,6 +1,7 @@
-use event::Key;
+use clap::Parser;
 use log::{error, info};
-use network::{IoEvent, Network};
+use mgwconf::event::Key;
+use mgwconf::network::{IoEvent, Network};
 use std::{
     io::{self, stdin, stdout, Stdout, Write},
     panic,
@@ -10,8 +11,6 @@ use std::{
 use tokio::sync::Mutex;
 
 use anyhow::Result;
-use app::{ActiveBlock, App};
-use clap::Parser;
 use crossterm::{
     cursor::MoveTo,
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -19,19 +18,13 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
+use mgwconf::app::{ActiveBlock, App};
 use tui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
 };
 
-mod app;
-mod config;
-mod event;
-mod handlers;
-mod network;
-mod ui;
-
-use crate::config::{Args, Config};
+use mgwconf::config::{Args, Config};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -115,7 +108,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
     let is_first_render = true;
 
     let tick_rate = Duration::from_millis(app.lock().await.config.as_ref().unwrap().tick_rate);
-    let events = event::Events::new(app.lock().await.config.as_ref().unwrap().tick_rate);
+    let events = mgwconf::event::Events::new(app.lock().await.config.as_ref().unwrap().tick_rate);
     let mut last_tick = Instant::now();
 
     'main: loop {
@@ -129,7 +122,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
         };
 
         terminal.draw(|f| {
-            ui::draw_main_layout(f, &app);
+            mgwconf::ui::draw_main_layout(f, &app);
         })?;
 
         terminal.hide_cursor()?;
@@ -138,7 +131,7 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
         terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
 
         match events.next()? {
-            event::Event::Input(key) => {
+            mgwconf::event::Event::Input(key) => {
                 if key == Key::Esc && (app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab) {
                     break 'main;
                 }
@@ -146,12 +139,15 @@ async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
                 let current_active_block = app.get_current_route().active_block;
 
                 if current_active_block == ActiveBlock::Dialog {
-                    handlers::handle_input(key, &mut app);
+                    mgwconf::handlers::handle_input(key, &mut app);
                 } else {
-                    handlers::handle_app(key, &mut app)
+                    mgwconf::handlers::handle_app(key, &mut app)
                 }
             }
-            event::Event::Tick => {
+            mgwconf::event::Event::Tick => {
+                if app.force_exit {
+                    break 'main;
+                }
                 app.update_on_tick();
             }
         }

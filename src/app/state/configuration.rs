@@ -1,5 +1,5 @@
 use crate::{
-    network::model::{business_application::BusinessApplications, certificate::CertificateEntities, sag::SagEntities},
+    network::model::{business_application::Entities as BusinessApplications, certificate::Entities as CertificateEntities, sag::Entities as SagEntities},
     ui::configuration::CONFIGURATION_USER_TAB,
 };
 

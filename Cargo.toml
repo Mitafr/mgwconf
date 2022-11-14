@@ -28,8 +28,13 @@ cbc = "0.1.2"
 aes = "0.8"
 base64 = "0.13.1"
 rand = "0.8.5"
+mgwconf-macros = { path = "mgwconf-macros" }
 
 [[bin]]
 bench = false
 path = "src/main.rs"
 name = "mgwc"
+
+[lib]
+name = "mgwconf"
+path = "src/lib.rs"

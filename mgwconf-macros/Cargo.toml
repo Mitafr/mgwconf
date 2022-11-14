@@ -1,0 +1,20 @@
+[package]
+name = "mgwconf-macros"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.65"
+
+[lib]
+name = "mgwconf_macros"
+path = "src/lib.rs"
+proc-macro = true
+
+[dependencies]
+syn = { version = "^1", default-features = true }
+bae = "0.1.7"
+proc-macro2 = "1.0"
+quote = "^1"
+async-trait = "0.1"
+
+[dev-dependencies]
+mgwconf = { path = "../" }

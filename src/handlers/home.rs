@@ -4,7 +4,7 @@ pub fn handler(key: Key, app: &mut App) {
     let route = app.get_current_route();
     match route.active_block {
         ActiveBlock::Home => handle_route(&key, app),
-        _ => {}
+        _ => handle_exit(&key, app),
     }
 }
 
@@ -18,5 +18,11 @@ fn handle_route(key: &Key, app: &mut App) {
             }
         }
         _ => {}
+    }
+}
+
+fn handle_exit(key: &Key, app: &mut App) {
+    if *key == Key::Esc {
+        app.force_exit = true;
     }
 }

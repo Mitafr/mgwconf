@@ -6,9 +6,9 @@ use tokio::sync::Mutex;
 
 use crate::{app::App, config::Config};
 
-use self::{controller::*, utils::route_url};
+use self::model::ModelTrait;
+use self::utils::route_url;
 
-pub mod controller;
 pub mod model;
 pub mod utils;
 
@@ -51,12 +51,14 @@ impl<'a> Network<'a> {
     pub async fn handle_network_event(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
-            IoEvent::GetAllSags => sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::PostSag => sag::post_sag(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::GetAllCertificates => certificate::get_all_certificates(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::PostCertificate => certificate::post_certificate(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::GetAllBusinessApplications => business_application::get_all_business_applications(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::PostBusinessApplication => business_application::post_business_application(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::GetAllSags => self.app.lock().await.configuration_state.sags = model::sag::SagEntities::get(self.app.lock().await, &self.client, self.config).await?, //sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::PostSag => model::sag::SagEntities::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::GetAllCertificates => self.app.lock().await.configuration_state.certificates = model::certificate::CertificateEntities::get(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::GetAllBusinessApplications => {
+                self.app.lock().await.configuration_state.business_applications = model::business_application::BusinessApplications::get(self.app.lock().await, &self.client, self.config).await?
+            }
+            IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
         };
         Ok(())
     }

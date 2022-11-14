@@ -85,7 +85,7 @@ impl SecretsVault {
     }
 
     pub fn create_secret(&self, stype: SecretType, mut value: String) {
-        while value.len() < 34 {
+        while value.len() < 32 {
             value += "0";
         }
         let binding = encode(value.as_bytes());

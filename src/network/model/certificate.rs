@@ -1,13 +1,26 @@
-use serde::{Deserialize, Serialize};
+pub use super::prelude::*;
+
+#[derive(Serialize, Deserialize, Debug, DeriveModel)]
+pub struct CertificateEntities {
+    pub route: String,
+}
+
+impl Default for CertificateEntities {
+    fn default() -> CertificateEntities {
+        Self {
+            route: "mgw-configuration-api/2.0.0/certificate".to_owned(),
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-pub struct CertificateEntities(pub Vec<CertificateEntity>);
+pub struct Entities(pub Vec<Entity>);
 
-impl CertificateEntities {
+impl Entities {
     pub fn to_vec_string(&self) -> Vec<String> {
         let mut v = Vec::new();
-        for sag in &self.0 {
-            v.push(sag.alias.clone());
+        for cert in &self.0 {
+            v.push(cert.alias.clone());
         }
         v
     }
@@ -15,7 +28,7 @@ impl CertificateEntities {
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct CertificateEntity {
+pub struct Entity {
     pub alias: String,
     #[serde(rename = "certificateX509")]
     pub certificate_x509: String,
