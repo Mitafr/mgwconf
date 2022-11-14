@@ -126,4 +126,13 @@ impl SecretsVault {
             self.read_secret_from_file(*stype);
         }
     }
+
+    pub fn get_secret(&self, stype: SecretType) -> Option<String> {
+        match stype {
+            SecretType::Configuration => self.configuration.to_owned(),
+            SecretType::Monitoring => self.monitoring.to_owned(),
+            SecretType::Management => self.management.to_owned(),
+            SecretType::Encrypt => self.encrypt.to_owned(),
+        }
+    }
 }

@@ -22,6 +22,7 @@ where
     match app.configuration_state.current_tab() {
         0 => draw_configuration_certificates(f, app, area),
         1 => draw_configuration_sags(f, app, area),
+        2 => draw_configuration_business_applications(f, app, area),
         _ => {}
     }
 }
@@ -46,4 +47,15 @@ where
     certificates_str.push("Add Certificate".to_owned());
     certificates_str.extend(certificates.to_vec_string());
     draw_selectable_list(f, app, layout_chunk, "", &certificates_str, (true, true), Some(app.configuration_state.current_pan()), Borders::NONE);
+}
+
+pub fn draw_configuration_business_applications<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let business_applications = &app.configuration_state.business_applications;
+    let mut business_applications_str = Vec::new();
+    business_applications_str.push("Add Business Application".to_owned());
+    business_applications_str.extend(business_applications.to_vec_string());
+    draw_selectable_list(f, app, layout_chunk, "", &business_applications_str, (true, true), Some(app.configuration_state.current_pan()), Borders::NONE);
 }

@@ -1,5 +1,5 @@
 use crate::{
-    network::model::{certificate::CertificateEntities, sag::SagEntities},
+    network::model::{business_application::BusinessApplications, certificate::CertificateEntities, sag::SagEntities},
     ui::configuration::CONFIGURATION_USER_TAB,
 };
 
@@ -13,12 +13,12 @@ pub struct ConfigurationState {
     pan_id: usize,
     pan_len: usize,
 
-    loaded: bool,
     waiting: bool,
 
     in_panel: bool,
     pub sags: SagEntities,
     pub certificates: CertificateEntities,
+    pub business_applications: BusinessApplications,
 }
 
 impl Default for ConfigurationState {
@@ -30,9 +30,9 @@ impl Default for ConfigurationState {
             in_panel: false,
             sags: SagEntities::default(),
             certificates: CertificateEntities::default(),
+            business_applications: BusinessApplications::default(),
             pan_id: 0,
             pan_len: 0,
-            loaded: false,
             waiting: false,
         }
     }
@@ -93,6 +93,7 @@ impl State for ConfigurationState {
         match self.tab_id {
             0 => self.pan_len = self.certificates.0.len() + 1,
             1 => self.pan_len = self.sags.0.len() + 1,
+            2 => self.pan_len = self.business_applications.0.len() + 1,
             _ => {}
         }
         if self.pan_len > 0 {
@@ -103,7 +104,6 @@ impl State for ConfigurationState {
     fn unselect_current(&mut self) {
         self.selected_tab = None;
         self.in_panel = false;
-        self.unset_loaded();
     }
 
     fn is_tab_selected(&self) -> bool {
@@ -115,17 +115,5 @@ impl State for ConfigurationState {
     }
     fn waiting_for_load(&self) -> bool {
         self.waiting
-    }
-
-    fn is_loaded(&self) -> bool {
-        self.loaded
-    }
-
-    fn set_loaded(&mut self) {
-        self.loaded = true;
-    }
-
-    fn unset_loaded(&mut self) {
-        self.loaded = false;
     }
 }

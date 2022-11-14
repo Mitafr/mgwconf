@@ -25,8 +25,9 @@ fn handle_tab(key: &Key, app: &mut App) {
         k if [Key::Enter, Key::Tab].contains(k) && !app.configuration_state.is_tab_selected() => {
             app.set_current_route_state(Some(ActiveBlock::TabSelected), None);
             match app.configuration_state.current_tab() {
-                0 => app.dispatch(IoEvent::GetAllCertificate).unwrap(),
+                0 => app.dispatch(IoEvent::GetAllCertificates).unwrap(),
                 1 => app.dispatch(IoEvent::GetAllSags).unwrap(),
+                2 => app.dispatch(IoEvent::GetAllBusinessApplications).unwrap(),
                 _ => {}
             }
             app.configuration_state.wait_for_load();
@@ -44,9 +45,10 @@ fn handle_inner_conf(key: &Key, app: &mut App) {
         }
         k if [Key::Down].contains(k) => app.configuration_state.next(),
         k if [Key::Up].contains(k) => app.configuration_state.back(),
-        k if k == &Key::Enter => match app.configuration_state.current_selected() {
+        k if *k == Key::Enter => match app.configuration_state.current_selected() {
             0 => app.dispatch(IoEvent::PostCertificate).unwrap(),
             1 => app.dispatch(IoEvent::PostSag).unwrap(),
+            2 => app.dispatch(IoEvent::PostBusinessApplication).unwrap(),
             _ => {}
         },
         _ => {}

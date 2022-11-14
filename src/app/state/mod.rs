@@ -16,7 +16,4 @@ pub trait State {
 
     fn waiting_for_load(&self) -> bool;
     fn wait_for_load(&mut self);
-    fn is_loaded(&self) -> bool;
-    fn set_loaded(&mut self);
-    fn unset_loaded(&mut self);
 }

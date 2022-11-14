@@ -47,7 +47,7 @@ impl Config {
             remote_ip,
             remote_port: 9003,
             root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
-            tick_rate: 133,
+            tick_rate: 250,
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);
