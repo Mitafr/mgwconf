@@ -14,7 +14,7 @@ where
     B: Backend,
 {
     let configuration = Block::default()
-        .title(Span::styled(CONFIGURATION_USER_TAB[app.configuration_state.current_selected()], Style::default()))
+        .title(Span::styled(app.configuration_state.current_selected().to_string(), Style::default()))
         .borders(Borders::ALL)
         .title_alignment(Alignment::Center);
     f.render_widget(configuration, layout_chunk);
@@ -58,4 +58,22 @@ where
     business_applications_str.push("Add Business Application".to_owned());
     business_applications_str.extend(business_applications.to_vec_string());
     draw_selectable_list(f, app, layout_chunk, "", &business_applications_str, (true, true), Some(app.configuration_state.current_pan()), Borders::NONE);
+}
+
+pub fn draw_detailed_entity<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let entity = app.configuration_state.selected_entity().unwrap();
+    let configuration = Block::default()
+        .title(Span::styled(entity.as_ref().get_name(), Style::default()))
+        .borders(Borders::ALL)
+        .title_alignment(Alignment::Center);
+    f.render_widget(configuration, layout_chunk);
+    let area = centered_rect(97, 90, layout_chunk);
+    let paragraph = Paragraph::new(entity.to_string())
+        .style(Style::default().bg(Color::Reset).fg(Color::White))
+        .block(Block::default())
+        .alignment(Alignment::Left);
+    f.render_widget(paragraph, area);
 }

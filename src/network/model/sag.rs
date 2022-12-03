@@ -1,6 +1,6 @@
 pub use super::prelude::*;
 
-#[derive(Serialize, Deserialize, Debug, DeriveModel)]
+#[derive(Serialize, Deserialize, DeriveModel)]
 #[mgw_conf(route = "mgw-configuration-api/2.0.0/sag")]
 pub struct SagEntities {}
 
@@ -17,9 +17,10 @@ impl Entities {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, DeriveEntity)]
 #[serde(rename_all = "camelCase")]
 pub struct Entity {
+    #[mgw_conf(primary_name)]
     pub hostname: String,
     pub port: usize,
     pub lau_key: Option<String>,
@@ -35,7 +36,7 @@ pub struct Entity {
 impl Default for Entity {
     fn default() -> Self {
         Entity {
-            hostname: "test2".to_owned(),
+            hostname: "test3".to_owned(),
             port: 48002,
             message_partner_name: Some("Sag MP".to_owned()),
             lau_key: Some("Abcd1234Abcd1234Abcd1234Abcd1234".to_owned()),
@@ -44,5 +45,11 @@ impl Default for Entity {
             active: true,
             public_certificate_alias: Some("test".to_owned()),
         }
+    }
+}
+
+impl std::fmt::Display for Entity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}\n{}", self.hostname, self.port)
     }
 }

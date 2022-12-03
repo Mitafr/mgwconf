@@ -5,6 +5,7 @@ pub use crate::network::utils::*;
 pub use crate::ui::prelude::App;
 pub use async_trait::async_trait;
 pub use log::debug;
+pub use mgwconf_macros::DeriveEntity;
 pub use mgwconf_macros::DeriveModel;
 pub use reqwest::{Client, StatusCode};
 pub use serde::{Deserialize, Serialize};

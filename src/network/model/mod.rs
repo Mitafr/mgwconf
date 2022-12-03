@@ -1,3 +1,5 @@
+use std::fmt::{Debug, Display};
+
 use async_trait::async_trait;
 use reqwest::Client;
 use tokio::sync::MutexGuard;
@@ -9,9 +11,11 @@ pub mod certificate;
 mod prelude;
 pub mod sag;
 
-pub trait InnerEntityTrait {}
+pub trait InnerEntityTrait: Debug + Send + Sync + Display {
+    fn get_name(&self) -> &str;
+}
 
-pub trait EntityTrait {}
+pub trait EntityTrait: Debug {}
 
 #[async_trait]
 pub trait ModelTrait {

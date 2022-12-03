@@ -1,6 +1,6 @@
 pub use super::prelude::*;
 
-#[derive(Serialize, Deserialize, Debug, DeriveModel)]
+#[derive(Serialize, Deserialize, DeriveModel)]
 #[mgw_conf(route = "mgw-configuration-api/2.0.0/certificate")]
 pub struct CertificateEntities {}
 
@@ -17,11 +17,18 @@ impl Entities {
     }
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, DeriveEntity)]
 #[serde(rename_all = "camelCase")]
 pub struct Entity {
+    #[mgw_conf(primary_name)]
     pub alias: String,
     #[serde(rename = "certificateX509")]
     pub certificate_x509: String,
     pub private_key: Option<String>,
+}
+
+impl std::fmt::Display for Entity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}\n{}", self.alias, self.certificate_x509)
+    }
 }

@@ -7,6 +7,8 @@ use crate::ui::{
     utils::get_main_layout_margin,
 };
 
+use self::configuration::draw_detailed_entity;
+
 pub mod configuration;
 pub mod home;
 pub mod prelude;
@@ -48,6 +50,9 @@ where
         RouteId::Configuration => {
             if current_route.active_block == ActiveBlock::TabSelected && app.configuration_state.is_tab_selected() {
                 draw_configuration(f, app, chunks[1]);
+            }
+            if current_route.active_block == ActiveBlock::Detailed && app.configuration_state.is_tab_selected() && app.configuration_state.selected_entity().is_some() {
+                draw_detailed_entity(f, app, chunks[1]);
             }
             draw_configuration_user_block(f, app, chunks[0]);
         }

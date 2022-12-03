@@ -58,6 +58,9 @@ fn handle_escape(app: &mut App) {
             app.set_current_route_state(Some(ActiveBlock::Tab), None);
             app.reset_selected_states();
         }
+        ActiveBlock::Detailed => {
+            app.set_current_route_state(Some(ActiveBlock::TabSelected), None);
+        }
         ActiveBlock::Dialog => app.reset_navigation_stack(),
         _ => {
             app.set_current_route_state(Some(ActiveBlock::Empty), None);

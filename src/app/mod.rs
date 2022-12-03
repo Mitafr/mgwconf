@@ -24,6 +24,7 @@ pub enum ActiveBlock {
     Tab,
     TabSelected,
     Dialog,
+    Detailed,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]

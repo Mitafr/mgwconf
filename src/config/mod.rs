@@ -72,7 +72,10 @@ impl Config {
         if !log_path.is_file() {
             warn!("logs file doesn't exist and will be created");
         }
-        let in_file = FileAppender::builder().encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S.%f)} {l} - {m}{n}"))).build(log_path).unwrap();
+        let in_file = FileAppender::builder()
+            .encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S.%f)} {l} {f} {L} - {m}{n}")))
+            .build(log_path)
+            .unwrap();
 
         let filter = if self.debug { LevelFilter::Debug } else { LevelFilter::Info };
 
