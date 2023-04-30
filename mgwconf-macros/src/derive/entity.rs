@@ -82,7 +82,11 @@ pub fn derive_entity(_ident: Ident, data: Data) -> Result<TokenStream, syn::Erro
     Ok(TokenStream::from_iter([
         quote!(
             #[automatically_derived]
-            impl super::EntityTrait for self::Entities {}
+            impl super::prelude::CollectionEntityTrait for self::Entities {
+                fn as_any(&self) -> &dyn super::prelude::Any {
+                    self
+                }
+            }
         ),
         quote!(
             #[automatically_derived]

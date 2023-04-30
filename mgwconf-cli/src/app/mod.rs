@@ -1,0 +1,123 @@
+use anyhow::Result;
+use async_trait::async_trait;
+use log::info;
+use std::{
+    io::{stdin, stdout, Write},
+    sync::mpsc::Sender,
+};
+
+use mgwconf_common::IoEvent;
+use mgwconf_common::{config::Config, model::CollectionEntityTrait, AppTrait};
+use mgwconf_common::{SecretType, SecretsVault};
+
+use crate::commands::Command;
+
+#[derive(Debug)]
+pub struct CliApp {
+    pub config: Option<Config>,
+    pub connectivity_test: bool,
+    io_tx: Option<Sender<IoEvent>>,
+    pub vault: Option<SecretsVault>,
+
+    initialized: bool,
+}
+
+impl Default for CliApp {
+    fn default() -> Self {
+        CliApp {
+            config: None,
+            connectivity_test: false,
+            io_tx: None,
+            vault: None,
+            initialized: false,
+        }
+    }
+}
+
+impl CliApp {
+    pub async fn new(io_tx: Sender<IoEvent>, config: Config, vault_key: &str) -> CliApp {
+        CliApp {
+            config: Some(config),
+            io_tx: Some(io_tx),
+            vault: Some(SecretsVault::new(vault_key)),
+            initialized: false,
+            ..Default::default()
+        }
+    }
+
+    pub async fn run_command(&self, command: Command) {
+        info!("{:#?}", command);
+    }
+}
+
+#[async_trait]
+impl AppTrait for CliApp {
+    async fn init(&mut self) -> Result<()> {
+        if self.initialized {
+            return Ok(());
+        }
+        if let Some(config) = &mut self.config {
+            config.init_logging();
+        }
+        self.io_tx.as_ref().unwrap().send(IoEvent::Ping)?;
+        self.initialized = true;
+        Ok(())
+    }
+
+    fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
+        self.io_tx.as_ref().unwrap().send(io_event)?;
+        Ok(())
+    }
+
+    fn ask_secrets(&mut self) -> Result<()> {
+        let mut secret = String::new();
+        for s in SecretType::iterator() {
+            self.ask_secret(&mut secret, *s);
+        }
+        print!("\x1B[2J\x1B[1;1H");
+        Ok(())
+    }
+
+    fn ask_secret(&mut self, s: &mut String, stype: SecretType) {
+        println!("Pleaser enter {} API KEY", stype);
+        let _ = stdout().flush();
+        stdin().read_line(s).expect("Did not enter a correct string");
+        s.pop();
+        self.vault.as_ref().unwrap().create_secret(stype, s.to_owned());
+        s.clear()
+    }
+
+    fn is_connected(&self) -> bool {
+        self.connectivity_test
+    }
+
+    fn set_connected(&mut self, connected: bool) {
+        self.connectivity_test = connected;
+    }
+
+    fn get_vault(&self) -> Option<&SecretsVault> {
+        self.vault.as_ref()
+    }
+
+    fn get_config(&self) -> Option<&Config> {
+        self.config.as_ref()
+    }
+
+    fn handle_network_response<T>(&mut self, event: IoEvent, _res: T)
+    where
+        T: CollectionEntityTrait,
+    {
+        match event {
+            IoEvent::Ping => todo!(),
+            IoEvent::GetAllBusinessApplications => todo!(),
+            IoEvent::GetAllCertificates => todo!(),
+            IoEvent::GetAllSags => todo!(),
+            IoEvent::PostBusinessApplication => todo!(),
+            IoEvent::PostCertificate => todo!(),
+            IoEvent::PostSag => todo!(),
+            IoEvent::DeleteBusinessApplication => todo!(),
+            IoEvent::DeleteCertificate => todo!(),
+            IoEvent::DeleteSag => todo!(),
+        }
+    }
+}

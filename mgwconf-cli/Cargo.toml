@@ -1,0 +1,13 @@
+[package]
+name = "mgwconf-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mgwconf-common = { path = "../mgwconf-common" }
+
+async-trait = { version = "^0.1" }
+anyhow = "1.0"
+log = "0.4"
+inquire = "0.6.1"
+clap = "4.2.5"

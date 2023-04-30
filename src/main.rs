@@ -1,30 +1,31 @@
+#[cfg(feature = "ui")]
+use crate::ui::UiApp;
 use clap::Parser;
+#[cfg(not(feature = "ui"))]
+use cli::start_cli;
 use log::{error, info};
-use mgwconf::event::Key;
-use mgwconf::network::{IoEvent, Network};
-use std::{
-    io::{self, stdin, stdout, Stdout, Write},
-    panic,
-    sync::Arc,
-    time::{Duration, Instant},
-};
-use tokio::sync::Mutex;
+#[cfg(not(feature = "ui"))]
+use mgwconf_cli::app::CliApp;
+use mgwconf_network::{IoEvent, Network};
+#[cfg(feature = "ui")]
+use ui::start_ui;
 
 use anyhow::Result;
-use crossterm::{
-    cursor::MoveTo,
-    event::{DisableMouseCapture, EnableMouseCapture},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-    ExecutableCommand,
+use mgwconf_common::{
+    config::{Args, Config},
+    AppTrait,
 };
-use mgwconf::app::{ActiveBlock, App};
-use tui::{
-    backend::{Backend, CrosstermBackend},
-    Terminal,
+use std::{
+    io::{stdin, stdout, Write},
+    panic,
+    sync::Arc,
 };
+use tokio::sync::{Mutex, Notify};
 
-use mgwconf::config::{Args, Config};
+#[cfg(not(feature = "ui"))]
+mod cli;
+#[cfg(feature = "ui")]
+mod ui;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
@@ -34,39 +35,43 @@ async fn main() -> Result<()> {
 
     let vault_key = if args.vault_key.is_some() { args.vault_key.unwrap() } else { ask_master_key() };
     let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
-    let app = App::new(sync_io_tx, config.clone(), &vault_key).await;
-
-    let app = Arc::new(Mutex::new(app));
-
+    #[cfg(not(feature = "ui"))]
+    let app = Arc::new(Mutex::new(CliApp::new(sync_io_tx, config.clone(), &vault_key).await));
+    #[cfg(feature = "ui")]
+    let app = Arc::new(Mutex::new(UiApp::new(sync_io_tx, config.clone(), &vault_key).await));
     let cloned_app = Arc::clone(&app);
+
     let orig = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         error!("{}", panic_info);
-        close_application(None).unwrap();
         orig(panic_info);
         std::process::exit(1);
     }));
+    let notify = Arc::new(Notify::new());
+    let notify2 = notify.clone();
     std::thread::spawn(move || {
         let mut net = Network::new(&app, &config).expect("Network Error");
-        start_tokio(sync_io_rx, &mut net);
+        start_tokio(sync_io_rx, &mut net, notify2);
     });
-    if args.ui {
-        cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
+    cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
+    #[cfg(feature = "ui")]
+    {
         start_ui(&cloned_app).await.unwrap();
-    } else if args.create_secret {
-        let mut app = cloned_app.lock().await;
-        app.ask_secrets()?;
-        println!("{:?}", app.vault);
+    }
+    #[cfg(not(feature = "ui"))]
+    {
+        start_cli(&cloned_app, notify).await.unwrap();
     }
     Ok(())
 }
 
 #[tokio::main]
-async fn start_tokio(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network) {
+async fn start_tokio<A: AppTrait>(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network<A>, pair2: Arc<Notify>) {
+    info!("Notifying thread");
     while let Ok(io_event) = io_rx.recv() {
         match network.handle_network_event(io_event).await {
-            Ok(r) => {
-                info!("{:#?}", r)
+            Ok(_) => {
+                pair2.notify_one();
             }
             Err(e) => {
                 error!("{:?}", e);
@@ -83,78 +88,4 @@ fn ask_master_key() -> String {
     vault_key.pop();
     print!("\x1B[2J\x1B[1;1H");
     vault_key
-}
-
-fn close_application(terminal: Option<&mut Terminal<CrosstermBackend<Stdout>>>) -> Result<()> {
-    if let Some(term) = terminal {
-        term.show_cursor()?;
-    }
-    disable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, LeaveAlternateScreen, DisableMouseCapture)?;
-    Ok(())
-}
-
-async fn start_ui(app: &Arc<Mutex<App>>) -> Result<(), anyhow::Error> {
-    let mut stdout = stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    enable_raw_mode()?;
-
-    let backend = CrosstermBackend::new(stdout);
-
-    let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
-
-    let is_first_render = true;
-
-    let tick_rate = Duration::from_millis(app.lock().await.config.as_ref().unwrap().tick_rate);
-    let events = mgwconf::event::Events::new(app.lock().await.config.as_ref().unwrap().tick_rate);
-    let mut last_tick = Instant::now();
-
-    'main: loop {
-        let mut app = app.lock().await;
-        app.init().await.unwrap();
-        // Get the size of the screen on each loop to account for resize event
-        if let Ok(size) = terminal.backend().size() {
-            if is_first_render || app.size != size {
-                app.size = size;
-            }
-        };
-
-        terminal.draw(|f| {
-            mgwconf::ui::draw_main_layout(f, &app);
-        })?;
-
-        terminal.hide_cursor()?;
-
-        let cursor_offset = 2;
-        terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
-
-        match events.next()? {
-            mgwconf::event::Event::Input(key) => {
-                if key == Key::Esc && (app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab) {
-                    break 'main;
-                }
-
-                let current_active_block = app.get_current_route().active_block;
-
-                if current_active_block == ActiveBlock::Dialog {
-                    mgwconf::handlers::handle_input(key, &mut app);
-                } else {
-                    mgwconf::handlers::handle_app(key, &mut app)
-                }
-            }
-            mgwconf::event::Event::Tick => {
-                if app.force_exit {
-                    break 'main;
-                }
-                app.update_on_tick();
-            }
-        }
-
-        if last_tick.elapsed() >= tick_rate {
-            last_tick = Instant::now();
-        }
-    }
-    close_application(Some(&mut terminal))
 }

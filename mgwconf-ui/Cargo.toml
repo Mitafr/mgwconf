@@ -1,0 +1,18 @@
+[package]
+name = "mgwconf-ui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mgwconf-common = { path = "../mgwconf-common" }
+mgwconf-macros = { path = "../mgwconf-macros" }
+mgwconf-network = { path = "../mgwconf-network" }
+
+log = "0.4"
+whoami = "1.2"
+tui = { version = "0.19.0", features = ["crossterm"], default-features = false }
+crossterm = "0.25.0"
+anyhow = "1.0"
+async-trait = { version = "^0.1" }
