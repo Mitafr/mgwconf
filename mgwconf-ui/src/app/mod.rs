@@ -1,19 +1,20 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use mgwconf_network::Config;
+use mgwconf_network::{model::CollectionEntityTrait, AppConfig, AppTrait, IoEvent};
+use mgwconf_vault::{SecretType, SecretsVault};
 use std::{
     io::{stdin, stdout, Write},
     sync::mpsc::Sender,
 };
 
-use mgwconf_common::{model::CollectionEntityTrait, AppTrait, IoEvent, SecretType, SecretsVault};
-
 pub mod state;
+
+use crate::config::Config;
 
 use self::state::{configuration::ConfigurationState, State};
 
 #[async_trait]
-pub trait UiAppTrait: AppTrait {
+pub trait UiAppTrait<C: AppConfig>: AppTrait<C> {
     fn update_on_tick(&mut self);
     fn get_current_route(&self) -> &Route;
     fn get_current_route_mut(&mut self) -> &mut Route;
@@ -107,7 +108,7 @@ impl UiApp {
 }
 
 #[async_trait]
-impl AppTrait for UiApp {
+impl<C: AppConfig> AppTrait<C> for UiApp {
     async fn init(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
@@ -125,7 +126,7 @@ impl AppTrait for UiApp {
     fn ask_secrets(&mut self) -> Result<()> {
         let mut secret = String::new();
         for s in SecretType::iterator() {
-            self.ask_secret(&mut secret, *s);
+            <UiApp as AppTrait<C>>::ask_secret(self, &mut secret, *s);
         }
         print!("\x1B[2J\x1B[1;1H");
         Ok(())
@@ -148,12 +149,12 @@ impl AppTrait for UiApp {
         self.connectivity_test = connected;
     }
 
-    fn get_vault(&self) -> Option<&SecretsVault> {
+    fn vault(&self) -> Option<&SecretsVault> {
         self.vault.as_ref()
     }
 
-    fn get_config(&self) -> Option<&Config> {
-        self.config.as_ref()
+    fn config(&self) -> Box<dyn AppConfig> {
+        Box::new(self.config.as_ref().unwrap().clone())
     }
 
     fn handle_network_response<T>(&mut self, event: IoEvent, res: T)
@@ -176,7 +177,7 @@ impl AppTrait for UiApp {
 }
 
 #[async_trait]
-impl UiAppTrait for UiApp {
+impl<C: AppConfig> UiAppTrait<C> for UiApp {
     fn get_current_route(&self) -> &Route {
         self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
     }
@@ -195,7 +196,7 @@ impl UiAppTrait for UiApp {
     }
 
     fn set_current_route_state(&mut self, active_block: Option<ActiveBlock>, hovered_block: Option<ActiveBlock>) {
-        let mut current_route = self.get_current_route_mut();
+        let mut current_route = <UiApp as UiAppTrait<C>>::get_current_route_mut(self);
         if let Some(active_block) = active_block {
             current_route.active_block = active_block;
         }

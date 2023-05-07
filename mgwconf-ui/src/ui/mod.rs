@@ -1,3 +1,5 @@
+use mgwconf_network::AppConfig;
+
 use crate::app::state::State;
 use crate::app::UiAppTrait;
 use crate::ui::prelude::*;
@@ -15,10 +17,11 @@ pub mod home;
 pub mod prelude;
 pub mod utils;
 
-pub fn draw_main_layout<A, B>(f: &mut Frame<B>, app: &A)
+pub fn draw_main_layout<A, B, C>(f: &mut Frame<B>, app: &A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
     B: Backend,
+    C: AppConfig,
 {
     let parent_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -33,10 +36,11 @@ where
     }
 }
 
-pub fn draw_routes<A, B>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
+pub fn draw_routes<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
     B: Backend,
+    C: AppConfig,
 {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)

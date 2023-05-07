@@ -1,8 +1,6 @@
 pub use log::debug;
 pub use mgwconf_macros::DeriveEntity;
 pub use mgwconf_macros::DeriveModel;
-pub use mgwconf_network::model::prelude::CollectionEntityTrait;
-pub use mgwconf_network::model::prelude::InnerEntityTrait;
 pub use std::fmt::Write;
 
 pub use mgwconf_network::model::business_application::Entity as BusinessApplicationEntity;

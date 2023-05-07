@@ -1,11 +1,9 @@
+pub use crate::model::ModelTrait;
 pub use crate::utils::*;
+pub use crate::AppConfig;
+pub use crate::AppTrait;
 pub use async_trait::async_trait;
 pub use log::debug;
-pub use mgwconf_common::config::Config;
-pub use mgwconf_common::model::CollectionEntityTrait;
-pub use mgwconf_common::model::InnerEntityTrait;
-pub use mgwconf_common::model::ModelTrait;
-pub use mgwconf_common::AppTrait;
 pub use mgwconf_macros::DeriveEntity;
 pub use mgwconf_macros::DeriveModel;
 pub use reqwest::{Client, StatusCode};

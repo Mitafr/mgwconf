@@ -1,4 +1,4 @@
-use mgwconf_network::IoEvent;
+use mgwconf_network::{AppConfig, IoEvent};
 
 use crate::app::{
     state::{State, TabId},
@@ -7,9 +7,10 @@ use crate::app::{
 use crate::event::Key;
 use crate::ui::prelude::ActiveBlock;
 
-pub fn handler<A>(key: Key, app: &mut A)
+pub fn handler<A, C>(key: Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     let route = app.get_current_route();
     match route.active_block {
@@ -20,9 +21,10 @@ where
     }
 }
 
-fn handle_tab<A>(key: &Key, app: &mut A)
+fn handle_tab<A, C>(key: &Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match key {
         k if [Key::Down].contains(k) && !app.get_configuration_state().is_tab_selected() => {
@@ -46,9 +48,10 @@ where
     }
 }
 
-fn handle_inner_conf<A>(key: &Key, app: &mut A)
+fn handle_inner_conf<A, C>(key: &Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match key {
         k if k == &Key::Tab => {
@@ -76,9 +79,10 @@ where
     }
 }
 
-fn handle_detailed<A>(key: &Key, _app: &mut A)
+fn handle_detailed<A, C>(key: &Key, _app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match key {
         _ => {}

@@ -1,11 +1,12 @@
 use crate::app::{RouteId, UiAppTrait};
 use crate::event::Key;
 use crate::ui::prelude::ActiveBlock;
-use mgwconf_network::IoEvent;
+use mgwconf_network::{AppConfig, IoEvent};
 
-pub fn handler<A>(key: Key, app: &mut A)
+pub fn handler<A, C>(key: Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     let route = app.get_current_route();
     match route.active_block {
@@ -14,9 +15,10 @@ where
     }
 }
 
-fn handle_route<A>(key: &Key, app: &mut A)
+fn handle_route<A, C>(key: &Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match key {
         k if k == &Key::Char('c') && app.get_current_route().id != RouteId::Configuration => {
@@ -30,9 +32,10 @@ where
     }
 }
 
-fn handle_exit<A>(key: &Key, app: &mut A)
+fn handle_exit<A, C>(key: &Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     if *key == Key::Esc {
         app.force_exit();

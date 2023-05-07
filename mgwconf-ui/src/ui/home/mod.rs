@@ -1,9 +1,12 @@
+use mgwconf_network::AppConfig;
+
 use crate::ui::prelude::*;
 
-pub fn draw_home<A, B>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
+pub fn draw_home<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
     B: Backend,
+    C: AppConfig,
 {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -17,8 +20,8 @@ where
     let paragraph = Paragraph::new(format!(
         "Utilisateur : {}\nRemote IP : {}\nRemote Port : {}\nConnectivity : {}",
         current_user,
-        app.get_config().as_ref().unwrap().remote_ip,
-        app.get_config().as_ref().unwrap().remote_port,
+        app.config().remote_ip(),
+        app.config().remote_port(),
         if app.is_connected() { "OK" } else { "KO" }
     ))
     .style(Style::default().bg(Color::Reset).fg(Color::White))

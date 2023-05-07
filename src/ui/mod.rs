@@ -1,4 +1,3 @@
-#[cfg(feature = "ui")]
 use crossterm::{
     cursor::MoveTo,
     event::{DisableMouseCapture, EnableMouseCapture},
@@ -6,23 +5,23 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-#[cfg(feature = "ui")]
+use mgwconf_network::AppConfig;
 use std::sync::Arc;
-#[cfg(feature = "ui")]
 use tokio::sync::Mutex;
-#[cfg(feature = "ui")]
 use tui::{backend::CrosstermBackend, Terminal};
 
-#[cfg(feature = "ui")]
-use std::io::Stdout;
+use std::io::{stdout, Stdout};
 
-#[cfg(feature = "ui")]
+use mgwconf_network::IoEvent;
+use std::sync::mpsc::Sender;
+
 pub use mgwconf_ui::{
     app::{UiApp, UiAppTrait},
     event::Key,
 };
 
-#[cfg(feature = "ui")]
+use mgwconf_ui::config::{Args, Config};
+
 pub fn close_application(terminal: Option<&mut Terminal<CrosstermBackend<Stdout>>>) -> Result<(), anyhow::Error> {
     if let Some(term) = terminal {
         term.show_cursor()?;
@@ -33,16 +32,24 @@ pub fn close_application(terminal: Option<&mut Terminal<CrosstermBackend<Stdout>
     Ok(())
 }
 
-#[cfg(feature = "ui")]
-pub async fn start_ui<A>(app: &Arc<Mutex<A>>) -> Result<(), anyhow::Error>
-where
-    A: UiAppTrait,
-{
-    use std::{
-        io::stdout,
-        time::{Duration, Instant},
-    };
+pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<UiApp>>, Config) {
+    use crate::ask_master_key;
+    use clap::Parser;
 
+    let args = Args::parse();
+    let vault_key = if args.vault_key.is_some() { (&args).vault_key.as_ref().unwrap().to_owned() } else { ask_master_key() };
+
+    let config = Config::init(&args).unwrap();
+    (Arc::new(Mutex::new(UiApp::new(io_tx, config.clone(), &vault_key).await)), config)
+}
+
+pub async fn start_ui<C>(app: Arc<Mutex<UiApp>>) -> Result<(), anyhow::Error>
+where
+    C: AppConfig,
+{
+    use std::time::{Duration, Instant};
+
+    use mgwconf_network::AppTrait;
     use mgwconf_ui::app::ActiveBlock;
 
     let mut stdout = stdout();
@@ -54,16 +61,18 @@ where
     let mut terminal = Terminal::new(backend)?;
     terminal.hide_cursor()?;
 
-    let tick_rate = Duration::from_millis(app.lock().await.get_config().as_ref().unwrap().tick_rate);
-    let events = mgwconf_ui::event::Events::new(app.lock().await.get_config().as_ref().unwrap().tick_rate);
+    let config = <UiApp as AppTrait<C>>::config(&*app.lock().await);
+
+    let tick_rate = Duration::from_millis(config.tickrate());
+    let events = mgwconf_ui::event::Events::new(config.tickrate());
     let mut last_tick = Instant::now();
 
     'main: loop {
         let mut app = app.lock().await;
-        app.init().await.unwrap();
+        <UiApp as AppTrait<C>>::init(&mut app).await?;
 
         terminal.draw(|f| {
-            mgwconf_ui::ui::draw_main_layout(f, &*app);
+            mgwconf_ui::ui::draw_main_layout::<UiApp, _, Config>(f, &*app);
         })?;
 
         terminal.hide_cursor()?;
@@ -71,25 +80,27 @@ where
         let cursor_offset = 2;
         terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
 
+        let current_route = <UiApp as UiAppTrait<C>>::get_current_route(&app);
+
         match events.next()? {
             mgwconf_ui::event::Event::Input(key) => {
-                if key == Key::Esc && (app.get_current_route().active_block == ActiveBlock::Empty || app.get_current_route().active_block == ActiveBlock::Tab) {
+                if key == Key::Esc && (current_route.active_block == ActiveBlock::Empty || current_route.active_block == ActiveBlock::Tab) {
                     break 'main;
                 }
 
-                let current_active_block = app.get_current_route().active_block;
+                let current_active_block = current_route.active_block;
 
                 if current_active_block == ActiveBlock::Dialog {
-                    mgwconf_ui::handlers::handle_input(key, &mut *app);
+                    mgwconf_ui::handlers::handle_input::<UiApp, Config>(key, &mut *app);
                 } else {
-                    mgwconf_ui::handlers::handle_app(key, &mut *app)
+                    mgwconf_ui::handlers::handle_app::<UiApp, Config>(key, &mut *app)
                 }
             }
             mgwconf_ui::event::Event::Tick => {
-                if app.get_force_exit() {
+                if <UiApp as UiAppTrait<C>>::get_force_exit(&app) {
                     break 'main;
                 }
-                app.update_on_tick();
+                <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
             }
         }
 

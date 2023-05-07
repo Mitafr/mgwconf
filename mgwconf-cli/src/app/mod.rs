@@ -1,16 +1,15 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use log::info;
 use std::{
     io::{stdin, stdout, Write},
     sync::mpsc::Sender,
 };
 
-use mgwconf_common::IoEvent;
-use mgwconf_common::{config::Config, model::CollectionEntityTrait, AppTrait};
-use mgwconf_common::{SecretType, SecretsVault};
+// use mgwconf_common::{config::Config, model::CollectionEntityTrait, AppTrait};
+use mgwconf_network::{model::CollectionEntityTrait, AppConfig, AppTrait, IoEvent};
+use mgwconf_vault::{SecretType, SecretsVault};
 
-use crate::commands::Command;
+use crate::{commands::Command, config::Config};
 
 #[derive(Debug)]
 pub struct CliApp {
@@ -45,13 +44,16 @@ impl CliApp {
         }
     }
 
-    pub async fn run_command(&self, command: Command) {
-        info!("{:#?}", command);
+    pub async fn run_command(&self, command: Command<'_>) {
+        command.run();
     }
 }
 
 #[async_trait]
-impl AppTrait for CliApp {
+impl<C> AppTrait<C> for CliApp
+where
+    C: AppConfig,
+{
     async fn init(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
@@ -72,7 +74,7 @@ impl AppTrait for CliApp {
     fn ask_secrets(&mut self) -> Result<()> {
         let mut secret = String::new();
         for s in SecretType::iterator() {
-            self.ask_secret(&mut secret, *s);
+            <CliApp as AppTrait<C>>::ask_secret(self, &mut secret, *s);
         }
         print!("\x1B[2J\x1B[1;1H");
         Ok(())
@@ -95,12 +97,12 @@ impl AppTrait for CliApp {
         self.connectivity_test = connected;
     }
 
-    fn get_vault(&self) -> Option<&SecretsVault> {
+    fn vault(&self) -> Option<&SecretsVault> {
         self.vault.as_ref()
     }
 
-    fn get_config(&self) -> Option<&Config> {
-        self.config.as_ref()
+    fn config(&self) -> Box<dyn AppConfig> {
+        Box::new(self.config.as_ref().unwrap().clone())
     }
 
     fn handle_network_response<T>(&mut self, event: IoEvent, _res: T)

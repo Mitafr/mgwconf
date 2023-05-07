@@ -1,7 +1,6 @@
-use mgwconf_network::model::business_application::Entities as BusinessApplications;
 use mgwconf_network::model::certificate::Entities as CertificateEntities;
-use mgwconf_network::model::prelude::InnerEntityTrait;
 use mgwconf_network::model::sag::Entities as SagEntities;
+use mgwconf_network::model::{business_application::Entities as BusinessApplications, InnerEntityTrait};
 
 use super::{State, TabId};
 

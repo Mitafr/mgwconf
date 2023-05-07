@@ -25,6 +25,28 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "CLI - Debug executable 'mgwc' CLI",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=mgwc",
+                    "--package=mgwconf"
+                ],
+                "filter": {
+                    "name": "mgwc",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-k",
+                "050a00040e0c0900020608060f0b0005",
+                "-d"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'mgwc'",
             "cargo": {
                 "args": [

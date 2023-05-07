@@ -1,12 +1,15 @@
 mod configuration;
 mod home;
 
+use mgwconf_network::AppConfig;
+
 use crate::app::{ActiveBlock, RouteId, UiAppTrait};
 use crate::event::Key;
 
-pub fn handle_app<A>(key: Key, app: &mut A)
+pub fn handle_app<A, C>(key: Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match key {
         Key::Esc => {
@@ -16,9 +19,10 @@ where
     }
 }
 
-fn handle_route<A>(key: Key, app: &mut A)
+fn handle_route<A, C>(key: Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     let current_route = app.get_current_route();
     match current_route.id {
@@ -27,9 +31,10 @@ where
     }
 }
 
-pub fn handle_input<A>(key: Key, app: &mut A)
+pub fn handle_input<A, C>(key: Key, app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match key {
         Key::Esc => {
@@ -53,9 +58,10 @@ where
     }
 }
 
-fn handle_escape<A>(app: &mut A)
+fn handle_escape<A, C>(app: &mut A)
 where
-    A: UiAppTrait,
+    A: UiAppTrait<C>,
+    C: AppConfig,
 {
     match app.get_current_route().active_block {
         ActiveBlock::Error => {

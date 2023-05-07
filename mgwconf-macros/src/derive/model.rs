@@ -19,12 +19,12 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
     Ok(quote!(
         #[async_trait]
         #[automatically_derived]
-        impl<A: AppTrait> super::prelude::ModelTrait<A> for #ident {
+        impl<A: AppTrait<C>, C: AppConfig> super::prelude::ModelTrait<A, C> for #ident {
             type Collection = self::Entities;
             type Entity = self::Entity;
 
-            async fn get(mut app: MutexGuard<'_, A>, client: &Client, config: &Config) -> Result<Self::Entity, anyhow::Error> {
-                let header = generate_api_header(&app, mgwconf_common::SecretType::Configuration);
+            async fn get(mut app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<Self::Entity, anyhow::Error> {
+                let header = generate_api_header(&app, mgwconf_vault::SecretType::Configuration);
                 let res = client.get(route_url(config, #route)).headers(header).send().await?;
                 if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {
                     return Err(anyhow::Error::msg(format!("{:?}", res)));
@@ -36,8 +36,8 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                 Ok(res)
             }
 
-            async fn get_all(mut app: MutexGuard<'_, A>, client: &Client, config: &Config) -> Result<Self::Collection, anyhow::Error> {
-                let header = generate_api_header(&app, mgwconf_common::SecretType::Configuration);
+            async fn get_all(mut app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<Self::Collection, anyhow::Error> {
+                let header = generate_api_header(&app, mgwconf_vault::SecretType::Configuration);
                 let res = client.get(route_url(config, #route)).headers(header).send().await?;
                 if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {
                     return Err(anyhow::Error::msg(format!("{:?}", res)));
@@ -49,8 +49,8 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                 Ok(res)
             }
 
-            async fn post(mut app: MutexGuard<'_, A>, client: &Client, config: &Config) -> Result<(), anyhow::Error> {
-                let header = generate_api_header(&app, mgwconf_common::SecretType::Configuration);
+            async fn post(mut app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error> {
+                let header = generate_api_header(&app, mgwconf_vault::SecretType::Configuration);
                 let mut test = Self::Entity::default();
 
                 debug!("{:?}", test);
@@ -59,8 +59,8 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                 Ok(())
             }
 
-            async fn delete(mut app: MutexGuard<'_, A>, client: &Client, config: &Config) -> Result<(), anyhow::Error> {
-                let header = generate_api_header(&app, mgwconf_common::SecretType::Configuration);
+            async fn delete(mut app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error> {
+                let header = generate_api_header(&app, mgwconf_vault::SecretType::Configuration);
                 let mut test = Self::Entity::default();
 
                 debug!("{:?}", test);

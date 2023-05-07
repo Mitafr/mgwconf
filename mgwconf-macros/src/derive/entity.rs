@@ -82,7 +82,7 @@ pub fn derive_entity(_ident: Ident, data: Data) -> Result<TokenStream, syn::Erro
     Ok(TokenStream::from_iter([
         quote!(
             #[automatically_derived]
-            impl super::prelude::CollectionEntityTrait for self::Entities {
+            impl super::CollectionEntityTrait for self::Entities {
                 fn as_any(&self) -> &dyn super::prelude::Any {
                     self
                 }
@@ -90,7 +90,7 @@ pub fn derive_entity(_ident: Ident, data: Data) -> Result<TokenStream, syn::Erro
         ),
         quote!(
             #[automatically_derived]
-            impl InnerEntityTrait for Entity {
+            impl super::InnerEntityTrait for Entity {
                 fn get_name(&self) -> &str {
                     &self.#primary_name
                 }

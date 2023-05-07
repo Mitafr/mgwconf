@@ -1,14 +1,8 @@
+use log::{debug, info, warn};
+use mgwconf_network::AppConfig;
 use std::{error::Error, net::IpAddr, path::PathBuf};
 
-use log::{debug, info, warn, LevelFilter};
-use log4rs::{
-    append::file::FileAppender,
-    config::{Appender, Root},
-    encode::pattern::PatternEncoder,
-    filter::threshold::ThresholdFilter,
-};
-
-use clap::Parser;
+use clap::{ArgMatches, Parser};
 
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
@@ -22,6 +16,25 @@ pub struct Args {
     /// pass vault key
     #[clap(short = 'k')]
     pub vault_key: Option<String>,
+}
+
+impl From<ArgMatches> for Args {
+    fn from(m: ArgMatches) -> Self {
+        Args {
+            create_secret: false,
+            vault_key: Some(m.get_one::<String>("k").unwrap().clone()),
+            debug: m.get_flag("debug"),
+        }
+    }
+}
+impl Default for Args {
+    fn default() -> Self {
+        Self {
+            debug: false,
+            create_secret: false,
+            vault_key: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -69,20 +82,25 @@ impl Config {
         if !log_path.is_file() {
             warn!("logs file doesn't exist and will be created");
         }
-        let in_file = FileAppender::builder()
-            .encoder(Box::new(PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S.%f)} {l} {f} {L} - {m}{n}")))
-            .build(log_path)
-            .unwrap();
 
-        let filter = if self.debug { LevelFilter::Debug } else { LevelFilter::Info };
-
-        let config = log4rs::Config::builder()
-            .appender(Appender::builder().filter(Box::new(ThresholdFilter::new(filter))).build("in_file", Box::new(in_file)))
-            .build(Root::builder().appender("in_file").build(filter))
-            .unwrap();
-
-        log4rs::init_config(config).unwrap();
         info!("Config has been loadded successfully");
         self.loaded = true;
+    }
+}
+
+impl AppConfig for Config {
+    fn remote_ip(&self) -> IpAddr {
+        self.remote_ip
+    }
+
+    fn remote_port(&self) -> u16 {
+        self.remote_port
+    }
+
+    fn root_ca_path(&self) -> String {
+        self.root_ca_path.to_owned()
+    }
+    fn tickrate(&self) -> u64 {
+        self.tick_rate
     }
 }
