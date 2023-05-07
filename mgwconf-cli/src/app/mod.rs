@@ -1,5 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use log::error;
 use std::{
     io::{stdin, stdout, Write},
     sync::mpsc::Sender,
@@ -45,6 +46,10 @@ impl CliApp {
     }
 
     pub async fn run_command(&self, command: Command<'_>) {
+        if !AppTrait::<Config>::is_connected(self) {
+            error!("App is not connected, {:?} is aborted", command);
+            return;
+        }
         command.run();
     }
 }
