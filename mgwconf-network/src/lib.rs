@@ -10,9 +10,6 @@ use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use utils::route_url;
 
-// pub use mgwconf_common::{config::Config, AppTrait, IoEvent};
-// use model::prelude::ModelTrait;
-
 pub mod model;
 pub mod utils;
 

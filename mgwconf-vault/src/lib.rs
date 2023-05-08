@@ -1,7 +1,8 @@
 use aes::cipher::block_padding::Pkcs7;
 use aes::cipher::generic_array::GenericArray;
 use aes::cipher::{typenum, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
-use base64::encode;
+use base64::engine::general_purpose;
+use base64::Engine;
 use rand::Rng;
 use std::fs::File;
 use std::io::prelude::*;
@@ -87,19 +88,19 @@ fn decode_hex(s: &str) -> Result<Vec<u8>, DecodeHexError> {
 }
 
 impl SecretsVault {
-    pub fn new(key: &str) -> SecretsVault {
-        SecretsVault {
-            key: decode_hex(key).unwrap()[..16].try_into().unwrap(),
+    pub fn new(key: &str) -> Result<SecretsVault, DecodeHexError> {
+        Ok(SecretsVault {
+            key: decode_hex(key)?[..16].try_into().unwrap(),
             pt_len: 48,
             ..Default::default()
-        }
+        })
     }
 
     pub fn create_secret(&self, stype: SecretType, mut value: String) {
         while value.len() < 32 {
             value += "0";
         }
-        let binding = encode(value.as_bytes());
+        let binding = general_purpose::STANDARD.encode(value.as_bytes());
         let text = binding.as_bytes();
 
         let mut buf = [0u8; 64];
@@ -117,24 +118,28 @@ impl SecretsVault {
         output.flush().unwrap();
     }
 
-    pub fn read_secret_from_file(&mut self, stype: SecretType) {
-        let buf = std::fs::read(format!("./vault/vault.{}", stype)).unwrap();
+    pub fn read_secret_from_file(&mut self, stype: SecretType) -> Result<(), Box<dyn std::error::Error>> {
+        let buf = std::fs::read(format!("./vault/vault.{}", stype))?;
         let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
         let cipher = &mut buf.clone()[16..];
-        Aes128CbcDec::new(&self.key.into(), iv).decrypt_padded_mut::<Pkcs7>(cipher).unwrap();
-        let utf8 = String::from_utf8(cipher[..self.pt_len].to_vec()).unwrap();
-        let bytes = String::from_utf8(base64::decode(utf8.as_bytes()).unwrap()[..16].to_vec()).unwrap();
+        Aes128CbcDec::new(&self.key.into(), iv).decrypt_padded_mut::<Pkcs7>(cipher).expect("Decrypt Error");
+        let utf8 = String::from_utf8(cipher[..self.pt_len].to_vec())?;
+        let bytes = String::from_utf8((general_purpose::STANDARD.decode(utf8.as_bytes()))?[..16].to_vec())?;
         match stype {
             SecretType::Configuration => self.configuration = Some(bytes),
             SecretType::Monitoring => self.monitoring = Some(bytes),
             SecretType::Management => self.management = Some(bytes),
             SecretType::Encrypt => self.encrypt = Some(bytes),
         }
+        Ok(())
     }
 
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
-            self.read_secret_from_file(*stype);
+            if let Err(e) = self.read_secret_from_file(*stype) {
+                log::error!("{:?}", e);
+                return;
+            }
         }
     }
 

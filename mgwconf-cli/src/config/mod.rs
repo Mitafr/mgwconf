@@ -3,7 +3,9 @@ use mgwconf_network::AppConfig;
 use std::{error::Error, net::IpAddr, path::PathBuf};
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-use clap::{ArgMatches, Parser};
+use clap::Parser;
+
+use crate::commands::Command;
 
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
@@ -17,23 +19,17 @@ pub struct Args {
     /// pass vault key
     #[clap(short = 'k')]
     pub vault_key: Option<String>,
+    #[clap(required = false)]
+    pub commands: Option<Vec<Command>>,
 }
 
-impl From<ArgMatches> for Args {
-    fn from(m: ArgMatches) -> Self {
-        Args {
-            create_secret: false,
-            vault_key: Some(m.get_one::<String>("k").unwrap().clone()),
-            debug: m.get_flag("debug"),
-        }
-    }
-}
 impl Default for Args {
     fn default() -> Self {
         Self {
             debug: false,
             create_secret: false,
             vault_key: None,
+            commands: None,
         }
     }
 }
@@ -47,12 +43,14 @@ pub struct Config {
     pub root_ca_path: String,
 
     pub tick_rate: u64,
+    pub commands: Vec<Command>,
 }
 
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_ip = IpAddr::from([127, 0, 0, 1]);
         let config = Config {
+            commands: args.commands.clone().unwrap_or_else(|| Vec::new()),
             debug: args.debug,
             loaded: false,
             remote_ip,

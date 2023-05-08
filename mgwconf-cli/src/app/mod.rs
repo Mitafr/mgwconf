@@ -1,5 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use core::panic;
 use log::error;
 use std::{
     io::{stdin, stdout, Write},
@@ -35,22 +36,34 @@ impl Default for CliApp {
 }
 
 impl CliApp {
-    pub async fn new(io_tx: Sender<IoEvent>, config: Config, vault_key: &str) -> CliApp {
+    pub async fn new(io_tx: Sender<IoEvent>, mut config: Config, vault_key: &str) -> CliApp {
+        config.init_logging();
+        let vault = match SecretsVault::new(vault_key) {
+            Ok(v) => v,
+            Err(e) => {
+                log::error!("Can't decode secret vault : {}", e);
+                panic!("Can't decode secret vault");
+            }
+        };
         CliApp {
             config: Some(config),
             io_tx: Some(io_tx),
-            vault: Some(SecretsVault::new(vault_key)),
+            vault: Some(vault),
             initialized: false,
             ..Default::default()
         }
     }
 
-    pub async fn run_command(&self, command: Command<'_>) {
+    pub async fn run_command(&self, command: Command) {
         if !AppTrait::<Config>::is_connected(self) {
             error!("App is not connected, {:?} is aborted", command);
             return;
         }
-        command.run();
+        for command in self.config.as_ref().unwrap().commands.iter() {
+            if !command.run() {
+                error!("Command failed");
+            }
+        }
     }
 }
 
@@ -62,9 +75,6 @@ where
     async fn init(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
-        }
-        if let Some(config) = &mut self.config {
-            config.init_logging();
         }
         self.io_tx.as_ref().unwrap().send(IoEvent::Ping)?;
         self.initialized = true;

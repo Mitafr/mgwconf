@@ -16,11 +16,6 @@ mod ui;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // let args = Args::parse();
-    // let mut config = Config::init(&args).expect("Could not init config");
-    // config.init_logging();
-
-    // let vault_key = if args.vault_key.is_some() { args.vault_key.unwrap() } else { ask_master_key() };
     let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
     #[cfg(not(feature = "ui"))]
     let (app, config) = cli::create_app(sync_io_tx).await;
@@ -76,6 +71,6 @@ pub fn ask_master_key() -> String {
     let _ = stdout().flush();
     stdin().read_line(&mut vault_key).expect("Did not enter a correct string");
     vault_key.pop();
-    print!("\x1B[2J\x1B[1;1H");
+    // print!("\x1B[2J\x1B[1;1H");
     vault_key
 }

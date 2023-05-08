@@ -1,6 +1,7 @@
-use log::{debug, info, warn};
+use log::{debug, info};
 use mgwconf_network::AppConfig;
 use std::{error::Error, net::IpAddr, path::PathBuf};
+use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 use clap::{ArgMatches, Parser};
 
@@ -74,15 +75,22 @@ impl Config {
             return;
         }
 
-        let mut log_path = PathBuf::from("logs");
+        let mut log_path = PathBuf::from("./logs");
         if !log_path.is_dir() {
-            warn!("logs directory doesn't exist");
+            println!("logs directory doesn't exist");
         }
-        log_path.push("mgwc.log");
-        if !log_path.is_file() {
-            warn!("logs file doesn't exist and will be created");
-        }
-
+        log_path.push(env!("CARGO_PKG_NAME"));
+        let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
+        let appender_format = if self.debug {
+            format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc")
+        } else {
+            format!("{}=info,{}=info", env!("CARGO_PKG_NAME"), "mgwc")
+        };
+        let filter = EnvFilter::builder().parse(appender_format).unwrap();
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(tracing_subscriber::fmt::Layer::new().with_writer(file_appender).with_line_number(true).with_ansi(false))
+            .init();
         info!("Config has been loadded successfully");
         self.loaded = true;
     }

@@ -97,11 +97,19 @@ impl Default for UiApp {
 }
 
 impl UiApp {
-    pub async fn new(io_tx: Sender<IoEvent>, config: Config, vault_key: &str) -> UiApp {
+    pub async fn new(io_tx: Sender<IoEvent>, mut config: Config, vault_key: &str) -> UiApp {
+        config.init_logging();
+        let vault = match SecretsVault::new(vault_key) {
+            Ok(v) => v,
+            Err(e) => {
+                log::error!("Can't decode secret vault : {}", e);
+                panic!("Can't decode secret vault");
+            }
+        };
         UiApp {
             config: Some(config),
             io_tx: Some(io_tx),
-            vault: Some(SecretsVault::new(vault_key)),
+            vault: Some(vault),
             ..Default::default()
         }
     }
