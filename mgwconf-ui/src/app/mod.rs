@@ -1,15 +1,30 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use mgwconf_network::{model::CollectionEntityTrait, AppConfig, AppTrait, IoEvent};
+use crossterm::{
+    cursor::MoveTo,
+    event::{DisableMouseCapture, EnableMouseCapture},
+    execute,
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    ExecutableCommand,
+};
+use mgwconf_network::{event::IoEvent, model::CollectionEntityTrait, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use std::{
     io::{stdin, stdout, Write},
-    sync::mpsc::Sender,
+    sync::Arc,
 };
+use tokio::sync::mpsc::Sender;
+use tokio::sync::{Mutex, Notify};
+use tui::{backend::CrosstermBackend, Terminal};
 
 pub mod state;
 
-use crate::config::Config;
+use crate::{
+    config::Config,
+    event::{Event, Events, Key},
+    handlers::{handle_app, handle_input},
+    ui::draw_main_layout,
+};
 
 use self::state::{configuration::ConfigurationState, State};
 
@@ -69,7 +84,7 @@ pub struct UiApp {
     pub config: Option<Config>,
     pub configuration_state: ConfigurationState,
     pub connectivity_test: bool,
-    io_tx: Option<Sender<IoEvent>>,
+    io_tx: Sender<IoEvent>,
     pub input: String,
     navigation_stack: Vec<Route>,
     pub selected_configuration_tab: Option<usize>,
@@ -77,23 +92,6 @@ pub struct UiApp {
 
     initialized: bool,
     pub force_exit: bool,
-}
-
-impl Default for UiApp {
-    fn default() -> Self {
-        UiApp {
-            config: None,
-            configuration_state: ConfigurationState::default(),
-            connectivity_test: false,
-            io_tx: None,
-            input: String::new(),
-            navigation_stack: vec![DEFAULT_ROUTE],
-            selected_configuration_tab: None,
-            vault: None,
-            initialized: false,
-            force_exit: false,
-        }
-    }
 }
 
 impl UiApp {
@@ -108,9 +106,15 @@ impl UiApp {
         };
         UiApp {
             config: Some(config),
-            io_tx: Some(io_tx),
+            io_tx,
             vault: Some(vault),
-            ..Default::default()
+            configuration_state: ConfigurationState::default(),
+            connectivity_test: false,
+            input: String::new(),
+            navigation_stack: vec![DEFAULT_ROUTE],
+            selected_configuration_tab: None,
+            initialized: false,
+            force_exit: false,
         }
     }
 }
@@ -121,13 +125,15 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         if self.initialized {
             return Ok(());
         }
-        self.io_tx.as_ref().unwrap().send(IoEvent::Ping)?;
+        log::info!("Initilizing UiApp...");
+        self.io_tx.send(IoEvent::Ping).await.unwrap();
+        log::info!("Ping sent...");
         self.initialized = true;
         Ok(())
     }
 
-    fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
-        self.io_tx.as_ref().unwrap().send(io_event)?;
+    async fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
+        self.io_tx.send(io_event).await?;
         Ok(())
     }
 
@@ -161,7 +167,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         self.vault.as_ref()
     }
 
-    fn config(&self) -> Box<dyn AppConfig> {
+    fn config(&self) -> Box<(dyn AppConfig)> {
         Box::new(self.config.as_ref().unwrap().clone())
     }
 
@@ -171,16 +177,86 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
     {
         match event {
             IoEvent::Ping => todo!(),
-            IoEvent::GetAllBusinessApplications => todo!(),
+            IoEvent::GetAllProfiles => self.configuration_state.profiles = res.as_any().downcast_ref::<mgwconf_network::model::profile::Entities>().unwrap().clone(),
+            IoEvent::GetAllBusinessApplications => self.configuration_state.business_applications = res.as_any().downcast_ref::<mgwconf_network::model::business_application::Entities>().unwrap().clone(),
             IoEvent::GetAllCertificates => self.configuration_state.certificates = res.as_any().downcast_ref::<mgwconf_network::model::certificate::Entities>().unwrap().clone(),
             IoEvent::GetAllSags => self.configuration_state.sags = res.as_any().downcast_ref::<mgwconf_network::model::sag::Entities>().unwrap().clone(),
             IoEvent::PostBusinessApplication => todo!(),
             IoEvent::PostCertificate => todo!(),
             IoEvent::PostSag => todo!(),
+            IoEvent::PostProfile => todo!(),
             IoEvent::DeleteBusinessApplication => todo!(),
             IoEvent::DeleteCertificate => todo!(),
             IoEvent::DeleteSag => todo!(),
         }
+    }
+
+    async fn run(app: Arc<Mutex<UiApp>>, _notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
+        use std::time::{Duration, Instant};
+
+        use mgwconf_network::AppTrait;
+
+        let mut stdout = stdout();
+        execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
+        enable_raw_mode()?;
+
+        let backend = CrosstermBackend::new(stdout);
+
+        let mut terminal = Terminal::new(backend)?;
+        terminal.hide_cursor()?;
+
+        let config = <UiApp as AppTrait<C>>::config(&*app.lock().await);
+
+        let tick_rate = Duration::from_millis(config.tickrate());
+        let mut events = Events::new(config.tickrate());
+        let mut last_tick = Instant::now();
+
+        'main: loop {
+            let mut app = app.lock().await;
+            <UiApp as AppTrait<C>>::init(&mut app).await?;
+
+            terminal.draw(|f| {
+                draw_main_layout::<UiApp, _, Config>(f, &*app);
+            })?;
+
+            terminal.hide_cursor()?;
+
+            let cursor_offset = 2;
+            terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
+
+            let current_route = <UiApp as UiAppTrait<C>>::get_current_route(&app);
+
+            match events.next()? {
+                Event::Input(key) => {
+                    if key == Key::Esc && (current_route.active_block == ActiveBlock::Empty || current_route.active_block == ActiveBlock::Tab) {
+                        break 'main;
+                    }
+
+                    let current_active_block = current_route.active_block;
+
+                    if current_active_block == ActiveBlock::Dialog {
+                        handle_input::<UiApp, Config>(key, &mut *app);
+                    } else {
+                        handle_app::<UiApp, Config>(key, &mut *app).await
+                    }
+                }
+                Event::Tick => {
+                    if <UiApp as UiAppTrait<C>>::get_force_exit(&app) {
+                        break 'main;
+                    }
+                    <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
+                }
+            }
+
+            if last_tick.elapsed() >= tick_rate {
+                last_tick = Instant::now();
+            }
+        }
+        terminal.show_cursor()?;
+        disable_raw_mode()?;
+        let mut stdout = std::io::stdout();
+        execute!(stdout, LeaveAlternateScreen, DisableMouseCapture)?;
+        Ok(())
     }
 }
 

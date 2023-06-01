@@ -1,4 +1,5 @@
 use mgwconf_network::model::certificate::Entities as CertificateEntities;
+use mgwconf_network::model::profile::Entities as Profiles;
 use mgwconf_network::model::sag::Entities as SagEntities;
 use mgwconf_network::model::{business_application::Entities as BusinessApplications, InnerEntityTrait};
 
@@ -18,6 +19,7 @@ pub struct ConfigurationState {
     pub sags: SagEntities,
     pub certificates: CertificateEntities,
     pub business_applications: BusinessApplications,
+    pub profiles: Profiles,
 
     current_entity: Option<Box<dyn InnerEntityTrait>>,
 }
@@ -32,6 +34,7 @@ impl Default for ConfigurationState {
             sags: SagEntities::default(),
             certificates: CertificateEntities::default(),
             business_applications: BusinessApplications::default(),
+            profiles: Profiles::default(),
             pan_id: 0,
             pan_len: 0,
             waiting: false,

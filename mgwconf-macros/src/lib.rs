@@ -22,5 +22,5 @@ pub fn proc_derive_entity(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let t = input.clone();
     let DeriveInput { ident, data, .. } = parse_macro_input!(input as DeriveInput);
     let _input = parse_macro_input!(t as DeriveInput);
-    TokenStream::from_iter([derive_entity(ident, data.clone()).unwrap()]).into()
+    TokenStream::from_iter([derive_entity(ident, data).unwrap()]).into()
 }

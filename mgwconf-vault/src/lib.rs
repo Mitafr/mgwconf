@@ -12,8 +12,9 @@ use std::slice::Iter;
 type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub enum SecretType {
+    #[default]
     Configuration,
     Monitoring,
     Management,
@@ -35,12 +36,6 @@ impl SecretType {
     pub fn iterator() -> Iter<'static, SecretType> {
         static SECRETTYPES: [SecretType; 4] = [SecretType::Configuration, SecretType::Monitoring, SecretType::Management, SecretType::Encrypt];
         SECRETTYPES.iter()
-    }
-}
-
-impl Default for SecretType {
-    fn default() -> Self {
-        SecretType::Configuration
     }
 }
 

@@ -4,11 +4,11 @@ use core::panic;
 use log::error;
 use std::{
     io::{stdin, stdout, Write},
-    sync::mpsc::Sender,
+    sync::Arc,
 };
-
+use tokio::sync::{mpsc::Sender, Mutex, Notify};
 // use mgwconf_common::{config::Config, model::CollectionEntityTrait, AppTrait};
-use mgwconf_network::{model::CollectionEntityTrait, AppConfig, AppTrait, IoEvent};
+use mgwconf_network::{event::IoEvent, model::CollectionEntityTrait, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 
 use crate::{commands::Command, config::Config};
@@ -17,22 +17,10 @@ use crate::{commands::Command, config::Config};
 pub struct CliApp {
     pub config: Option<Config>,
     pub connectivity_test: bool,
-    io_tx: Option<Sender<IoEvent>>,
+    io_tx: Sender<IoEvent>,
     pub vault: Option<SecretsVault>,
 
     initialized: bool,
-}
-
-impl Default for CliApp {
-    fn default() -> Self {
-        CliApp {
-            config: None,
-            connectivity_test: false,
-            io_tx: None,
-            vault: None,
-            initialized: false,
-        }
-    }
 }
 
 impl CliApp {
@@ -47,10 +35,10 @@ impl CliApp {
         };
         CliApp {
             config: Some(config),
-            io_tx: Some(io_tx),
+            io_tx,
             vault: Some(vault),
             initialized: false,
-            ..Default::default()
+            connectivity_test: false,
         }
     }
 
@@ -76,13 +64,13 @@ where
         if self.initialized {
             return Ok(());
         }
-        self.io_tx.as_ref().unwrap().send(IoEvent::Ping)?;
+        self.io_tx.send(IoEvent::Ping).await?;
         self.initialized = true;
         Ok(())
     }
 
-    fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
-        self.io_tx.as_ref().unwrap().send(io_event)?;
+    async fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
+        self.io_tx.send(io_event).await?;
         Ok(())
     }
 
@@ -126,15 +114,30 @@ where
     {
         match event {
             IoEvent::Ping => todo!(),
+            IoEvent::GetAllProfiles => todo!(),
             IoEvent::GetAllBusinessApplications => todo!(),
             IoEvent::GetAllCertificates => todo!(),
             IoEvent::GetAllSags => todo!(),
             IoEvent::PostBusinessApplication => todo!(),
             IoEvent::PostCertificate => todo!(),
             IoEvent::PostSag => todo!(),
+            IoEvent::PostProfile => todo!(),
             IoEvent::DeleteBusinessApplication => todo!(),
             IoEvent::DeleteCertificate => todo!(),
             IoEvent::DeleteSag => todo!(),
         }
+    }
+
+    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
+        <CliApp as AppTrait<C>>::init(&mut *app.lock().await).await?;
+        log::info!("Waiting for Network");
+        notifier.unwrap().notified().await;
+        log::info!("Network initialized, running command");
+        {
+            let app = &*app.lock().await;
+            let run_command = app.run_command(Command::new());
+            run_command.await;
+        }
+        Ok(())
     }
 }

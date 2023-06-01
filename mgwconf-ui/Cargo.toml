@@ -10,6 +10,7 @@ mgwconf-macros = { path = "../mgwconf-macros" }
 mgwconf-network = { path = "../mgwconf-network" }
 mgwconf-vault = { path = "../mgwconf-vault" }
 
+tokio = { version = "1.21", features = ["full"] }
 log = "0.4"
 whoami = "1.2"
 tui = { version = "0.19.0", features = ["crossterm"], default-features = false }

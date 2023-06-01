@@ -30,9 +30,7 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                     return Err(anyhow::Error::msg(format!("{:?}", res)));
                 }
                 let res = res.json::<Self::Entity>().await?;
-
                 debug!("{:?}", res);
-
                 Ok(res)
             }
 
@@ -43,28 +41,27 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                     return Err(anyhow::Error::msg(format!("{:?}", res)));
                 }
                 let res = res.json::<Self::Collection>().await?;
-
                 debug!("{:?}", res);
-
                 Ok(res)
             }
 
             async fn post(mut app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error> {
                 let header = generate_api_header(&app, mgwconf_vault::SecretType::Configuration);
                 let mut test = Self::Entity::default();
-
                 debug!("{:?}", test);
-
-                client.post(route_url(config, #route)).json(&test).headers(header).send().await?;
+                let res = client.post(route_url(config, #route)).json(&test).headers(header).send().await?;
+                if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {
+                    return Err(anyhow::Error::msg(format!("{:?}", res)));
+                }
+                let res = res.json::<Self::Collection>().await?;
+                debug!("{:?}", res);
                 Ok(())
             }
 
             async fn delete(mut app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error> {
                 let header = generate_api_header(&app, mgwconf_vault::SecretType::Configuration);
                 let mut test = Self::Entity::default();
-
                 debug!("{:?}", test);
-
                 client.delete(route_url(config, #route)).json(&test).headers(header).send().await?;
                 Ok(())
             }

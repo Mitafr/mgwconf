@@ -2,30 +2,19 @@ use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
+use event::IoEvent;
 use log::{error, info};
 use mgwconf_vault::{SecretType, SecretsVault};
 use model::CollectionEntityTrait;
 use model::ModelTrait;
 use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
+use tokio::sync::Notify;
 use utils::route_url;
 
+pub mod event;
 pub mod model;
 pub mod utils;
-
-#[derive(Debug)]
-pub enum IoEvent {
-    Ping,
-    GetAllBusinessApplications,
-    GetAllCertificates,
-    GetAllSags,
-    PostBusinessApplication,
-    PostCertificate,
-    PostSag,
-    DeleteBusinessApplication,
-    DeleteCertificate,
-    DeleteSag,
-}
 
 #[async_trait]
 pub trait AppConfig: Send + Sync {
@@ -36,9 +25,12 @@ pub trait AppConfig: Send + Sync {
 }
 
 #[async_trait]
-pub trait AppTrait<C: AppConfig>: Send {
+pub trait AppTrait<C>: Send + Sync + Sized
+where
+    C: AppConfig + Sized,
+{
     async fn init(&mut self) -> Result<()>;
-    fn dispatch(&mut self, io_event: IoEvent) -> Result<()>;
+    async fn dispatch(&mut self, io_event: IoEvent) -> Result<()>;
 
     fn ask_secrets(&mut self) -> Result<()>;
     fn ask_secret(&mut self, s: &mut String, stype: SecretType);
@@ -52,6 +44,8 @@ pub trait AppTrait<C: AppConfig>: Send {
     fn handle_network_response<T>(&mut self, event: IoEvent, res: T)
     where
         T: CollectionEntityTrait;
+
+    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error>;
 }
 
 #[derive(Clone)]
@@ -103,23 +97,29 @@ where
             IoEvent::GetAllSags => {
                 let entities = model::sag::SagEntities::get_all(self.app.lock().await, &self.client, self.config).await?;
                 self.app.lock().await.handle_network_response::<model::sag::Entities>(IoEvent::GetAllSags, entities);
-            } //= model::sag::SagEntities::get_all(self.app.lock().await, &self.client, self.config).await?, //sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::GetAllSags => self.app.lock().await.configuration_state.sags = model::sag::SagEntities::get_all(self.app.lock().await, &self.client, self.config).await?,
-            //sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
+            }
             IoEvent::PostSag => model::sag::SagEntities::post(self.app.lock().await, &self.client, self.config).await?,
             IoEvent::DeleteSag => model::sag::SagEntities::delete(self.app.lock().await, &self.client, self.config).await?,
             IoEvent::GetAllCertificates => {
                 let entities = model::certificate::CertificateEntities::get_all(self.app.lock().await, &self.client, self.config).await?;
                 self.app.lock().await.handle_network_response::<model::certificate::Entities>(IoEvent::GetAllCertificates, entities);
             }
-            // IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteCertificate => model::certificate::CertificateEntities::delete(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::GetAllBusinessApplications => {
-            //     self.app.lock().await.configuration_state.business_applications = model::business_application::BusinessApplications::get_all(self.app.lock().await, &self.client, self.config).await?
-            // }
-            // IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteBusinessApplication => model::business_application::BusinessApplications::delete(self.app.lock().await, &self.client, self.config).await?,
-            _ => {}
+            IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteCertificate => model::certificate::CertificateEntities::delete(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::GetAllBusinessApplications => {
+                let entities = model::business_application::BusinessApplications::get_all(self.app.lock().await, &self.client, self.config).await?;
+                self.app
+                    .lock()
+                    .await
+                    .handle_network_response::<model::business_application::Entities>(IoEvent::GetAllBusinessApplications, entities);
+            }
+            IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteBusinessApplication => model::business_application::BusinessApplications::delete(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::GetAllProfiles => {
+                let entities = model::profile::Profiles::get_all(self.app.lock().await, &self.client, self.config).await?;
+                self.app.lock().await.handle_network_response::<model::profile::Entities>(IoEvent::GetAllSags, entities);
+            }
+            IoEvent::PostProfile => model::profile::Profiles::post(self.app.lock().await, &self.client, self.config).await?,
         };
         Ok(())
     }
@@ -150,6 +150,6 @@ where
     T: AppConfig,
 {
     let mut buf = Vec::new();
-    File::open(&config.root_ca_path())?.read_to_end(&mut buf)?;
+    File::open(config.root_ca_path())?.read_to_end(&mut buf)?;
     Ok(reqwest::Certificate::from_pem(&buf).unwrap())
 }

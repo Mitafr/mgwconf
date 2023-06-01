@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Martin P."]
 
+[workspace]
+members = ["mgwconf-macros", "mgwconf-network", "mgwconf-cli", "mgwconf-ui"]
+
 [profile.dev.package."*"]
 opt-level = 3
 
@@ -28,11 +31,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = { version = "0.2" }
 
-tui = { version = "0.19.0", features = [
-    "crossterm",
-], default-features = false, optional = true }
-crossterm = { version = "0.26", optional = true }
-
 [[bin]]
 name = "mgwc"
 bench = false
@@ -47,5 +45,6 @@ path = "src/main.rs"
 
 [features]
 default = ["cli"]
-ui = ["mgwconf-ui", "tui", "crossterm"]
+all = ["ui", "cli"]
+ui = ["mgwconf-ui"]
 cli = ["mgwconf-cli"]

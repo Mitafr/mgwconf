@@ -1,25 +1,12 @@
 use std::sync::Arc;
 
 use mgwconf_cli::app::CliApp;
-use mgwconf_network::AppConfig;
-use mgwconf_network::AppTrait;
-use std::sync::mpsc::Sender;
-use tokio::sync::{Mutex, Notify};
+use tokio::sync::mpsc::Sender;
+use tokio::sync::Mutex;
 
 use clap::Parser;
 use mgwconf_cli::config::Config;
-use mgwconf_network::IoEvent;
-
-use mgwconf_cli::commands::Command;
-
-pub async fn start_cli<C: AppConfig>(app: Arc<Mutex<CliApp>>, pair: Arc<Notify>) -> Result<(), anyhow::Error> {
-    <CliApp as AppTrait<C>>::init(&mut *app.lock().await).await?;
-    log::info!("Waiting for Network");
-    pair.notified().await;
-    log::info!("Network initialized, running command");
-    app.lock().await.run_command(Command::new()).await;
-    Ok(())
-}
+use mgwconf_network::event::IoEvent;
 
 pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<CliApp>>, Config) {
     use mgwconf_cli::config::Args;

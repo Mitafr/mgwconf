@@ -1,6 +1,8 @@
+use std::{thread, time::Duration};
+
 use crate::event::Key;
 use crossterm::event;
-use std::{sync::mpsc, thread, time::Duration};
+use std::sync::mpsc;
 
 #[derive(Debug, Clone, Copy)]
 /// Configuration for event handling.
@@ -20,6 +22,7 @@ impl Default for EventConfig {
     }
 }
 
+#[derive(Debug)]
 /// An occurred event.
 pub enum Event<I> {
     /// An input event occurred.
@@ -60,7 +63,6 @@ impl Events {
                         event_tx.send(Event::Input(key)).unwrap();
                     }
                 }
-
                 event_tx.send(Event::Tick).unwrap();
             }
         });
@@ -70,7 +72,7 @@ impl Events {
 
     /// Attempts to read an event.
     /// This function will block the current thread.
-    pub fn next(&self) -> Result<Event<Key>, mpsc::RecvError> {
+    pub fn next(&mut self) -> Result<Event<Key>, mpsc::RecvError> {
         self.rx.recv()
     }
 }

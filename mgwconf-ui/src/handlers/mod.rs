@@ -6,7 +6,7 @@ use mgwconf_network::AppConfig;
 use crate::app::{ActiveBlock, RouteId, UiAppTrait};
 use crate::event::Key;
 
-pub fn handle_app<A, C>(key: Key, app: &mut A)
+pub async fn handle_app<A, C>(key: Key, app: &mut A)
 where
     A: UiAppTrait<C>,
     C: AppConfig,
@@ -15,19 +15,19 @@ where
         Key::Esc => {
             handle_escape(app);
         }
-        _ => handle_route(key, app),
+        _ => handle_route(key, app).await,
     }
 }
 
-fn handle_route<A, C>(key: Key, app: &mut A)
+async fn handle_route<A, C>(key: Key, app: &mut A)
 where
     A: UiAppTrait<C>,
     C: AppConfig,
 {
     let current_route = app.get_current_route();
     match current_route.id {
-        RouteId::Home => home::handler(key, app),
-        RouteId::Configuration => configuration::handler(key, app),
+        RouteId::Home => home::handler(key, app).await,
+        RouteId::Configuration => configuration::handler(key, app).await,
     }
 }
 

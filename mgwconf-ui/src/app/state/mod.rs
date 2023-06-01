@@ -18,6 +18,7 @@ impl From<usize> for TabId {
             x if x == TabId::CERTIFICATE as usize => TabId::CERTIFICATE,
             x if x == TabId::SAG as usize => TabId::SAG,
             x if x == TabId::BUSINESSAPPLICATION as usize => TabId::BUSINESSAPPLICATION,
+            x if x == TabId::PROFILE as usize => TabId::PROFILE,
             _ => TabId::CERTIFICATE,
         }
     }

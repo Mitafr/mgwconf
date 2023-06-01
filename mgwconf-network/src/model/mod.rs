@@ -10,6 +10,7 @@ use crate::{AppConfig, AppTrait};
 pub mod business_application;
 pub mod certificate;
 pub mod prelude;
+pub mod profile;
 pub mod sag;
 
 ///

@@ -27,6 +27,12 @@ impl Command {
     }
 }
 
+impl Default for Command {
+    fn default() -> Self {
+        Command { options: Vec::new(), cmd: || true }
+    }
+}
+
 impl From<String> for Command {
     fn from(value: String) -> Self {
         Self { options: vec![value], cmd: || true }

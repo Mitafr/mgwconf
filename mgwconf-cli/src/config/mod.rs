@@ -7,7 +7,7 @@ use clap::Parser;
 
 use crate::commands::Command;
 
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug, Default, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
     /// Debug mode
@@ -21,17 +21,6 @@ pub struct Args {
     pub vault_key: Option<String>,
     #[clap(required = false)]
     pub commands: Option<Vec<Command>>,
-}
-
-impl Default for Args {
-    fn default() -> Self {
-        Self {
-            debug: false,
-            create_secret: false,
-            vault_key: None,
-            commands: None,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -50,7 +39,7 @@ impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_ip = IpAddr::from([127, 0, 0, 1]);
         let config = Config {
-            commands: args.commands.clone().unwrap_or_else(|| Vec::new()),
+            commands: args.commands.clone().unwrap_or_default(),
             debug: args.debug,
             loaded: false,
             remote_ip,
@@ -80,9 +69,9 @@ impl Config {
         log_path.push(env!("CARGO_PKG_NAME"));
         let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
         let appender_format = if self.debug {
-            format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc")
+            format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc_cli")
         } else {
-            format!("{}=info,{}=info", env!("CARGO_PKG_NAME"), "mgwc")
+            format!("{}=info,{}=info", env!("CARGO_PKG_NAME"), "mgwc_cli")
         };
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()

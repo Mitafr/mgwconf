@@ -31,6 +31,7 @@ where
         0 => draw_configuration_certificates(f, app, area),
         1 => draw_configuration_sags(f, app, area),
         2 => draw_configuration_business_applications(f, app, area),
+        3 => draw_configuration_profiles(f, app, area),
         _ => {}
     }
 }
@@ -72,6 +73,18 @@ where
     business_applications_str.push("Add Business Application".to_owned());
     business_applications_str.extend(business_applications.to_vec_string());
     draw_selectable_list(f, app, layout_chunk, "", &business_applications_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+}
+pub fn draw_configuration_profiles<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
+where
+    A: UiAppTrait<C>,
+    B: Backend,
+    C: AppConfig,
+{
+    let profiles = &app.get_configuration_state().profiles;
+    let mut profiles_str = Vec::new();
+    profiles_str.push("Add Profile".to_owned());
+    profiles_str.extend(profiles.to_vec_string());
+    draw_selectable_list(f, app, layout_chunk, "", &profiles_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_detailed_entity<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)

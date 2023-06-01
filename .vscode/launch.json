@@ -47,6 +47,29 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "UI - Debug executable 'mgwc' UI",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=mgwc_ui",
+                    "--package=mgwconf",
+                    "--features=ui"
+                ],
+                "filter": {
+                    "name": "mgwc_ui",
+                    "kind": "bin"
+                }
+            },
+            "args": [
+                "-k",
+                "050a00040e0c0900020608060f0b0005",
+                "-d"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug unit tests in executable 'mgwc'",
             "cargo": {
                 "args": [

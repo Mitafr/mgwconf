@@ -1,5 +1,5 @@
 use log::{error, info};
-use mgwconf_network::{AppConfig, AppTrait, IoEvent, Network};
+use mgwconf_network::{event::IoEvent, AppConfig, AppTrait, Network};
 
 use anyhow::Result;
 use std::{
@@ -16,7 +16,7 @@ mod ui;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let (sync_io_tx, sync_io_rx) = std::sync::mpsc::channel::<IoEvent>();
+    let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
     #[cfg(not(feature = "ui"))]
     let (app, config) = cli::create_app(sync_io_tx).await;
     #[cfg(feature = "ui")]
@@ -38,28 +38,32 @@ async fn main() -> Result<()> {
     cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
     #[cfg(feature = "ui")]
     {
+        use mgwconf_ui::app::UiApp;
         use mgwconf_ui::config::Config;
-        ui::start_ui::<Config>(cloned_app).await.unwrap();
+        <UiApp as AppTrait<Config>>::run(cloned_app, None).await.unwrap();
     }
     #[cfg(not(feature = "ui"))]
     {
+        use mgwconf_cli::app::CliApp;
         use mgwconf_cli::config::Config;
-        cli::start_cli::<Config>(cloned_app, notify).await.unwrap();
+        <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await?;
     }
     info!("Exiting");
     Ok(())
 }
 
 #[tokio::main]
-async fn start_tokio<A: AppTrait<C>, C: AppConfig>(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network<A, C>, pair2: Arc<Notify>) {
+async fn start_tokio<A: AppTrait<C>, C: AppConfig>(mut io_rx: tokio::sync::mpsc::Receiver<IoEvent>, network: &mut Network<A, C>, pair2: Arc<Notify>) {
     info!("Notifying thread");
-    while let Ok(io_event) = io_rx.recv() {
-        match network.handle_network_event(io_event).await {
-            Ok(_) => {
-                pair2.notify_one();
-            }
-            Err(e) => {
-                error!("{:?}", e);
+    loop {
+        if let Ok(io_event) = io_rx.try_recv() {
+            match network.handle_network_event(io_event).await {
+                Ok(_) => {
+                    pair2.notify_one();
+                }
+                Err(e) => {
+                    error!("{:?}", e);
+                }
             }
         }
     }
@@ -71,6 +75,6 @@ pub fn ask_master_key() -> String {
     let _ = stdout().flush();
     stdin().read_line(&mut vault_key).expect("Did not enter a correct string");
     vault_key.pop();
-    // print!("\x1B[2J\x1B[1;1H");
+    print!("\x1B[2J\x1B[1;1H");
     vault_key
 }
