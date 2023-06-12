@@ -39,6 +39,7 @@ impl fmt::Display for TabId {
 pub trait State {
     fn next(&mut self);
     fn back(&mut self);
+    fn reload(&mut self);
 
     fn select_entity(&mut self);
     fn selected_entity(&self) -> Option<Box<&dyn InnerEntityTrait>>;

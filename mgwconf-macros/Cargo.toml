@@ -10,8 +10,8 @@ path = "src/lib.rs"
 proc-macro = true
 
 [dependencies]
-syn = { version = "^1", default-features = true }
-bae = "0.1.7"
+syn = { version = "^2", default-features = true }
+bae2 = "1"
 proc-macro2 = "1.0"
 quote = "^1"
 async-trait = "0.1"

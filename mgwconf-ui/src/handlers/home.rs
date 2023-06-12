@@ -21,7 +21,7 @@ where
     C: AppConfig,
 {
     match key {
-        k if k == &Key::Char('c') && app.get_current_route().id != RouteId::Configuration => {
+        k if k == &Key::Enter && app.get_current_route().id != RouteId::Configuration => {
             if app.is_connected() {
                 app.push_navigation_stack(RouteId::Configuration, ActiveBlock::Tab);
             } else {

@@ -1,0 +1,9 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml",
+        "./Cargo.toml"
+    ],
+    "editor.fontFamily": "'IntelOne Mono', Consolas, 'Courier New', monospace"
+}

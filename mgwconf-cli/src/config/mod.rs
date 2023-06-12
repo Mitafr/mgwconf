@@ -69,9 +69,9 @@ impl Config {
         log_path.push(env!("CARGO_PKG_NAME"));
         let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
         let appender_format = if self.debug {
-            format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc_cli")
+            format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc")
         } else {
-            format!("{}=info,{}=info", env!("CARGO_PKG_NAME"), "mgwc_cli")
+            format!("{}=info,{}=info", env!("CARGO_PKG_NAME"), "mgwc")
         };
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()

@@ -20,7 +20,7 @@ impl Entities {
 #[derive(Serialize, Deserialize, Default, Debug, Clone, DeriveEntity)]
 #[serde(rename_all = "camelCase")]
 pub struct Entity {
-    #[mgw_conf(primary_name)]
+    #[mgw_conf(primary_name, delete_query_attr)]
     pub alias: String,
     #[serde(rename = "certificateX509")]
     pub certificate_x509: String,

@@ -17,10 +17,12 @@ pub mod sag;
 /// Contains the entity itself
 ///
 pub trait InnerEntityTrait: Debug + Send + Sync {
-    fn get_name(&self) -> &str;
+    fn name(&self) -> &str;
+    fn delete_query(&self) -> Vec<(String, String)>;
     fn to_string(&self) -> String {
         String::new()
     }
+    fn as_any(&self) -> &dyn Any;
 }
 
 ///
@@ -40,8 +42,8 @@ where
 
     type Entity: InnerEntityTrait;
 
-    async fn get(app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<Self::Entity, anyhow::Error>;
-    async fn get_all(app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<Self::Collection, anyhow::Error>;
-    async fn post(app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error>;
-    async fn delete(app: MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error>;
+    async fn get(app: &MutexGuard<'_, A>, client: &Client, config: &C) -> Result<Self::Entity, anyhow::Error>;
+    async fn get_all(app: &MutexGuard<'_, A>, client: &Client, config: &C) -> Result<Self::Collection, anyhow::Error>;
+    async fn post(app: &MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error>;
+    async fn delete(app: &MutexGuard<'_, A>, client: &Client, config: &C, e: &Self::Entity) -> Result<(), anyhow::Error>;
 }

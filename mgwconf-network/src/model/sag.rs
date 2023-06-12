@@ -20,8 +20,9 @@ impl Entities {
 #[derive(Serialize, Deserialize, Debug, Clone, DeriveEntity)]
 #[serde(rename_all = "camelCase")]
 pub struct Entity {
-    #[mgw_conf(primary_name)]
+    #[mgw_conf(primary_name, delete_query_attr("hostname"))]
     pub hostname: String,
+    #[mgw_conf(delete_query_attr("port"))]
     pub port: usize,
     pub lau_key: Option<String>,
     #[serde(rename = "sslDN")]
@@ -35,8 +36,10 @@ pub struct Entity {
 
 impl Default for Entity {
     fn default() -> Self {
+        use rand::prelude::*;
+        let rng = rand::thread_rng().gen_range(0..100);
         Entity {
-            hostname: "test3".to_owned(),
+            hostname: format!("test{}", rng),
             port: 48002,
             message_partner_name: Some("Sag MP".to_owned()),
             lau_key: Some("Abcd1234Abcd1234Abcd1234Abcd1234".to_owned()),

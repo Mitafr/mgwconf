@@ -132,7 +132,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         Ok(())
     }
 
-    async fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
+    async fn dispatch(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
         self.io_tx.send(io_event).await?;
         Ok(())
     }
@@ -185,9 +185,9 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
             IoEvent::PostCertificate => todo!(),
             IoEvent::PostSag => todo!(),
             IoEvent::PostProfile => todo!(),
-            IoEvent::DeleteBusinessApplication => todo!(),
-            IoEvent::DeleteCertificate => todo!(),
-            IoEvent::DeleteSag => todo!(),
+            IoEvent::DeleteBusinessApplication(_e) => todo!(),
+            IoEvent::DeleteCertificate(_e) => todo!(),
+            IoEvent::DeleteSag(_e) => todo!(),
         }
     }
 
@@ -280,7 +280,7 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
     }
 
     fn set_current_route_state(&mut self, active_block: Option<ActiveBlock>, hovered_block: Option<ActiveBlock>) {
-        let mut current_route = <UiApp as UiAppTrait<C>>::get_current_route_mut(self);
+        let current_route = <UiApp as UiAppTrait<C>>::get_current_route_mut(self);
         if let Some(active_block) = active_block {
             current_route.active_block = active_block;
         }

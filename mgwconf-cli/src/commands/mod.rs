@@ -1,9 +1,8 @@
-use lazy_static::lazy_static;
 use log::{info, warn};
 
-lazy_static! {
-    static ref AVAILABLE_COMMANDS: [&'static str; 2] = ["GET-SAG", "GET-CERTIFICATES"];
-}
+use crate::commands::registry::AVAILABLE_COMMANDS;
+
+mod registry;
 
 #[derive(Debug, Clone)]
 pub struct Command {

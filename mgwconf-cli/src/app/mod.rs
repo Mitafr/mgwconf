@@ -122,9 +122,9 @@ where
             IoEvent::PostCertificate => todo!(),
             IoEvent::PostSag => todo!(),
             IoEvent::PostProfile => todo!(),
-            IoEvent::DeleteBusinessApplication => todo!(),
-            IoEvent::DeleteCertificate => todo!(),
-            IoEvent::DeleteSag => todo!(),
+            IoEvent::DeleteBusinessApplication(_e) => todo!(),
+            IoEvent::DeleteCertificate(_e) => todo!(),
+            IoEvent::DeleteSag(_e) => todo!(),
         }
     }
 

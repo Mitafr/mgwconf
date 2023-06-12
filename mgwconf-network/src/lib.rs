@@ -30,7 +30,7 @@ where
     C: AppConfig + Sized,
 {
     async fn init(&mut self) -> Result<()>;
-    async fn dispatch(&mut self, io_event: IoEvent) -> Result<()>;
+    async fn dispatch(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error>;
 
     fn ask_secrets(&mut self) -> Result<()>;
     fn ask_secret(&mut self, s: &mut String, stype: SecretType);
@@ -95,31 +95,32 @@ where
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => {
-                let entities = model::sag::SagEntities::get_all(self.app.lock().await, &self.client, self.config).await?;
-                self.app.lock().await.handle_network_response::<model::sag::Entities>(IoEvent::GetAllSags, entities);
+                let mut app = self.app.lock().await;
+                let entities = model::sag::SagEntities::get_all(&app, &self.client, self.config).await?;
+                app.handle_network_response::<model::sag::Entities>(IoEvent::GetAllSags, entities);
             }
-            IoEvent::PostSag => model::sag::SagEntities::post(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::DeleteSag => model::sag::SagEntities::delete(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::PostSag => model::sag::SagEntities::post(&self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteSag(e) => model::sag::SagEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllCertificates => {
-                let entities = model::certificate::CertificateEntities::get_all(self.app.lock().await, &self.client, self.config).await?;
-                self.app.lock().await.handle_network_response::<model::certificate::Entities>(IoEvent::GetAllCertificates, entities);
+                let mut app = self.app.lock().await;
+                let entities = model::certificate::CertificateEntities::get_all(&app, &self.client, self.config).await?;
+                app.handle_network_response::<model::certificate::Entities>(IoEvent::GetAllCertificates, entities);
             }
-            IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::DeleteCertificate => model::certificate::CertificateEntities::delete(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::PostCertificate => model::certificate::CertificateEntities::post(&self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteCertificate(e) => model::certificate::CertificateEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllBusinessApplications => {
-                let entities = model::business_application::BusinessApplications::get_all(self.app.lock().await, &self.client, self.config).await?;
-                self.app
-                    .lock()
-                    .await
-                    .handle_network_response::<model::business_application::Entities>(IoEvent::GetAllBusinessApplications, entities);
+                let mut app = self.app.lock().await;
+                let entities = model::business_application::BusinessApplications::get_all(&app, &self.client, self.config).await?;
+                app.handle_network_response::<model::business_application::Entities>(IoEvent::GetAllBusinessApplications, entities);
             }
-            IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::DeleteBusinessApplication => model::business_application::BusinessApplications::delete(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(&self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::DeleteBusinessApplication(e) => model::business_application::BusinessApplications::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllProfiles => {
-                let entities = model::profile::Profiles::get_all(self.app.lock().await, &self.client, self.config).await?;
-                self.app.lock().await.handle_network_response::<model::profile::Entities>(IoEvent::GetAllSags, entities);
+                let mut app = self.app.lock().await;
+                let entities = model::profile::Profiles::get_all(&app, &self.client, self.config).await?;
+                app.handle_network_response::<model::profile::Entities>(IoEvent::GetAllSags, entities);
             }
-            IoEvent::PostProfile => model::profile::Profiles::post(self.app.lock().await, &self.client, self.config).await?,
+            IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
         };
         Ok(())
     }

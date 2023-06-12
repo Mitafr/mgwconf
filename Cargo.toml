@@ -23,9 +23,9 @@ mgwconf-network = { path = "mgwconf-network", features = ["ui"] }
 mgwconf-cli = { path = "mgwconf-cli", optional = true }
 mgwconf-ui = { path = "mgwconf-ui", optional = true }
 
-tokio = { version = "1.21", features = ["full"] }
+tokio = { version = "1.28", features = ["full"] }
 log = "0.4"
-clap = { version = "4.0", features = ["derive"] }
+clap = { version = "4.3", features = ["derive"] }
 anyhow = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -34,17 +34,15 @@ tracing-appender = { version = "0.2" }
 [[bin]]
 name = "mgwc"
 bench = false
-path = "src/main.rs"
 required-features = ["cli"]
+path = "src/cli/main.rs"
 
 [[bin]]
 name = "mgwc_ui"
 bench = false
 required-features = ["ui"]
-path = "src/main.rs"
+path = "src/ui/main.rs"
 
 [features]
-default = ["cli"]
-all = ["ui", "cli"]
 ui = ["mgwconf-ui"]
 cli = ["mgwconf-cli"]

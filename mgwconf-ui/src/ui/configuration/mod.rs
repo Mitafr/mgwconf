@@ -95,7 +95,7 @@ where
 {
     let entity: Box<&dyn InnerEntityTrait> = app.get_configuration_state().selected_entity().unwrap();
     let configuration = Block::default()
-        .title(Span::styled(entity.as_ref().get_name(), Style::default()))
+        .title(Span::styled(entity.as_ref().name(), Style::default()))
         .borders(Borders::ALL)
         .title_alignment(Alignment::Left);
     f.render_widget(configuration, layout_chunk);

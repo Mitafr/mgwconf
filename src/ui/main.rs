@@ -1,26 +1,30 @@
 use log::{error, info};
 use mgwconf_network::{event::IoEvent, AppConfig, AppTrait, Network};
 
+use std::sync::Arc;
+use tokio::sync::Mutex;
+
+use tokio::sync::mpsc::Sender;
+
+pub use mgwconf_ui::{
+    app::{UiApp, UiAppTrait},
+    event::Key,
+};
+
+use mgwconf_ui::config::{Args, Config};
+
 use anyhow::Result;
 use std::{
     io::{stdin, stdout, Write},
     panic,
-    sync::Arc,
 };
 use tokio::sync::Notify;
-
-#[cfg(not(feature = "ui"))]
-mod cli;
-#[cfg(feature = "ui")]
-mod ui;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
-    #[cfg(not(feature = "ui"))]
-    let (app, config) = cli::create_app(sync_io_tx).await;
     #[cfg(feature = "ui")]
-    let (app, config) = ui::create_app(sync_io_tx).await;
+    let (app, config) = create_app(sync_io_tx).await;
     let cloned_app = Arc::clone(&app);
 
     let orig = panic::take_hook();
@@ -42,14 +46,18 @@ async fn main() -> Result<()> {
         use mgwconf_ui::config::Config;
         <UiApp as AppTrait<Config>>::run(cloned_app, None).await.unwrap();
     }
-    #[cfg(not(feature = "ui"))]
-    {
-        use mgwconf_cli::app::CliApp;
-        use mgwconf_cli::config::Config;
-        <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await?;
-    }
     info!("Exiting");
     Ok(())
+}
+
+pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<UiApp>>, Config) {
+    use clap::Parser;
+
+    let args = Args::parse();
+    let vault_key = if args.vault_key.is_some() { args.vault_key.as_ref().unwrap().to_owned() } else { ask_master_key() };
+
+    let config = Config::init(&args).unwrap();
+    (Arc::new(Mutex::new(UiApp::new(io_tx, config.clone(), &vault_key).await)), config)
 }
 
 #[tokio::main]

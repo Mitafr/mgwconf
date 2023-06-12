@@ -75,6 +75,10 @@ impl State for ConfigurationState {
         }
     }
 
+    fn reload(&mut self) {
+        self.select_entity();
+    }
+
     fn select_entity(&mut self) {
         if !self.in_panel || self.pan_id == 0 {
             self.current_entity = None;

@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.21", features = ["full"] }
+tokio = { version = "1.28", features = ["full"] }
 async-trait = { version = "^0.1" }
 anyhow = "1.0"
 log = "0.4"
-clap = "4.2.5"
+clap = "4.3"
 lazy_static = "1"
 
 mgwconf-network = { path = "../mgwconf-network", features = ["cli"] }

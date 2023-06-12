@@ -1,3 +1,4 @@
+pub use super::InnerEntityTrait;
 pub use crate::model::ModelTrait;
 pub use crate::utils::*;
 pub use crate::AppConfig;

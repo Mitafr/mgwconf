@@ -54,6 +54,9 @@ where
             draw_home(f, app, chunks[1]);
         }
         RouteId::Configuration => {
+            if current_route.active_block == ActiveBlock::Error && app.get_configuration_state().is_tab_selected() {
+                // TODO    draw_error()
+            }
             if current_route.active_block == ActiveBlock::TabSelected && app.get_configuration_state().is_tab_selected() {
                 draw_configuration(f, app, chunks[1]);
             }
