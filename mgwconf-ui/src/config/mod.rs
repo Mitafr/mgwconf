@@ -5,7 +5,7 @@ use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::Subs
 
 use clap::{ArgMatches, Parser};
 
-#[derive(Parser, Debug, Clone)]
+#[derive(Parser, Debug, Default, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
     /// Debug mode
@@ -28,15 +28,7 @@ impl From<ArgMatches> for Args {
             create_secret: false,
             vault_key: Some(m.get_one::<String>("k").unwrap().clone()),
             debug: m.get_flag("debug"),
-        }
-    }
-}
-impl Default for Args {
-    fn default() -> Self {
-        Self {
-            debug: false,
-            create_secret: false,
-            vault_key: None,
+            ..Default::default()
         }
     }
 }
@@ -60,7 +52,7 @@ impl Config {
             loaded: false,
             remote_ip,
             remote_port: 9003,
-            root_ca_path: args.root_ca_path.unwrap_or("./CA.pem".to_owned()),
+            root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
             tick_rate: 250,
         };
         info!("Config has been loadded successfully");
