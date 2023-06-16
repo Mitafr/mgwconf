@@ -33,9 +33,9 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: mgwc
-        path: target/release/mgwc
+        path: target/x86_64-unknown-linux-gnu/release/mgwc
     - uses: actions/upload-artifact@v3
       with:
         name: mgwc_ui
-        path: target/release/mgwc_ui
+        path: target/x86_64-unknown-linux-gnu/release/mgwc_ui
     
