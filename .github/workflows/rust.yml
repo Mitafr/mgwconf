@@ -17,9 +17,17 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Build mgwc
-      run: cargo build --release --features="cli" --bin="mgwc"
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        use-cross: true
+        args: --release --target x86_64-unknown-linux-gnu --features="cli" --bin="mgwc"
     - name: Build mgwc_ui
-      run: cargo build --release --features="ui" --bin="mgwc_ui"
+      uses: actions-rs/cargo@v1
+      with:
+        command: build
+        use-cross: true
+        args: --release --target x86_64-unknown-linux-gnu --features="ui" --bin="mgwc_ui"
     - name: Run tests
       run: cargo test --verbose
     - uses: actions/upload-artifact@v3
