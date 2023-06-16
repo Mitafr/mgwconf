@@ -17,6 +17,9 @@ pub struct Args {
     /// pass vault key
     #[clap(short = 'k')]
     pub vault_key: Option<String>,
+    /// pass ca
+    #[clap(long = "ca")]
+    pub root_ca_path: Option<String>,
 }
 
 impl From<ArgMatches> for Args {
@@ -57,7 +60,7 @@ impl Config {
             loaded: false,
             remote_ip,
             remote_port: 9003,
-            root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
+            root_ca_path: args.root_ca_path.unwrap_or("./CA.pem".to_owned()),
             tick_rate: 250,
         };
         info!("Config has been loadded successfully");
