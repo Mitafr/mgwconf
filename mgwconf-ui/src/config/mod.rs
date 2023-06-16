@@ -20,6 +20,8 @@ pub struct Args {
     /// pass ca
     #[clap(long = "ca")]
     pub root_ca_path: Option<String>,
+    #[clap(long = "remote_ip")]
+    pub remote_ip: Option<String>,
 }
 
 impl From<ArgMatches> for Args {
@@ -46,7 +48,11 @@ pub struct Config {
 
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
-        let remote_ip = IpAddr::from([127, 0, 0, 1]);
+        let remote_ip = if let Some(ip) = &args.remote_ip {
+            ip.parse::<IpAddr>().unwrap_or(IpAddr::from([127, 0, 0, 1]))
+        } else {
+            IpAddr::from([127, 0, 0, 1])
+        };
         let config = Config {
             debug: args.debug,
             loaded: false,
