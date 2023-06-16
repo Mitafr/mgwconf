@@ -50,11 +50,9 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                 let mut test = Self::Entity::default();
                 debug!("{:?}", test);
                 let res = client.post(route_url(config, #route)).json(&test).headers(header).send().await?;
-                if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {
+                if ![StatusCode::OK, StatusCode::NO_CONTENT, StatusCode::CREATED].contains(&res.status()) {
                     return Err(anyhow::Error::msg(format!("{:?}", res)));
                 }
-                let res = res.json::<Self::Collection>().await?;
-                debug!("{:?}", res);
                 Ok(())
             }
 

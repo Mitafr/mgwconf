@@ -1,5 +1,6 @@
 use mgwconf_network::model::InnerEntityTrait;
 use mgwconf_network::AppConfig;
+use tui::widgets::Wrap;
 
 use crate::app::state::State;
 use crate::ui::prelude::*;
@@ -34,6 +35,27 @@ where
         3 => draw_configuration_profiles(f, app, area),
         _ => {}
     }
+}
+
+pub fn draw_error<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
+where
+    A: UiAppTrait<C>,
+    B: Backend,
+    C: AppConfig,
+{
+    let configuration = Block::default()
+        .title(Span::styled(app.get_configuration_state().current_selected().to_string(), Style::default()))
+        .borders(Borders::ALL)
+        .title_alignment(Alignment::Left);
+    f.render_widget(configuration, layout_chunk);
+    let area = centered_rect(97, 50, layout_chunk);
+    let error = app.pop_error();
+    let paragraph = Paragraph::new(error.unwrap().root_cause().to_string())
+        .style(Style::default().bg(Color::Reset).fg(Color::Red))
+        .block(Block::default())
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true });
+    f.render_widget(paragraph, area);
 }
 
 pub fn draw_configuration_sags<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)

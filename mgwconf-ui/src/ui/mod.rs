@@ -9,7 +9,7 @@ use crate::ui::{
     home::draw_home,
 };
 
-use self::configuration::draw_detailed_entity;
+use self::configuration::{draw_detailed_entity, draw_error};
 
 pub mod configuration;
 pub mod fmt;
@@ -55,7 +55,7 @@ where
         }
         RouteId::Configuration => {
             if current_route.active_block == ActiveBlock::Error && app.get_configuration_state().is_tab_selected() {
-                // TODO    draw_error()
+                draw_error(f, app, chunks[1]);
             }
             if current_route.active_block == ActiveBlock::TabSelected && app.get_configuration_state().is_tab_selected() {
                 draw_configuration(f, app, chunks[1]);

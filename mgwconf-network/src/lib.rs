@@ -1,6 +1,6 @@
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use event::IoEvent;
 use log::{error, info};
@@ -45,6 +45,8 @@ where
     where
         T: CollectionEntityTrait;
 
+    fn handle_network_error(&mut self, error: Error);
+
     async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error>;
 }
 
@@ -85,13 +87,13 @@ where
             }
             Err(e) => {
                 error!("{}", e);
+                self.app.lock().await.handle_network_error(e.into());
             }
         }
         Ok(())
     }
 
-    #[cfg(feature = "ui")]
-    pub async fn handle_network_event(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
+    async fn handle_io_event(&mut self, io_event: &IoEvent) -> Result<(), anyhow::Error> {
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => {
@@ -123,6 +125,17 @@ where
             IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
         };
         Ok(())
+    }
+
+    #[cfg(feature = "ui")]
+    pub async fn handle_network_event(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
+        match self.handle_io_event(&io_event).await {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                self.app.lock().await.handle_network_error(e);
+                Err(Error::msg("Network Error"))
+            }
+        }
     }
 
     #[cfg(not(feature = "ui"))]

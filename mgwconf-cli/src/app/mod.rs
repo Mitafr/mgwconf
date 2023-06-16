@@ -1,15 +1,14 @@
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use core::panic;
 use log::error;
+use mgwconf_network::{event::IoEvent, model::CollectionEntityTrait, AppConfig, AppTrait};
+use mgwconf_vault::{SecretType, SecretsVault};
 use std::{
     io::{stdin, stdout, Write},
     sync::Arc,
 };
 use tokio::sync::{mpsc::Sender, Mutex, Notify};
-// use mgwconf_common::{config::Config, model::CollectionEntityTrait, AppTrait};
-use mgwconf_network::{event::IoEvent, model::CollectionEntityTrait, AppConfig, AppTrait};
-use mgwconf_vault::{SecretType, SecretsVault};
 
 use crate::{commands::Command, config::Config};
 
@@ -126,6 +125,10 @@ where
             IoEvent::DeleteCertificate(_e) => todo!(),
             IoEvent::DeleteSag(_e) => todo!(),
         }
+    }
+
+    fn handle_network_error(&mut self, error: Error) {
+        log::error!("{}", error);
     }
 
     async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {

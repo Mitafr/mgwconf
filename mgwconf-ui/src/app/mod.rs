@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crossterm::{
     cursor::MoveTo,
@@ -46,6 +46,8 @@ pub trait UiAppTrait<C: AppConfig>: AppTrait<C> {
 
     fn get_force_exit(&self) -> bool;
     fn force_exit(&mut self);
+
+    fn pop_error(&self) -> Option<&Error>;
 }
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug)]
@@ -87,6 +89,7 @@ pub struct UiApp {
     io_tx: Sender<IoEvent>,
     pub input: String,
     navigation_stack: Vec<Route>,
+    error_queue: Vec<Error>,
     pub selected_configuration_tab: Option<usize>,
     pub vault: Option<SecretsVault>,
 
@@ -115,6 +118,7 @@ impl UiApp {
             selected_configuration_tab: None,
             initialized: false,
             force_exit: false,
+            error_queue: Vec::new(),
         }
     }
 }
@@ -191,6 +195,12 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         }
     }
 
+    fn handle_network_error(&mut self, error: Error) {
+        log::error!("Handling this error : {}", error);
+        self.error_queue.push(error);
+        <UiApp as UiAppTrait<C>>::set_current_route_state(self, Some(ActiveBlock::Error), None);
+    }
+
     async fn run(app: Arc<Mutex<UiApp>>, _notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
         use std::time::{Duration, Instant};
 
@@ -245,6 +255,10 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                         break 'main;
                     }
                     <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
+
+                    if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block == ActiveBlock::Error {
+                        <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Home, ActiveBlock::Home);
+                    }
                 }
             }
 
@@ -271,8 +285,6 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
     }
 
     fn pop_navigation_stack(&mut self) {
-        log::info!("{}", self.navigation_stack.len());
-        log::info!("{:#?}", self.navigation_stack);
         if self.navigation_stack.len() <= 1 {
             self.force_exit = true;
         }
@@ -313,6 +325,7 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
             self.configuration_state.update_pan_len();
         }
     }
+
     fn get_configuration_state(&self) -> &ConfigurationState {
         &self.configuration_state
     }
@@ -324,13 +337,20 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
     fn get_user_input(&self) -> &str {
         &self.input
     }
+
     fn get_user_input_mut(&mut self) -> &mut String {
         &mut self.input
     }
+
     fn force_exit(&mut self) {
         self.force_exit = true;
     }
+
     fn get_force_exit(&self) -> bool {
         self.force_exit
+    }
+
+    fn pop_error(&self) -> Option<&Error> {
+        self.error_queue.last()
     }
 }
