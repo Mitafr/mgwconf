@@ -11,7 +11,6 @@ struct DeleteQueryAttr {
 
 pub fn derive_entity(_ident: Ident, data: Data) -> Result<TokenStream, syn::Error> {
     let mut primary_field: Punctuated<_, Comma> = Punctuated::new();
-    //let mut delete_query_attr: Punctuated<_, Comma> = Punctuated::new();
     let mut delete_query_attrs = Vec::new();
     if let Data::Struct(ref item_struct) = data {
         if let Fields::Named(ref fields) = item_struct.fields {
@@ -105,16 +104,13 @@ pub fn derive_entity(_ident: Ident, data: Data) -> Result<TokenStream, syn::Erro
         delete_query_attributes.push(ident.clone());
         match i.alias {
             Some(alias) => {
-                let s = alias.to_string();
-                delete_query_attributes_names.push(alias.to_string()[1..s.len() - 1].to_string());
+                delete_query_attributes_names.push(alias.to_string()[1..alias.to_string().len() - 1].to_string());
             }
             None => {
                 delete_query_attributes_names.push(ident.to_string());
             }
         }
     }
-
-    println!("{}", quote!(Vec::from([#((String::from(#delete_query_attributes_names), self.#delete_query_attributes.to_string())),*])));
 
     Ok(TokenStream::from_iter([
         quote!(
