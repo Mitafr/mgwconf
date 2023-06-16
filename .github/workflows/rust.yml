@@ -21,13 +21,13 @@ jobs:
       with:
         command: build
         use-cross: true
-        args: --release --target x86_64-unknown-linux-gnu:centos --features=cli --bin="mgwc"
+        args: --release --target x86_64-unknown-linux-gnu --features=cli --bin="mgwc"
     - name: Build mgwc_ui
       uses: actions-rs/cargo@v1
       with:
         command: build
         use-cross: true
-        args: --release --target x86_64-unknown-linux-gnu:centos --features=ui --bin="mgwc_ui"
+        args: --release --target x86_64-unknown-linux-gnu --features=ui --bin="mgwc_ui"
     - name: Run tests
       run: cargo test --verbose
     - uses: actions/upload-artifact@v3
