@@ -1,6 +1,7 @@
 use mgwconf_network::model::certificate::Entities as CertificateEntities;
 use mgwconf_network::model::profile::Entities as Profiles;
 use mgwconf_network::model::sag::Entities as SagEntities;
+use mgwconf_network::model::CollectionEntityTrait;
 use mgwconf_network::model::{business_application::Entities as BusinessApplications, InnerEntityTrait};
 
 use super::{State, TabId};
@@ -84,14 +85,16 @@ impl State for ConfigurationState {
             self.current_entity = None;
             return;
         }
-        let entity: Box<dyn InnerEntityTrait> = match self.current_selected() {
-            TabId::CERTIFICATE => Box::new(self.certificates.0[self.pan_id - 1].clone()),
-            TabId::SAG => Box::new(self.sags.0[self.pan_id - 1].clone()),
-            TabId::BUSINESSAPPLICATION => Box::new(self.business_applications.0[self.pan_id - 1].clone()),
-            TabId::PROFILE => Box::new(self.sags.0[self.pan_id - 1].clone()),
-            TabId::APIPROXY => Box::new(self.sags.0[self.pan_id - 1].clone()),
+        let entity: Option<Box<dyn InnerEntityTrait>> = match self.current_selected() {
+            TabId::CERTIFICATE => self.certificates.get(self.pan_id - 1),
+            TabId::SAG => self.sags.get(self.pan_id - 1),
+            TabId::BUSINESSAPPLICATION => self.business_applications.get(self.pan_id - 1),
+            TabId::PROFILE => self.sags.get(self.pan_id - 1),
+            TabId::APIPROXY => self.sags.get(self.pan_id - 1),
         };
-        self.current_entity = Some(entity);
+        if let Some(e) = entity {
+            self.current_entity = Some(e);
+        }
     }
 
     fn selected_entity(&self) -> Option<Box<&dyn InnerEntityTrait>> {

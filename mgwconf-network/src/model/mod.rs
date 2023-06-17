@@ -30,6 +30,8 @@ pub trait InnerEntityTrait: Debug + Send + Sync {
 ///
 pub trait CollectionEntityTrait: Debug {
     fn as_any(&self) -> &dyn Any;
+
+    fn get(&self, index: usize) -> Option<Box<dyn InnerEntityTrait>>;
 }
 
 #[async_trait]

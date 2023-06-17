@@ -119,6 +119,12 @@ pub fn derive_entity(_ident: Ident, data: Data) -> Result<TokenStream, syn::Erro
                 fn as_any(&self) -> &dyn super::prelude::Any {
                     self
                 }
+                fn get(&self, index: usize) -> Option<Box<dyn InnerEntityTrait>> {
+                    match self.0.get(index) {
+                        Some(e) => Some(Box::new(e.clone())),
+                        None => None,
+                    }
+                }
             }
         ),
         quote!(

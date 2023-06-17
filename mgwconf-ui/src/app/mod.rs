@@ -257,7 +257,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                     <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
 
                     if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block == ActiveBlock::Error {
-                        <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Home, ActiveBlock::Home);
+                        <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Configuration, ActiveBlock::Tab);
                     }
                 }
             }

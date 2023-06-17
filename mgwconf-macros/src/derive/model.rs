@@ -40,9 +40,16 @@ pub fn derive_model(input: syn::DeriveInput, _data: Data, attrs: &[Attribute]) -
                 if ![StatusCode::OK, StatusCode::NO_CONTENT].contains(&res.status()) {
                     return Err(anyhow::Error::msg(format!("{:?}", res)));
                 }
-                let res = res.json::<Self::Collection>().await?;
-                debug!("{:?}", res);
-                Ok(res)
+                debug!("{}",res.status());
+                match res.json::<Self::Collection>().await {
+                    Ok(res) => {
+                        debug!("{:?}", res);
+                        Ok(res)
+                    }
+                    Err(e) => {
+                        Ok(Self::Collection { 0: Vec::new() })
+                    }
+                }
             }
 
             async fn post(mut app: &MutexGuard<'_, A>, client: &Client, config: &C) -> Result<(), anyhow::Error> {
