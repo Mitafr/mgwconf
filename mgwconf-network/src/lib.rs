@@ -120,7 +120,7 @@ where
             IoEvent::GetAllProfiles => {
                 let mut app = self.app.lock().await;
                 let entities = model::profile::Profiles::get_all(&app, &self.client, self.config).await?;
-                app.handle_network_response::<model::profile::Entities>(IoEvent::GetAllSags, entities);
+                app.handle_network_response::<model::profile::Entities>(IoEvent::GetAllProfiles, entities);
             }
             IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
         };
