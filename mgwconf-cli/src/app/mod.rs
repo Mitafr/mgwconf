@@ -2,7 +2,7 @@ use anyhow::{Error, Result};
 use async_trait::async_trait;
 use core::panic;
 use log::error;
-use mgwconf_network::{event::IoEvent, model::CollectionEntityTrait, AppConfig, AppTrait};
+use mgwconf_network::{event::IoEvent, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use std::{
     io::{stdin, stdout, Write},
@@ -107,10 +107,7 @@ where
         Box::new(self.config.as_ref().unwrap().clone())
     }
 
-    fn handle_network_response<T>(&mut self, event: IoEvent, _res: T)
-    where
-        T: CollectionEntityTrait,
-    {
+    fn handle_network_response(&mut self, event: IoEvent, _res: serde_json::Value) {
         match event {
             IoEvent::Ping => todo!(),
             IoEvent::GetAllProfiles => todo!(),
@@ -121,9 +118,9 @@ where
             IoEvent::PostCertificate => todo!(),
             IoEvent::PostSag => todo!(),
             IoEvent::PostProfile => todo!(),
-            IoEvent::DeleteBusinessApplication(_e) => todo!(),
-            IoEvent::DeleteCertificate(_e) => todo!(),
-            IoEvent::DeleteSag(_e) => todo!(),
+            // IoEvent::DeleteBusinessApplication(_e) => todo!(),
+            // IoEvent::DeleteCertificate(_e) => todo!(),
+            // IoEvent::DeleteSag(_e) => todo!(),
         }
     }
 

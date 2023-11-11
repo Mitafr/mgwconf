@@ -7,15 +7,15 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-use mgwconf_network::{event::IoEvent, model::CollectionEntityTrait, AppConfig, AppTrait};
+use mgwconf_network::{event::IoEvent, models::configuration::*, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
+use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
     io::{stdin, stdout, Write},
     sync::Arc,
 };
 use tokio::sync::mpsc::Sender;
 use tokio::sync::{Mutex, Notify};
-use tui::{backend::CrosstermBackend, Terminal};
 
 pub mod state;
 
@@ -175,23 +175,22 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         Box::new(self.config.as_ref().unwrap().clone())
     }
 
-    fn handle_network_response<T>(&mut self, event: IoEvent, res: T)
-    where
-        T: CollectionEntityTrait,
-    {
+    fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
+        log::info!("{:#?}", res);
         match event {
             IoEvent::Ping => todo!(),
-            IoEvent::GetAllProfiles => self.configuration_state.profiles = res.as_any().downcast_ref::<mgwconf_network::model::profile::Entities>().unwrap().clone(),
-            IoEvent::GetAllBusinessApplications => self.configuration_state.business_applications = res.as_any().downcast_ref::<mgwconf_network::model::business_application::Entities>().unwrap().clone(),
-            IoEvent::GetAllCertificates => self.configuration_state.certificates = res.as_any().downcast_ref::<mgwconf_network::model::certificate::Entities>().unwrap().clone(),
-            IoEvent::GetAllSags => self.configuration_state.sags = res.as_any().downcast_ref::<mgwconf_network::model::sag::Entities>().unwrap().clone(),
-            IoEvent::PostBusinessApplication => todo!(),
-            IoEvent::PostCertificate => todo!(),
-            IoEvent::PostSag => todo!(),
-            IoEvent::PostProfile => todo!(),
-            IoEvent::DeleteBusinessApplication(_e) => todo!(),
-            IoEvent::DeleteCertificate(_e) => todo!(),
-            IoEvent::DeleteSag(_e) => todo!(),
+            IoEvent::GetAllProfiles => self.configuration_state.profiles = serde_json::from_value::<Vec<ApplicationProfileEntity>>(res).unwrap(),
+            IoEvent::GetAllBusinessApplications => self.configuration_state.business_applications = serde_json::from_value::<Vec<BusinessApplicationEntity>>(res).unwrap(),
+            IoEvent::GetAllCertificates => self.configuration_state.certificates = serde_json::from_value::<Vec<CertificateEntity>>(res).unwrap(),
+            IoEvent::GetAllSags => self.configuration_state.sags = serde_json::from_value::<Vec<SagEntity>>(res).unwrap(),
+            //IoEvent::PostBusinessApplication => todo!(),
+            //IoEvent::PostCertificate => todo!(),
+            //IoEvent::PostSag => todo!(),
+            //IoEvent::PostProfile => todo!(),
+            //IoEvent::DeleteBusinessApplication(_e) => todo!(),
+            //IoEvent::DeleteCertificate(_e) => todo!(),
+            //IoEvent::DeleteSag(_e) => todo!(),
+            _ => todo!(),
         }
     }
 
@@ -226,7 +225,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
             <UiApp as AppTrait<C>>::init(&mut app).await?;
 
             terminal.draw(|f| {
-                draw_main_layout::<UiApp, _, Config>(f, &*app);
+                draw_main_layout::<UiApp, Config>(f, &*app);
             })?;
 
             terminal.hide_cursor()?;

@@ -1,19 +1,28 @@
+#[macro_use]
+extern crate serde_derive;
+
+extern crate reqwest;
+extern crate serde;
+extern crate serde_json;
+extern crate url;
+
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
 use anyhow::{Error, Result};
+use apis::configuration::configuration::ApiKey;
+use apis::configuration::configuration::Configuration;
 use async_trait::async_trait;
 use event::IoEvent;
 use log::{error, info};
 use mgwconf_vault::{SecretType, SecretsVault};
-use model::CollectionEntityTrait;
-use model::ModelTrait;
 use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
 use utils::route_url;
 
+pub mod apis;
 pub mod event;
-pub mod model;
+pub mod models;
 pub mod utils;
 
 #[async_trait]
@@ -41,9 +50,7 @@ where
     fn vault(&self) -> Option<&SecretsVault>;
     fn config(&self) -> Box<dyn AppConfig>;
 
-    fn handle_network_response<T>(&mut self, event: IoEvent, res: T)
-    where
-        T: CollectionEntityTrait;
+    fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value);
 
     fn handle_network_error(&mut self, error: Error);
 
@@ -98,31 +105,82 @@ where
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => {
                 let mut app = self.app.lock().await;
-                let entities = model::sag::SagEntities::get_all(&app, &self.client, self.config).await?;
-                app.handle_network_response::<model::sag::Entities>(IoEvent::GetAllSags, entities);
+                let entities = apis::configuration::sag_api::sag_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                    None,
+                )
+                .await?;
+                app.handle_network_response(IoEvent::GetAllSags, entities);
             }
-            IoEvent::PostSag => model::sag::SagEntities::post(&self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::DeleteSag(e) => model::sag::SagEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
+            // IoEvent::PostSag => model::sag::SagEntities::post(&self.app.lock().await, &self.client, self.config).await?,
+            // IoEvent::DeleteSag(e) => model::sag::SagEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllCertificates => {
                 let mut app = self.app.lock().await;
-                let entities = model::certificate::CertificateEntities::get_all(&app, &self.client, self.config).await?;
-                app.handle_network_response::<model::certificate::Entities>(IoEvent::GetAllCertificates, entities);
+                let entities = apis::configuration::certificate_api::certificate_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await?;
+                app.handle_network_response(IoEvent::GetAllCertificates, entities);
             }
-            IoEvent::PostCertificate => model::certificate::CertificateEntities::post(&self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::DeleteCertificate(e) => model::certificate::CertificateEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
+            // IoEvent::PostCertificate => model::certificate::CertificateEntities::post(&self.app.lock().await, &self.client, self.config).await?,
+            // IoEvent::DeleteCertificate(e) => model::certificate::CertificateEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllBusinessApplications => {
                 let mut app = self.app.lock().await;
-                let entities = model::business_application::BusinessApplications::get_all(&app, &self.client, self.config).await?;
-                app.handle_network_response::<model::business_application::Entities>(IoEvent::GetAllBusinessApplications, entities);
+                let entities = apis::configuration::business_application_api::business_application_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await?;
+                app.handle_network_response(IoEvent::GetAllBusinessApplications, entities);
             }
-            IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(&self.app.lock().await, &self.client, self.config).await?,
-            IoEvent::DeleteBusinessApplication(e) => model::business_application::BusinessApplications::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
+            // IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(&self.app.lock().await, &self.client, self.config).await?,
+            // IoEvent::DeleteBusinessApplication(e) => model::business_application::BusinessApplications::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllProfiles => {
                 let mut app = self.app.lock().await;
-                let entities = model::profile::Profiles::get_all(&app, &self.client, self.config).await?;
-                app.handle_network_response::<model::profile::Entities>(IoEvent::GetAllProfiles, entities);
+                let entities = apis::configuration::profile_api::application_profile_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                    None,
+                )
+                .await?;
+                app.handle_network_response(IoEvent::GetAllProfiles, entities);
             }
-            IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
+            // IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
+            _ => {}
         };
         Ok(())
     }

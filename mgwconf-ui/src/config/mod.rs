@@ -59,7 +59,7 @@ impl Config {
             remote_ip,
             remote_port: 9003,
             root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
-            tick_rate: 250,
+            tick_rate: 160,
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);

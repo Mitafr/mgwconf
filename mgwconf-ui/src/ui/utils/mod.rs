@@ -1,6 +1,5 @@
 use mgwconf_network::AppConfig;
-use tui::{
-    backend::Backend,
+use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::Span,
@@ -12,10 +11,9 @@ use crate::app::UiAppTrait;
 
 pub const SMALL_TERMINAL_HEIGHT: u16 = 45;
 
-pub fn draw_selectable_list<A, B, S, C>(f: &mut Frame<B>, _app: &A, layout_chunk: Rect, title: &str, items: &[S], highlight_state: (bool, bool), selected_index: Option<usize>, borders: Borders)
+pub fn draw_selectable_list<A, S, C>(f: &mut Frame, _app: &A, layout_chunk: Rect, title: &str, items: &[S], highlight_state: (bool, bool), selected_index: Option<usize>, borders: Borders)
 where
     A: UiAppTrait<C>,
-    B: Backend,
     S: std::convert::AsRef<str>,
     C: AppConfig,
 {

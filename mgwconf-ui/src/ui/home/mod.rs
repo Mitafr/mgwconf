@@ -2,10 +2,9 @@ use mgwconf_network::AppConfig;
 
 use crate::ui::prelude::*;
 
-pub fn draw_home<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
+pub fn draw_home<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
 where
     A: UiAppTrait<C>,
-    B: Backend,
     C: AppConfig,
 {
     let chunks = Layout::default()

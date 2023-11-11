@@ -1,11 +1,6 @@
 pub use log::debug;
-pub use mgwconf_macros::DeriveEntity;
-pub use mgwconf_macros::DeriveModel;
+use mgwconf_network::models::configuration::*;
 pub use std::fmt::Write;
-
-pub use mgwconf_network::model::business_application::Entity as BusinessApplicationEntity;
-pub use mgwconf_network::model::certificate::Entity as CertificateEntity;
-pub use mgwconf_network::model::sag::Entity as SagEntity;
 
 use crate::ui::fmt::FmtModel;
 
@@ -53,7 +48,7 @@ CertificateX509 : {}
 impl FmtModel for BusinessApplicationEntity {
     fn to_string(&self) -> String {
         let mut model = String::new();
-        write!(model, "{}\n{}", self.application_name, self.shared_secret).unwrap();
+        write!(model, "{}\n{}", self.application_name, self.shared_secret.as_ref().unwrap()).unwrap();
         model
     }
 }

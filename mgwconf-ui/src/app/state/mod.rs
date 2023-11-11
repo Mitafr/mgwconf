@@ -1,6 +1,6 @@
 use std::fmt;
 
-use mgwconf_network::model::InnerEntityTrait;
+use mgwconf_network::models::InnerEntityTrait;
 
 pub mod configuration;
 

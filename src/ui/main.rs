@@ -2,7 +2,7 @@ use log::{error, info};
 use mgwconf_network::{event::IoEvent, AppConfig, AppTrait, Network};
 
 use std::sync::Arc;
-use tokio::sync::Mutex;
+use tokio::sync::{mpsc::Receiver, Mutex};
 
 use tokio::sync::mpsc::Sender;
 
@@ -61,17 +61,15 @@ pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<UiApp>>, Config) {
 }
 
 #[tokio::main]
-async fn start_tokio<A: AppTrait<C>, C: AppConfig>(mut io_rx: tokio::sync::mpsc::Receiver<IoEvent>, network: &mut Network<A, C>, pair2: Arc<Notify>) {
+async fn start_tokio<A: AppTrait<C>, C: AppConfig>(mut io_rx: Receiver<IoEvent>, network: &mut Network<A, C>, pair2: Arc<Notify>) {
     info!("Notifying thread");
-    loop {
-        if let Ok(io_event) = io_rx.try_recv() {
-            match network.handle_network_event(io_event).await {
-                Ok(_) => {
-                    pair2.notify_one();
-                }
-                Err(e) => {
-                    error!("{:?}", e);
-                }
+    while let Some(io_event) = io_rx.recv().await {
+        match network.handle_network_event(io_event).await {
+            Ok(_) => {
+                pair2.notify_one();
+            }
+            Err(e) => {
+                error!("{:?}", e);
             }
         }
     }

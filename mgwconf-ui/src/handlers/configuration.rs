@@ -69,28 +69,30 @@ where
             app.set_current_route_state(Some(ActiveBlock::Detailed), None);
         }
         k if *k == Key::Delete && app.get_configuration_state().selected_entity().is_some() => {
+            todo!();
+            /*
             match app.get_configuration_state().current_selected() {
                 TabId::CERTIFICATE => {
-                    let t = &*app
-                        .get_configuration_state()
-                        .selected_entity()
-                        .unwrap()
-                        .as_any()
-                        .downcast_ref::<mgwconf_network::model::certificate::Entity>()
-                        .expect("Wasn't a trusty printer!");
-                    app.dispatch(IoEvent::DeleteCertificate(t.clone())).await.unwrap();
-                    app.dispatch(IoEvent::GetAllCertificates).await.unwrap();
+                    // let t = &*app
+                    //     .get_configuration_state()
+                    //     .selected_entity()
+                    //     .unwrap()
+                    //     .as_any()
+                    //     .downcast_ref::<mgwconf_network::model::certificate::Entity>()
+                    //     .expect("Wasn't a trusty printer!");
+                    // app.dispatch(IoEvent::DeleteCertificate(t.clone())).await.unwrap();
+                    // app.dispatch(IoEvent::GetAllCertificates).await.unwrap();
                 }
                 TabId::SAG => {
-                    let t = &*app
-                        .get_configuration_state()
-                        .selected_entity()
-                        .unwrap()
-                        .as_any()
-                        .downcast_ref::<mgwconf_network::model::sag::Entity>()
-                        .expect("Wasn't a trusty printer!");
-                    app.dispatch(IoEvent::DeleteSag(t.clone())).await.unwrap();
-                    app.dispatch(IoEvent::GetAllSags).await.unwrap();
+                    // let t = &*app
+                    //     .get_configuration_state()
+                    //     .selected_entity()
+                    //     .unwrap()
+                    //     .as_any()
+                    //     .downcast_ref::<mgwconf_network::model::sag::Entity>()
+                    //     .expect("Wasn't a trusty printer!");
+                    // app.dispatch(IoEvent::DeleteSag(t.clone())).await.unwrap();
+                    // app.dispatch(IoEvent::GetAllSags).await.unwrap();
                 }
                 TabId::BUSINESSAPPLICATION => {
                     let t = &*app
@@ -105,7 +107,7 @@ where
                 }
                 _ => {}
             }
-            app.get_configuration_state_mut().reload();
+            app.get_configuration_state_mut().reload();*/
         }
         _ => {}
     }

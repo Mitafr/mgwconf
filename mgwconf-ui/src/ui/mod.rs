@@ -17,10 +17,9 @@ pub mod home;
 pub mod prelude;
 pub mod utils;
 
-pub fn draw_main_layout<A, B, C>(f: &mut Frame<B>, app: &A)
+pub fn draw_main_layout<A, C>(f: &mut Frame, app: &A)
 where
     A: UiAppTrait<C>,
-    B: Backend,
     C: AppConfig,
 {
     let parent_layout = Layout::default()
@@ -36,10 +35,9 @@ where
     }
 }
 
-pub fn draw_routes<A, B, C>(f: &mut Frame<B>, app: &A, layout_chunk: Rect)
+pub fn draw_routes<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
 where
     A: UiAppTrait<C>,
-    B: Backend,
     C: AppConfig,
 {
     let chunks = Layout::default()

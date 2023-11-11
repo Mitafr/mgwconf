@@ -1,4 +1,4 @@
-pub use tui::{
+pub use ratatui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},

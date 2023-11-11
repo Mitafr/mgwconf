@@ -1,8 +1,4 @@
-use mgwconf_network::model::certificate::Entities as CertificateEntities;
-use mgwconf_network::model::profile::Entities as Profiles;
-use mgwconf_network::model::sag::Entities as SagEntities;
-use mgwconf_network::model::CollectionEntityTrait;
-use mgwconf_network::model::{business_application::Entities as BusinessApplications, InnerEntityTrait};
+use mgwconf_network::models::{configuration::*, InnerEntityTrait};
 
 use super::{State, TabId};
 
@@ -17,10 +13,11 @@ pub struct ConfigurationState {
     waiting: bool,
 
     in_panel: bool,
-    pub sags: SagEntities,
-    pub certificates: CertificateEntities,
-    pub business_applications: BusinessApplications,
-    pub profiles: Profiles,
+    pub sags: Vec<SagEntity>,
+    pub certificates: Vec<CertificateEntity>,
+    pub business_applications: Vec<BusinessApplicationEntity>,
+    pub profiles: Vec<ApplicationProfileEntity>,
+    pub apiproxy: Vec<ForwardProxyEntity>,
 
     current_entity: Option<Box<dyn InnerEntityTrait>>,
 }
@@ -32,10 +29,11 @@ impl Default for ConfigurationState {
             tab_len: 5,
             selected_tab: None,
             in_panel: false,
-            sags: SagEntities::default(),
-            certificates: CertificateEntities::default(),
-            business_applications: BusinessApplications::default(),
-            profiles: Profiles::default(),
+            sags: Vec::default(),
+            certificates: Vec::default(),
+            business_applications: Vec::default(),
+            profiles: Vec::default(),
+            apiproxy: Vec::default(),
             pan_id: 0,
             pan_len: 0,
             waiting: false,
@@ -86,11 +84,11 @@ impl State for ConfigurationState {
             return;
         }
         let entity: Option<Box<dyn InnerEntityTrait>> = match self.current_selected() {
-            TabId::CERTIFICATE => self.certificates.get(self.pan_id - 1),
-            TabId::SAG => self.sags.get(self.pan_id - 1),
-            TabId::BUSINESSAPPLICATION => self.business_applications.get(self.pan_id - 1),
-            TabId::PROFILE => self.sags.get(self.pan_id - 1),
-            TabId::APIPROXY => self.sags.get(self.pan_id - 1),
+            TabId::CERTIFICATE => Some(Box::new(self.certificates.get(self.pan_id - 1).unwrap().clone())),
+            TabId::SAG => Some(Box::new(self.sags.get(self.pan_id - 1).unwrap().clone())),
+            TabId::BUSINESSAPPLICATION => Some(Box::new(self.business_applications.get(self.pan_id - 1).unwrap().clone())),
+            TabId::PROFILE => Some(Box::new(self.profiles.get(self.pan_id - 1).unwrap().clone())),
+            TabId::APIPROXY => Some(Box::new(self.apiproxy.get(self.pan_id - 1).unwrap().clone())),
         };
         if let Some(e) = entity {
             self.current_entity = Some(e);
@@ -124,9 +122,9 @@ impl State for ConfigurationState {
 
     fn update_pan_len(&mut self) {
         match self.tab_id {
-            0 => self.pan_len = self.certificates.0.len() + 1,
-            1 => self.pan_len = self.sags.0.len() + 1,
-            2 => self.pan_len = self.business_applications.0.len() + 1,
+            0 => self.pan_len = self.certificates.len() + 1,
+            1 => self.pan_len = self.sags.len() + 1,
+            2 => self.pan_len = self.business_applications.len() + 1,
             _ => {}
         }
         if self.pan_len > 0 {

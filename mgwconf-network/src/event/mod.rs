@@ -9,7 +9,7 @@ pub enum IoEvent {
     PostProfile,
     PostCertificate,
     PostSag,
-    DeleteBusinessApplication(crate::model::business_application::Entity),
-    DeleteCertificate(crate::model::certificate::Entity),
-    DeleteSag(crate::model::sag::Entity),
+    // DeleteBusinessApplication(crate::model::business_application::Entity),
+    // DeleteCertificate(crate::model::certificate::Entity),
+    // DeleteSag(crate::model::sag::Entity),
 }
