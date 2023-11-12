@@ -1,3 +1,5 @@
+use crate::models::configuration::{BusinessApplicationEntity, CertificateEntity, SagEntity};
+
 #[derive(Debug)]
 pub enum IoEvent {
     Ping,
@@ -9,7 +11,7 @@ pub enum IoEvent {
     PostProfile,
     PostCertificate,
     PostSag,
-    // DeleteBusinessApplication(crate::model::business_application::Entity),
-    // DeleteCertificate(crate::model::certificate::Entity),
-    // DeleteSag(crate::model::sag::Entity),
+    DeleteBusinessApplication(BusinessApplicationEntity),
+    DeleteCertificate(CertificateEntity),
+    DeleteSag(SagEntity),
 }

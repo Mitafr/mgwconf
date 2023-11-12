@@ -61,7 +61,7 @@ pub enum SagUpdateError {
 }
 
 /// This API is to create new SAG configuration in Swift Microgateway persistence storage
-pub async fn sag_create(configuration: &configuration::Configuration, sag_entity: crate::models::configuration::SagEntity) -> Result<serde_json::Value, Error<SagCreateError>> {
+pub async fn sag_create(configuration: &configuration::Configuration, sag_entity: crate::models::configuration::SagEntity) -> Result<(), Error<SagCreateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -89,7 +89,7 @@ pub async fn sag_create(configuration: &configuration::Configuration, sag_entity
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<SagCreateError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
@@ -102,7 +102,7 @@ pub async fn sag_create(configuration: &configuration::Configuration, sag_entity
 }
 
 /// This API is to delete existing SAG configuration in Swift Microgateway persistence storage
-pub async fn sag_delete(configuration: &configuration::Configuration, hostname: &str, port: i32) -> Result<serde_json::Value, Error<SagDeleteError>> {
+pub async fn sag_delete(configuration: &configuration::Configuration, hostname: &str, port: i32) -> Result<(), Error<SagDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -131,7 +131,7 @@ pub async fn sag_delete(configuration: &configuration::Configuration, hostname: 
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<SagDeleteError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {

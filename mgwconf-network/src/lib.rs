@@ -15,6 +15,7 @@ use async_trait::async_trait;
 use event::IoEvent;
 use log::{error, info};
 use mgwconf_vault::{SecretType, SecretsVault};
+use models::configuration::SagEntity;
 use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
@@ -121,8 +122,46 @@ where
                 .await?;
                 app.handle_network_response(IoEvent::GetAllSags, entities);
             }
-            // IoEvent::PostSag => model::sag::SagEntities::post(&self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteSag(e) => model::sag::SagEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
+            IoEvent::PostSag => {
+                apis::configuration::sag_api::sag_create(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: self.app.lock().await.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    SagEntity {
+                        hostname: String::from("test3"),
+                        port: 48002,
+                        message_partner_name: Some(String::from("SAG MP")),
+                        user_dns: vec![String::from("cn=apitest,ou=apicore,o=agrifrpp,o=swift")],
+                        lau_key: Some(String::from("Abcd1234Abcd1234Abcd1234Abcd1234")),
+                        ssl_dn: Some(String::from("ss")),
+                        active: Some(false),
+                        public_certificate_alias: Some(String::from("test")),
+                    },
+                )
+                .await?;
+            }
+            IoEvent::DeleteSag(e) => {
+                apis::configuration::sag_api::sag_delete(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: self.app.lock().await.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    &e.hostname,
+                    e.port,
+                )
+                .await?;
+            }
             IoEvent::GetAllCertificates => {
                 let mut app = self.app.lock().await;
                 let entities = apis::configuration::certificate_api::certificate_get(
