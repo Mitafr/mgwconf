@@ -63,7 +63,7 @@ where
         k if [Key::Up].contains(k) => app.get_configuration_state_mut().back(),
         k if *k == Key::Enter && app.get_configuration_state().selected_entity().is_none() => match dispatch_post(app).await {
             Ok(_) => get_all_after(app).await.unwrap(),
-            Err(e) => log::error!("zzz {}", e),
+            Err(e) => log::error!("{}", e),
         },
         k if *k == Key::Enter && app.get_configuration_state().selected_entity().is_some() => {
             app.set_current_route_state(Some(ActiveBlock::Detailed), None);

@@ -176,7 +176,6 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
     }
 
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
-        log::info!("{:#?}", res);
         match event {
             IoEvent::Ping => todo!(),
             IoEvent::GetAllProfiles => self.configuration_state.profiles = serde_json::from_value::<Vec<ApplicationProfileEntity>>(res).unwrap(),
@@ -197,7 +196,9 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
     fn handle_network_error(&mut self, error: Error) {
         log::error!("Handling this error : {}", error);
         self.error_queue.push(error);
-        <UiApp as UiAppTrait<C>>::set_current_route_state(self, Some(ActiveBlock::Error), None);
+        if <UiApp as UiAppTrait<C>>::get_current_route(self).id != RouteId::Home {
+            <UiApp as UiAppTrait<C>>::set_current_route_state(self, Some(ActiveBlock::Error), None);
+        }
     }
 
     async fn run(app: Arc<Mutex<UiApp>>, _notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
@@ -254,9 +255,10 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                         break 'main;
                     }
                     <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
-
                     if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block == ActiveBlock::Error {
-                        <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Configuration, ActiveBlock::Tab);
+                        std::thread::sleep(Duration::from_secs(2));
+                        <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Home, ActiveBlock::Home);
+                        *<UiApp as UiAppTrait<C>>::get_configuration_state_mut(&mut app) = ConfigurationState::default();
                     }
                 }
             }
