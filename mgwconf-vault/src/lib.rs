@@ -61,7 +61,7 @@ fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 16]), error::VaultError> {
     for s in salt.iter_mut() {
         *s = rng.gen();
     }
-    let config = Config::default();
+    let config = Config::rfc9106_low_mem();
     Ok((argon2::hash_raw(s.as_bytes(), &salt, &config)?, salt))
 }
 
@@ -106,9 +106,9 @@ impl SecretsVault {
         let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
         let salt: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[16..32]);
         let cipher = &mut buf.clone()[32..];
-        match argon2::hash_raw(self.master.as_ref().unwrap().as_bytes(), salt, &Config::default()) {
+        match argon2::hash_raw(self.master.as_ref().unwrap().as_bytes(), salt, &Config::rfc9106_low_mem()) {
             Ok(hash) => {
-                if !argon2::verify_raw(self.master.as_ref().unwrap().as_bytes(), salt, &hash, &Config::default())? {
+                if !argon2::verify_raw(self.master.as_ref().unwrap().as_bytes(), salt, &hash, &Config::rfc9106_low_mem())? {
                     return Err(error::VaultError::MasterPasswordVerifyError);
                 }
                 Aes256CbcDec::new(GenericArray::from_slice(&hash).into(), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;

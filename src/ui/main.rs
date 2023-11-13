@@ -34,7 +34,9 @@ async fn main() -> Result<()> {
     }));
     let notify = Arc::new(Notify::new());
     let notify2 = notify.clone();
+    println!("Reading secrets from vault");
     cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
+    log::info!("Starting Network");
     std::thread::spawn(move || {
         let mut net = Network::new(&app, &config).expect("Network Error");
         start_tokio(sync_io_rx, &mut net, notify2);
