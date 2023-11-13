@@ -19,7 +19,6 @@ use tokio::sync::Notify;
 #[tokio::main]
 async fn main() -> Result<()> {
     let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
-    #[cfg(not(feature = "ui"))]
     let (app, config) = create_app(sync_io_tx).await;
     let cloned_app = Arc::clone(&app);
 
@@ -31,17 +30,14 @@ async fn main() -> Result<()> {
     }));
     let notify = Arc::new(Notify::new());
     let notify2 = notify.clone();
+    cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
     std::thread::spawn(move || {
         let mut net = Network::new(&app, &config).expect("Network Error");
         start_tokio(sync_io_rx, &mut net, notify2);
     });
-    cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
-    #[cfg(not(feature = "ui"))]
-    {
-        use mgwconf_cli::app::CliApp;
-        use mgwconf_cli::config::Config;
-        <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await?;
-    }
+    use mgwconf_cli::app::CliApp;
+    use mgwconf_cli::config::Config;
+    <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await?;
     info!("Exiting");
     Ok(())
 }

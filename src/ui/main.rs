@@ -34,11 +34,11 @@ async fn main() -> Result<()> {
     }));
     let notify = Arc::new(Notify::new());
     let notify2 = notify.clone();
+    cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
     std::thread::spawn(move || {
         let mut net = Network::new(&app, &config).expect("Network Error");
         start_tokio(sync_io_rx, &mut net, notify2);
     });
-    cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
     use mgwconf_ui::app::UiApp;
     use mgwconf_ui::config::Config;
     <UiApp as AppTrait<Config>>::run(cloned_app, None).await.unwrap();
