@@ -1,16 +1,18 @@
 use aes::cipher::block_padding::Pkcs7;
 use aes::cipher::generic_array::GenericArray;
 use aes::cipher::{typenum, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use argon2::Config;
 use base64::engine::general_purpose;
 use base64::Engine;
 use rand::Rng;
 use std::fs::File;
 use std::io::prelude::*;
-use std::num::ParseIntError;
 use std::slice::Iter;
 
-type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
-type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
+type Aes256CbcEnc = cbc::Encryptor<aes::Aes256>;
+type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
+
+mod error;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum SecretType {
@@ -47,52 +49,37 @@ pub struct SecretsVault {
     pub encrypt: Option<String>,
 
     pub current_secret: SecretType,
-    key: [u8; 16],
+    key: [u8; 32],
+    key_salt: [u8; 16],
     pt_len: usize,
+    master: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum DecodeHexError {
-    OddLength,
-    ParseInt(ParseIntError),
-}
-
-impl std::fmt::Display for DecodeHexError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            DecodeHexError::OddLength => "input string has an odd number of bytes".fmt(f),
-            DecodeHexError::ParseInt(e) => e.fmt(f),
-        }
+fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 16]), error::VaultError> {
+    let mut rng = rand::thread_rng();
+    let mut salt: [u8; 16] = [0; 16];
+    for s in salt.iter_mut() {
+        *s = rng.gen();
     }
-}
-
-impl std::error::Error for DecodeHexError {}
-
-impl From<ParseIntError> for DecodeHexError {
-    fn from(e: ParseIntError) -> Self {
-        DecodeHexError::ParseInt(e)
-    }
-}
-
-fn decode_hex(s: &str) -> Result<Vec<u8>, DecodeHexError> {
-    if s.len() % 2 != 0 {
-        Err(DecodeHexError::OddLength)
-    } else {
-        (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).map_err(|e| e.into())).collect()
-    }
+    let config = Config::default();
+    Ok((argon2::hash_raw(s.as_bytes(), &salt, &config)?, salt))
 }
 
 impl SecretsVault {
-    pub fn new(key: &str) -> Result<SecretsVault, DecodeHexError> {
+    pub fn new(master: &str) -> Result<SecretsVault, error::VaultError> {
+        let (hash, salt) = generate_hash(master)?;
+        let key: [u8; 32] = hash[..32].try_into().unwrap();
         Ok(SecretsVault {
-            key: decode_hex(key)?[..16].try_into().unwrap(),
+            key,
             pt_len: 48,
+            key_salt: salt,
+            master: Some(master.to_owned()),
             ..Default::default()
         })
     }
 
-    pub fn create_secret(&self, stype: SecretType, mut value: String) {
-        while value.len() < 32 {
+    pub fn create_secret(&self, stype: SecretType, mut value: String) -> Result<(), error::VaultError> {
+        while value.len() < 36 {
             value += "0";
         }
         let binding = general_purpose::STANDARD.encode(value.as_bytes());
@@ -105,21 +92,30 @@ impl SecretsVault {
         for x in iv.iter_mut() {
             *x = rng.gen();
         }
-        let enc = Aes128CbcEnc::new(&self.key.into(), &iv.into());
-        enc.encrypt_padded_mut::<Pkcs7>(&mut buf, self.pt_len).unwrap();
-        let mut output = File::create(format!("./vault/vault.{}", stype)).unwrap();
-        let cipher = [iv.as_slice(), buf.as_slice()].concat();
-        output.write_all(&cipher).unwrap();
-        output.flush().unwrap();
+        let enc = Aes256CbcEnc::new(&self.key.into(), &iv.into());
+        enc.encrypt_padded_mut::<Pkcs7>(&mut buf, self.pt_len)?;
+        let mut output = File::create(format!("./vault/vault.{}", stype))?;
+        let cipher = [iv.as_slice(), self.key_salt.as_slice(), buf.as_slice()].concat();
+        output.write_all(&cipher)?;
+        output.flush()?;
+        Ok(())
     }
 
-    pub fn read_secret_from_file(&mut self, stype: SecretType) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn read_secret_from_file(&mut self, stype: SecretType) -> Result<(), error::VaultError> {
         let buf = std::fs::read(format!("./vault/vault.{}", stype))?;
         let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
-        let cipher = &mut buf.clone()[16..];
-        Aes128CbcDec::new(&self.key.into(), iv).decrypt_padded_mut::<Pkcs7>(cipher).expect("Decrypt Error");
-        let utf8 = String::from_utf8(cipher[..self.pt_len].to_vec())?;
-        let bytes = String::from_utf8((general_purpose::STANDARD.decode(utf8.as_bytes()))?[..16].to_vec())?;
+        let salt: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[16..32]);
+        let cipher = &mut buf.clone()[32..];
+        match argon2::hash_raw(self.master.as_ref().unwrap().as_bytes(), salt, &Config::default()) {
+            Ok(hash) => {
+                if !argon2::verify_raw(self.master.as_ref().unwrap().as_bytes(), salt, &hash, &Config::default())? {
+                    return Err(error::VaultError::MasterPasswordVerifyError);
+                }
+                Aes256CbcDec::new(GenericArray::from_slice(&hash).into(), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
+            }
+            Err(_) => return Err(error::VaultError::MasterPasswordVerifyError),
+        }
+        let bytes = String::from_utf8((general_purpose::STANDARD.decode(cipher[..self.pt_len].to_vec()))?[..16].to_vec())?;
         match stype {
             SecretType::Configuration => self.configuration = Some(bytes),
             SecretType::Monitoring => self.monitoring = Some(bytes),
@@ -132,8 +128,8 @@ impl SecretsVault {
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
             if let Err(e) = self.read_secret_from_file(*stype) {
-                log::error!("{:?}", e);
-                return;
+                log::error!("{}", e);
+                panic!("{e}");
             }
         }
     }

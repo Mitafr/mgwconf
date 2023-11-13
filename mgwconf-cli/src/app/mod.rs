@@ -73,21 +73,22 @@ where
         Ok(())
     }
 
-    fn ask_secrets(&mut self) -> Result<()> {
+    fn ask_secrets(master: &str) -> Result<()> {
         let mut secret = String::new();
         for s in SecretType::iterator() {
-            <CliApp as AppTrait<C>>::ask_secret(self, &mut secret, *s);
+            <CliApp as AppTrait<C>>::ask_secret(master, &mut secret, *s);
         }
         print!("\x1B[2J\x1B[1;1H");
         Ok(())
     }
 
-    fn ask_secret(&mut self, s: &mut String, stype: SecretType) {
+    fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
         stdin().read_line(s).expect("Did not enter a correct string");
         s.pop();
-        self.vault.as_ref().unwrap().create_secret(stype, s.to_owned());
+        let vault = SecretsVault::new(master).unwrap();
+        vault.create_secret(stype, s.to_owned()).unwrap();
         s.clear()
     }
 
@@ -109,18 +110,7 @@ where
 
     fn handle_network_response(&mut self, event: IoEvent, _res: serde_json::Value) {
         match event {
-            IoEvent::Ping => todo!(),
-            IoEvent::GetAllProfiles => todo!(),
-            IoEvent::GetAllBusinessApplications => todo!(),
-            IoEvent::GetAllCertificates => todo!(),
-            IoEvent::GetAllSags => todo!(),
-            IoEvent::PostBusinessApplication => todo!(),
-            IoEvent::PostCertificate => todo!(),
-            IoEvent::PostSag => todo!(),
-            IoEvent::PostProfile => todo!(),
-            // IoEvent::DeleteBusinessApplication(_e) => todo!(),
-            // IoEvent::DeleteCertificate(_e) => todo!(),
-            // IoEvent::DeleteSag(_e) => todo!(),
+            _ => todo!(),
         }
     }
 

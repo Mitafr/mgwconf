@@ -104,7 +104,7 @@ impl UiApp {
             Ok(v) => v,
             Err(e) => {
                 log::error!("Can't decode secret vault : {}", e);
-                panic!("Can't decode secret vault");
+                panic!("Can't decode secret vault : {}", e);
             }
         };
         UiApp {
@@ -141,21 +141,22 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         Ok(())
     }
 
-    fn ask_secrets(&mut self) -> Result<()> {
+    fn ask_secrets(master: &str) -> Result<()> {
         let mut secret = String::new();
         for s in SecretType::iterator() {
-            <UiApp as AppTrait<C>>::ask_secret(self, &mut secret, *s);
+            <UiApp as AppTrait<C>>::ask_secret(master, &mut secret, *s);
         }
         print!("\x1B[2J\x1B[1;1H");
         Ok(())
     }
 
-    fn ask_secret(&mut self, s: &mut String, stype: SecretType) {
+    fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
         stdin().read_line(s).expect("Did not enter a correct string");
         s.pop();
-        self.vault.as_ref().unwrap().create_secret(stype, s.to_owned());
+        let vault = SecretsVault::new(master).unwrap();
+        vault.create_secret(stype, s.to_owned()).unwrap();
         s.clear()
     }
 

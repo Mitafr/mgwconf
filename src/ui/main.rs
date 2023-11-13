@@ -23,7 +23,6 @@ use tokio::sync::Notify;
 #[tokio::main]
 async fn main() -> Result<()> {
     let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
-    #[cfg(feature = "ui")]
     let (app, config) = create_app(sync_io_tx).await;
     let cloned_app = Arc::clone(&app);
 
@@ -40,12 +39,9 @@ async fn main() -> Result<()> {
         start_tokio(sync_io_rx, &mut net, notify2);
     });
     cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
-    #[cfg(feature = "ui")]
-    {
-        use mgwconf_ui::app::UiApp;
-        use mgwconf_ui::config::Config;
-        <UiApp as AppTrait<Config>>::run(cloned_app, None).await.unwrap();
-    }
+    use mgwconf_ui::app::UiApp;
+    use mgwconf_ui::config::Config;
+    <UiApp as AppTrait<Config>>::run(cloned_app, None).await.unwrap();
     info!("Exiting");
     Ok(())
 }
@@ -55,8 +51,12 @@ pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<UiApp>>, Config) {
 
     let args = Args::parse();
     let vault_key = if args.vault_key.is_some() { args.vault_key.as_ref().unwrap().to_owned() } else { ask_master_key() };
+    let mut config = Config::init(&args).unwrap();
+    config.init_logging();
+    if args.create_secret {
+        <UiApp as AppTrait<Config>>::ask_secrets(&vault_key).unwrap();
+    }
 
-    let config = Config::init(&args).unwrap();
     (Arc::new(Mutex::new(UiApp::new(io_tx, config.clone(), &vault_key).await)), config)
 }
 

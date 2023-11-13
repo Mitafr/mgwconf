@@ -51,8 +51,12 @@ pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<CliApp>>, Config) 
 
     let args = Args::parse();
     let vault_key = if args.vault_key.is_some() { args.vault_key.as_ref().unwrap().to_owned() } else { ask_master_key() };
+    let mut config = Config::init(&args).unwrap();
+    config.init_logging();
+    if args.create_secret {
+        <CliApp as AppTrait<Config>>::ask_secrets(&vault_key).unwrap();
+    }
 
-    let config = Config::init(&args).unwrap();
     (Arc::new(Mutex::new(CliApp::new(io_tx, config.clone(), &vault_key).await)), config)
 }
 

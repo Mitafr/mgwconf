@@ -42,8 +42,8 @@ where
     async fn init(&mut self) -> Result<()>;
     async fn dispatch(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error>;
 
-    fn ask_secrets(&mut self) -> Result<()>;
-    fn ask_secret(&mut self, s: &mut String, stype: SecretType);
+    fn ask_secrets(master: &str) -> Result<()>;
+    fn ask_secret(master: &str, s: &mut String, stype: SecretType);
 
     fn is_connected(&self) -> bool;
     fn set_connected(&mut self, connected: bool);
