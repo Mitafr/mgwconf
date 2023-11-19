@@ -1,6 +1,6 @@
 use mgwconf_network::{
     event::IoEvent,
-    models::configuration::{BusinessApplicationEntity, CertificateEntity, SagEntity},
+    models::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity},
     AppConfig,
 };
 
@@ -76,21 +76,30 @@ where
             let any_entity = app.get_configuration_state().selected_entity().unwrap();
             match app.get_configuration_state().current_selected() {
                 TabId::CERTIFICATE => {
-                    let t: &CertificateEntity = any_entity.as_any().downcast_ref::<CertificateEntity>().expect("Wasn't a trusty printer!");
-                    app.dispatch(IoEvent::DeleteCertificate(t.clone())).await.unwrap();
+                    let entity = any_entity.as_any().downcast_ref::<CertificateEntity>().expect("Wasn't a trusty printer!").to_owned();
+                    app.dispatch(IoEvent::DeleteCertificate(entity)).await.unwrap();
                     app.dispatch(IoEvent::GetAllCertificates).await.unwrap();
                 }
                 TabId::SAG => {
-                    let entity = any_entity.as_any().downcast_ref::<SagEntity>().expect("Wasn't a trusty printer!").clone();
+                    let entity = any_entity.as_any().downcast_ref::<SagEntity>().expect("Wasn't a trusty printer!").to_owned();
                     app.dispatch(IoEvent::DeleteSag(entity)).await.unwrap();
                     app.dispatch(IoEvent::GetAllSags).await.unwrap();
                 }
                 TabId::BUSINESSAPPLICATION => {
-                    let t = any_entity.as_any().downcast_ref::<BusinessApplicationEntity>().expect("Wasn't a trusty printer!");
-                    app.dispatch(IoEvent::DeleteBusinessApplication(t.clone())).await.unwrap();
+                    let entity: BusinessApplicationEntity = any_entity.as_any().downcast_ref::<BusinessApplicationEntity>().expect("Wasn't a trusty printer!").to_owned();
+                    app.dispatch(IoEvent::DeleteBusinessApplication(entity)).await.unwrap();
                     app.dispatch(IoEvent::GetAllBusinessApplications).await.unwrap();
                 }
-                _ => {}
+                TabId::PROFILE => {
+                    let entity = any_entity.as_any().downcast_ref::<ApplicationProfileEntity>().expect("Wasn't a trusty printer!").to_owned();
+                    app.dispatch(IoEvent::DeleteApplicationProfileEntity(entity)).await.unwrap();
+                    app.dispatch(IoEvent::GetAllBusinessApplications).await.unwrap();
+                }
+                TabId::APIPROXY => {
+                    let entity = any_entity.as_any().downcast_ref::<ForwardProxyEntity>().expect("Wasn't a trusty printer!").to_owned();
+                    app.dispatch(IoEvent::DeleteForwardProxyEntity(entity)).await.unwrap();
+                    app.dispatch(IoEvent::GetAllForwardProxyEntity).await.unwrap();
+                }
             }
             app.get_configuration_state_mut().reload();
         }
@@ -108,7 +117,7 @@ where
         TabId::SAG => app.dispatch(IoEvent::PostSag).await.map_err(anyhow::Error::from),
         TabId::BUSINESSAPPLICATION => app.dispatch(IoEvent::PostBusinessApplication).await.map_err(anyhow::Error::from),
         TabId::PROFILE => app.dispatch(IoEvent::PostProfile).await.map_err(anyhow::Error::from),
-        _ => Ok(()),
+        TabId::APIPROXY => app.dispatch(IoEvent::PostForwardProxyEntity).await.map_err(anyhow::Error::from),
     }
 }
 
@@ -122,7 +131,7 @@ where
         TabId::SAG => app.dispatch(IoEvent::GetAllSags).await.map_err(anyhow::Error::from),
         TabId::BUSINESSAPPLICATION => app.dispatch(IoEvent::GetAllBusinessApplications).await.map_err(anyhow::Error::from),
         TabId::PROFILE => app.dispatch(IoEvent::GetAllProfiles).await.map_err(anyhow::Error::from),
-        _ => Ok(()),
+        TabId::APIPROXY => app.dispatch(IoEvent::GetAllForwardProxyEntity).await.map_err(anyhow::Error::from),
     }
 }
 
