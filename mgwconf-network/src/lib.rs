@@ -9,21 +9,21 @@ extern crate url;
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
 use anyhow::{Error, Result};
-use apis::configuration::configuration::ApiKey;
-use apis::configuration::configuration::Configuration;
+use api::configuration::configuration::ApiKey;
+use api::configuration::configuration::Configuration;
 use async_trait::async_trait;
 use event::IoEvent;
 use log::{error, info};
 use mgwconf_vault::{SecretType, SecretsVault};
-use models::configuration::SagEntity;
+use model::configuration::SagEntity;
 use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
 use utils::route_url;
 
-pub mod apis;
+pub mod api;
 pub mod event;
-pub mod models;
+pub mod model;
 pub mod utils;
 
 #[async_trait]
@@ -106,7 +106,7 @@ where
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => {
                 let mut app = self.app.lock().await;
-                let entities = apis::configuration::sag_api::sag_get(
+                let entities = api::configuration::sag_api::sag_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
@@ -123,7 +123,7 @@ where
                 app.handle_network_response(IoEvent::GetAllSags, entities);
             }
             IoEvent::PostSag => {
-                apis::configuration::sag_api::sag_create(
+                api::configuration::sag_api::sag_create(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
@@ -147,7 +147,7 @@ where
                 .await?;
             }
             IoEvent::DeleteSag(e) => {
-                apis::configuration::sag_api::sag_delete(
+                api::configuration::sag_api::sag_delete(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
@@ -164,7 +164,7 @@ where
             }
             IoEvent::GetAllCertificates => {
                 let mut app = self.app.lock().await;
-                let entities = apis::configuration::certificate_api::certificate_get(
+                let entities = api::configuration::certificate_api::certificate_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
@@ -183,7 +183,7 @@ where
             // IoEvent::DeleteCertificate(e) => model::certificate::CertificateEntities::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllBusinessApplications => {
                 let mut app = self.app.lock().await;
-                let entities = apis::configuration::business_application_api::business_application_get(
+                let entities = api::configuration::business_application_api::business_application_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
@@ -202,7 +202,7 @@ where
             // IoEvent::DeleteBusinessApplication(e) => model::business_application::BusinessApplications::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
             IoEvent::GetAllProfiles => {
                 let mut app = self.app.lock().await;
-                let entities = apis::configuration::profile_api::application_profile_get(
+                let entities = api::configuration::profile_api::application_profile_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),

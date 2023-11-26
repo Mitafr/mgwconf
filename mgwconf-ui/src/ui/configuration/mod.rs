@@ -1,4 +1,4 @@
-use mgwconf_network::models::InnerEntityTrait;
+use mgwconf_network::model::InnerEntityTrait;
 use mgwconf_network::AppConfig;
 use ratatui::widgets::Wrap;
 
@@ -115,7 +115,7 @@ where
     api_proxies_str.extend(
         api_proxies
             .iter()
-            .map(|s: &mgwconf_network::models::configuration::ForwardProxyEntity| s.hostname.to_owned())
+            .map(|s: &mgwconf_network::model::configuration::ForwardProxyEntity| s.hostname.to_owned())
             .collect::<Vec<String>>(),
     );
     draw_selectable_list(f, app, layout_chunk, "", &api_proxies_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);

@@ -1,4 +1,4 @@
-use mgwconf_network::models::{configuration::*, InnerEntityTrait};
+use mgwconf_network::model::{configuration::*, InnerEntityTrait};
 
 use super::{State, TabId};
 

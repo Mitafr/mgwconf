@@ -10,7 +10,7 @@ use std::{
 };
 use tokio::sync::{mpsc::Sender, Mutex, Notify};
 
-use crate::{commands::Command, config::Config};
+use crate::{command::Command, config::Config};
 
 #[derive(Debug)]
 pub struct CliApp {

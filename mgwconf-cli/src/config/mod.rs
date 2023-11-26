@@ -5,7 +5,7 @@ use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::Subs
 
 use clap::Parser;
 
-use crate::commands::Command;
+use crate::command::Command;
 
 #[derive(Parser, Debug, Default, Clone)]
 #[clap(author, version, about, long_about = None)]

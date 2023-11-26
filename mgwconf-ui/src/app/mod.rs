@@ -7,7 +7,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-use mgwconf_network::{event::IoEvent, models::configuration::*, AppConfig, AppTrait};
+use mgwconf_network::{event::IoEvent, model::configuration::*, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use std::{
@@ -22,7 +22,7 @@ pub mod state;
 use crate::{
     config::Config,
     event::{Event, Events, Key},
-    handlers::{handle_app, handle_input},
+    handler::{handle_app, handle_input},
     ui::draw_main_layout,
 };
 

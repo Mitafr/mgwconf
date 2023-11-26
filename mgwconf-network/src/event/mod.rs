@@ -1,4 +1,4 @@
-use crate::models::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
+use crate::model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
 
 #[derive(Debug)]
 pub enum IoEvent {

@@ -1,5 +1,5 @@
 pub use log::debug;
-use mgwconf_network::models::configuration::*;
+use mgwconf_network::model::configuration::*;
 pub use std::fmt::Write;
 
 use crate::ui::fmt::FmtModel;
