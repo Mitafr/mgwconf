@@ -255,12 +255,13 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                     if <UiApp as UiAppTrait<C>>::get_force_exit(&app) {
                         break 'main;
                     }
-                    <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
                     if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block == ActiveBlock::Error {
                         std::thread::sleep(Duration::from_secs(2));
+                        <UiApp as UiAppTrait<C>>::reset_navigation_stack(&mut app);
                         <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Home, ActiveBlock::Home);
                         *<UiApp as UiAppTrait<C>>::get_configuration_state_mut(&mut app) = ConfigurationState::default();
                     }
+                    <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
                 }
             }
 

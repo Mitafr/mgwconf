@@ -19,6 +19,7 @@ impl From<usize> for TabId {
             x if x == TabId::SAG as usize => TabId::SAG,
             x if x == TabId::BUSINESSAPPLICATION as usize => TabId::BUSINESSAPPLICATION,
             x if x == TabId::PROFILE as usize => TabId::PROFILE,
+            x if x == TabId::APIPROXY as usize => TabId::APIPROXY,
             _ => TabId::CERTIFICATE,
         }
     }

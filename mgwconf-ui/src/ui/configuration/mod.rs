@@ -31,6 +31,7 @@ where
         1 => draw_configuration_sags(f, app, area),
         2 => draw_configuration_business_applications(f, app, area),
         3 => draw_configuration_profiles(f, app, area),
+        4 => draw_configuration_api_proxies(f, app, area),
         _ => {}
     }
 }
@@ -101,6 +102,23 @@ where
     profiles_str.push("Add Profile".to_owned());
     profiles_str.extend(profiles.iter().map(|s| s.profile_name.to_owned()).collect::<Vec<String>>());
     draw_selectable_list(f, app, layout_chunk, "", &profiles_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+}
+
+pub fn draw_configuration_api_proxies<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
+where
+    A: UiAppTrait<C>,
+    C: AppConfig,
+{
+    let api_proxies = &app.get_configuration_state().apiproxy;
+    let mut api_proxies_str = Vec::new();
+    api_proxies_str.push("Add Api Proxy".to_owned());
+    api_proxies_str.extend(
+        api_proxies
+            .iter()
+            .map(|s: &mgwconf_network::models::configuration::ForwardProxyEntity| s.hostname.to_owned())
+            .collect::<Vec<String>>(),
+    );
+    draw_selectable_list(f, app, layout_chunk, "", &api_proxies_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_detailed_entity<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
