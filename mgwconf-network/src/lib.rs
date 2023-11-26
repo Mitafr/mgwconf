@@ -75,7 +75,6 @@ where
     C: AppConfig,
 {
     pub fn new(app: &'a Arc<Mutex<A>>, config: &'a C) -> Result<Self> {
-        let config = config;
         let certificate = get_mgw_root_cert(config)?;
         let client = reqwest::Client::builder().tls_built_in_root_certs(true).add_root_certificate(certificate).build()?;
         Ok(Network { app, client, config })

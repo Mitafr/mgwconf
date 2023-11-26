@@ -111,11 +111,11 @@ impl SecretsVault {
                 if !argon2::verify_raw(self.master.as_ref().unwrap().as_bytes(), salt, &hash, &Config::rfc9106_low_mem())? {
                     return Err(error::VaultError::MasterPasswordVerifyError);
                 }
-                Aes256CbcDec::new(GenericArray::from_slice(&hash).into(), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
+                Aes256CbcDec::new(GenericArray::from_slice(&hash), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
             }
             Err(_) => return Err(error::VaultError::MasterPasswordVerifyError),
         }
-        let bytes = String::from_utf8((general_purpose::STANDARD.decode(cipher[..self.pt_len].to_vec()))?[..16].to_vec())?;
+        let bytes = String::from_utf8((general_purpose::STANDARD.decode(&cipher[..self.pt_len]))?[..16].to_vec())?;
         match stype {
             SecretType::Configuration => self.configuration = Some(bytes),
             SecretType::Monitoring => self.monitoring = Some(bytes),
