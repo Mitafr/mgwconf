@@ -10,7 +10,7 @@ pub fn generate_api_header<A: AppTrait<C>, C: AppConfig>(app: &MutexGuard<'_, A>
     if app.vault().is_none() {
         error!("Vault not initialized correctly");
     }
-    header.append("X-API-KEY", HeaderValue::from_str(app.vault().unwrap().get_secret(stype).as_ref().unwrap()).unwrap());
+    header.append("X-API-KEY", HeaderValue::from_str(app.vault().unwrap().get_secret(stype)).unwrap());
     header
 }
 

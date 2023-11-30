@@ -110,7 +110,7 @@ where
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -127,7 +127,7 @@ where
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: self.app.lock().await.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            key: self.app.lock().await.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -151,7 +151,7 @@ where
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: self.app.lock().await.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            key: self.app.lock().await.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -168,7 +168,7 @@ where
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -187,7 +187,7 @@ where
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -206,7 +206,7 @@ where
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().configuration.as_ref().unwrap().clone(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -228,7 +228,9 @@ where
         match self.handle_io_event(&io_event).await {
             Ok(_) => Ok(()),
             Err(e) => {
-                self.app.lock().await.handle_network_error(e);
+                let mut app = self.app.lock().await;
+                app.set_connected(false);
+                app.handle_network_error(e);
                 Err(Error::msg("Network Error"))
             }
         }

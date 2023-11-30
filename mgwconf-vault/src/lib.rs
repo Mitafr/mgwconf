@@ -43,16 +43,18 @@ impl SecretType {
 
 #[derive(Default, Debug)]
 pub struct SecretsVault {
-    pub configuration: Option<String>,
-    pub monitoring: Option<String>,
-    pub management: Option<String>,
-    pub encrypt: Option<String>,
+    configuration: Option<String>,
+    monitoring: Option<String>,
+    management: Option<String>,
+    encrypt: Option<String>,
 
     pub current_secret: SecretType,
     key: [u8; 32],
     key_salt: [u8; 16],
     pt_len: usize,
     master: Option<String>,
+
+    initialized: bool,
 }
 
 fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 16]), error::VaultError> {
@@ -125,21 +127,33 @@ impl SecretsVault {
         Ok(())
     }
 
+    /// Read all secrets from all vault
+    /// After this function execution, Self will contains all secrets
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if one of vaults can't be read
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
-            if let Err(e) = self.read_secret_from_file(*stype) {
-                log::error!("{}", e);
-                panic!("{e}");
-            }
+            self.read_secret_from_file(*stype).expect(&format!("Can't open vault {stype}"));
         }
+        self.initialized = true;
     }
 
-    pub fn get_secret(&self, stype: SecretType) -> Option<String> {
+    /// Get the current `SecretType` stored in the Vault
+    ///
+    /// # Panics
+    ///
+    /// This function will panic if the current Vault is not initialized correctly
+    pub fn get_secret(&self, stype: SecretType) -> &str {
+        if !self.initialized {
+            panic!("Vault has not yet been initilized");
+        }
         match stype {
-            SecretType::Configuration => self.configuration.to_owned(),
-            SecretType::Monitoring => self.monitoring.to_owned(),
-            SecretType::Management => self.management.to_owned(),
-            SecretType::Encrypt => self.encrypt.to_owned(),
+            SecretType::Configuration => self.configuration.as_deref().unwrap(),
+            SecretType::Monitoring => self.monitoring.as_deref().unwrap(),
+            SecretType::Management => self.management.as_deref().unwrap(),
+            SecretType::Encrypt => self.encrypt.as_deref().unwrap(),
         }
     }
 }

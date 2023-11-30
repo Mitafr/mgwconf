@@ -68,7 +68,7 @@ impl fmt::Display for VaultError {
             VaultError::FromHexError(e) => ("Hex", e.to_string()),
             VaultError::MasterPasswordVerifyError => ("Master password verify", String::from("Can't verify master password")),
         };
-        write!(f, "error in {}: {}", module, e)
+        write!(f, "error in {}: {} (This is usually caused by a wrong master key being entered or the vault file cannot be read)", module, e)
     }
 }
 
