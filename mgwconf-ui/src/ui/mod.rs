@@ -25,7 +25,7 @@ where
     let parent_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(1), Constraint::Length(1)].as_ref())
-        .margin(1)
+        .margin(0)
         .split(f.size());
 
     if app.get_current_route().id == RouteId::Home {
