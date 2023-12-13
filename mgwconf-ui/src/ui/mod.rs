@@ -47,20 +47,27 @@ where
 
     let current_route = app.get_current_route();
 
-    match current_route.id {
-        RouteId::Home => {
+    match (current_route.id, current_route.active_block) {
+        (RouteId::Home, _) => {
             draw_home(f, app, chunks[1]);
         }
-        RouteId::Configuration => {
-            if current_route.active_block == ActiveBlock::Error && app.get_configuration_state().is_tab_selected() {
-                draw_error(f, app, chunks[1]);
+        (RouteId::Configuration, ActiveBlock::Error) => {
+            if app.get_configuration_state().is_tab_selected() {
+                draw_error(f, app, layout_chunk);
             }
-            if current_route.active_block == ActiveBlock::TabSelected && app.get_configuration_state().is_tab_selected() {
+        }
+        (RouteId::Configuration, ActiveBlock::Detailed) => {
+            if app.get_configuration_state().is_tab_selected() && app.get_configuration_state().selected_entity().is_some() {
+                draw_detailed_entity(f, app, layout_chunk);
+            }
+        }
+        (RouteId::Configuration, ActiveBlock::TabSelected) => {
+            if app.get_configuration_state().is_tab_selected() {
                 draw_configuration(f, app, chunks[1]);
             }
-            if current_route.active_block == ActiveBlock::Detailed && app.get_configuration_state().is_tab_selected() && app.get_configuration_state().selected_entity().is_some() {
-                draw_detailed_entity(f, app, chunks[1]);
-            }
+            draw_configuration_user_block(f, app, chunks[0]);
+        }
+        _ => {
             draw_configuration_user_block(f, app, chunks[0]);
         }
     };

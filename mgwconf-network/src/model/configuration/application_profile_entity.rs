@@ -42,6 +42,9 @@ impl ApplicationProfileEntity {
 }
 
 impl InnerEntityTrait for ApplicationProfileEntity {
+    fn entity_type(&self) -> &str {
+        "Application Profile"
+    }
     fn name(&self) -> &str {
         &self.profile_name
     }

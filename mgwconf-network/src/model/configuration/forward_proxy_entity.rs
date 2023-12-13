@@ -39,6 +39,9 @@ impl ForwardProxyEntity {
 }
 
 impl InnerEntityTrait for ForwardProxyEntity {
+    fn entity_type(&self) -> &str {
+        "Forward Proxy"
+    }
     fn name(&self) -> &str {
         &self.hostname
     }

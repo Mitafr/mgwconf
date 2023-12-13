@@ -35,6 +35,9 @@ pub struct SagEntity {
 }
 
 impl InnerEntityTrait for SagEntity {
+    fn entity_type(&self) -> &str {
+        "Sag"
+    }
     fn name(&self) -> &str {
         &self.hostname
     }

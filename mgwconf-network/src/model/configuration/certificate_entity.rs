@@ -33,6 +33,9 @@ impl CertificateEntity {
 }
 
 impl InnerEntityTrait for CertificateEntity {
+    fn entity_type(&self) -> &str {
+        "Certificate"
+    }
     fn name(&self) -> &str {
         &self.alias
     }

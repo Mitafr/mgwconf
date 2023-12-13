@@ -8,6 +8,7 @@ pub mod monitoring;
 /// Contains the entity itself
 ///
 pub trait InnerEntityTrait: std::fmt::Debug + Send + Sync {
+    fn entity_type(&self) -> &str;
     fn name(&self) -> &str;
     fn to_string(&self) -> String {
         String::new()

@@ -30,6 +30,9 @@ impl BusinessApplicationEntity {
 }
 
 impl InnerEntityTrait for BusinessApplicationEntity {
+    fn entity_type(&self) -> &str {
+        "Business Application"
+    }
     fn name(&self) -> &str {
         &self.application_name
     }

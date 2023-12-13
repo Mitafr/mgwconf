@@ -69,10 +69,12 @@ impl Events {
 
         Events { rx, _tx: tx }
     }
+}
 
-    /// Attempts to read an event.
-    /// This function will block the current thread.
-    pub fn next(&mut self) -> Result<Event<Key>, mpsc::RecvError> {
-        self.rx.recv()
+impl Iterator for Events {
+    type Item = Result<Event<Key>, mpsc::RecvError>;
+
+    fn next(&mut self) -> Option<Result<Event<Key>, mpsc::RecvError>> {
+        Some(self.rx.recv())
     }
 }
