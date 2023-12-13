@@ -1,3 +1,7 @@
+use crossterm::{
+    event::{DisableMouseCapture, EnableMouseCapture},
+    execute,
+};
 use mgwconf_network::{
     event::IoEvent,
     model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity},
@@ -59,7 +63,8 @@ where
     C: AppConfig,
 {
     match key {
-        k if k == &Key::Tab => {
+        &Key::Tab => {
+            execute!(std::io::stdout(), EnableMouseCapture).unwrap();
             app.get_configuration_state_mut().unselect_current();
             app.set_current_route_state(Some(ActiveBlock::Tab), None);
         }
@@ -70,6 +75,7 @@ where
             Err(e) => log::error!("{}", e),
         },
         k if *k == Key::Enter && app.get_configuration_state().selected_entity().is_some() => {
+            execute!(std::io::stdout(), DisableMouseCapture).unwrap();
             app.set_current_route_state(Some(ActiveBlock::Detailed), None);
         }
         k if *k == Key::Delete && app.get_configuration_state().selected_entity().is_some() => {

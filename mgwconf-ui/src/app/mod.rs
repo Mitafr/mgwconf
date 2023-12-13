@@ -60,9 +60,10 @@ pub enum ActiveBlock {
     TabSelected,
     Dialog,
     Detailed,
+    Editing,
 }
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, PartialEq, Debug)]
 pub enum RouteId {
     Home,
     Configuration,
@@ -74,7 +75,7 @@ const DEFAULT_ROUTE: Route = Route {
     hovered_block: ActiveBlock::Empty,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Route {
     pub id: RouteId,
     pub active_block: ActiveBlock,
@@ -230,14 +231,12 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                 draw_main_layout::<UiApp, Config>(f, &*app);
             })?;
 
-            terminal.hide_cursor()?;
-
             let cursor_offset = 2;
             terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
 
             let current_route = <UiApp as UiAppTrait<C>>::get_current_route(&app);
 
-            match events.next()? {
+            match events.next().unwrap()? {
                 Event::Input(key) => {
                     if key == Key::Esc && (current_route.active_block == ActiveBlock::Empty || current_route.active_block == ActiveBlock::Tab) {
                         break 'main;
