@@ -12,3 +12,4 @@ rand = "0.8.5"
 log = "0.4"
 hex = "0.4.3"
 rust-argon2 = "2.0"
+zeroize = { version = "1.7.0", features = ["zeroize_derive"] }
