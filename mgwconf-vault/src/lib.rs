@@ -8,13 +8,14 @@ use rand::Rng;
 use std::fs::File;
 use std::io::prelude::*;
 use std::slice::Iter;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
 type Aes256CbcEnc = cbc::Encryptor<aes::Aes256>;
 type Aes256CbcDec = cbc::Decryptor<aes::Aes256>;
 
 mod error;
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, Zeroize)]
 pub enum SecretType {
     #[default]
     Configuration,
@@ -41,41 +42,42 @@ impl SecretType {
     }
 }
 
-#[derive(Default, Debug)]
-pub struct SecretsVault {
-    configuration: Option<String>,
-    monitoring: Option<String>,
-    management: Option<String>,
-    encrypt: Option<String>,
-
-    pub current_secret: SecretType,
-    key: [u8; 32],
-    key_salt: [u8; 16],
-    pt_len: usize,
-    master: Option<String>,
-
-    initialized: bool,
+fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 32]), error::VaultError> {
+    let mut rng = rand::thread_rng();
+    let mut salt: [u8; 32] = [0; 32];
+    salt.iter_mut().for_each(|s| *s = rng.gen());
+    Ok((argon2::hash_raw(s.as_bytes(), &salt, &Config::rfc9106())?, salt))
 }
 
-fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 16]), error::VaultError> {
-    let mut rng = rand::thread_rng();
-    let mut salt: [u8; 16] = [0; 16];
-    for s in salt.iter_mut() {
-        *s = rng.gen();
-    }
-    let config = Config::rfc9106_low_mem();
-    Ok((argon2::hash_raw(s.as_bytes(), &salt, &config)?, salt))
+#[derive(Default, Debug, Zeroize, ZeroizeOnDrop)]
+pub struct SecretsVault {
+    configuration: String,
+    monitoring: String,
+    management: String,
+    encrypt: String,
+
+    key: [u8; 32],
+    key_salt: [u8; 32],
+    pt_len: usize,
+    master: String,
+
+    initialized: bool,
 }
 
 impl SecretsVault {
     pub fn new(master: &str) -> Result<SecretsVault, error::VaultError> {
         let (hash, salt) = generate_hash(master)?;
         let key: [u8; 32] = hash[..32].try_into().unwrap();
+
         Ok(SecretsVault {
             key,
             pt_len: 48,
             key_salt: salt,
-            master: Some(master.to_owned()),
+            master: String::from(master),
+            configuration: String::new(),
+            monitoring: String::new(),
+            management: String::new(),
+            encrypt: String::new(),
             ..Default::default()
         })
     }
@@ -108,21 +110,21 @@ impl SecretsVault {
         let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
         let salt: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[16..32]);
         let cipher = &mut buf.clone()[32..];
-        match argon2::hash_raw(self.master.as_ref().unwrap().as_bytes(), salt, &Config::rfc9106_low_mem()) {
+        match argon2::hash_raw(self.master.as_bytes(), salt, &Config::rfc9106_low_mem()) {
             Ok(hash) => {
-                if !argon2::verify_raw(self.master.as_ref().unwrap().as_bytes(), salt, &hash, &Config::rfc9106_low_mem())? {
+                if !argon2::verify_raw(self.master.as_bytes(), salt, &hash, &Config::rfc9106_low_mem())? {
                     return Err(error::VaultError::MasterPasswordVerifyError);
                 }
                 Aes256CbcDec::new(GenericArray::from_slice(&hash), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
             }
             Err(_) => return Err(error::VaultError::MasterPasswordVerifyError),
         }
-        let bytes = String::from_utf8((general_purpose::STANDARD.decode(&cipher[..self.pt_len]))?[..16].to_vec())?;
+        let value = String::from_utf8((general_purpose::STANDARD.decode(&cipher[..self.pt_len]))?[..16].to_vec())?;
         match stype {
-            SecretType::Configuration => self.configuration = Some(bytes),
-            SecretType::Monitoring => self.monitoring = Some(bytes),
-            SecretType::Management => self.management = Some(bytes),
-            SecretType::Encrypt => self.encrypt = Some(bytes),
+            SecretType::Configuration => self.configuration = value,
+            SecretType::Monitoring => self.monitoring = value,
+            SecretType::Management => self.management = value,
+            SecretType::Encrypt => self.encrypt = value,
         }
         Ok(())
     }
@@ -135,9 +137,11 @@ impl SecretsVault {
     /// This function will panic if one of vaults can't be read
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
-            self.read_secret_from_file(*stype).expect(&format!("Can't open vault {stype}"));
+            self.read_secret_from_file(*stype).unwrap_or_else(|_| panic!("Can't open vault {stype}"));
         }
         self.initialized = true;
+        // We remove the master key from memory there
+        self.master.zeroize();
     }
 
     /// Get the current `SecretType` stored in the Vault
@@ -150,10 +154,10 @@ impl SecretsVault {
             panic!("Vault has not yet been initilized");
         }
         match stype {
-            SecretType::Configuration => self.configuration.as_deref().unwrap(),
-            SecretType::Monitoring => self.monitoring.as_deref().unwrap(),
-            SecretType::Management => self.management.as_deref().unwrap(),
-            SecretType::Encrypt => self.encrypt.as_deref().unwrap(),
+            SecretType::Configuration => &self.configuration,
+            SecretType::Monitoring => &self.monitoring,
+            SecretType::Management => &self.management,
+            SecretType::Encrypt => &self.encrypt,
         }
     }
 }
