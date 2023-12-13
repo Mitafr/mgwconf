@@ -19,12 +19,10 @@ use model::configuration::SagEntity;
 use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
-use utils::route_url;
 
 pub mod api;
 pub mod event;
 pub mod model;
-pub mod utils;
 
 #[async_trait]
 pub trait AppConfig: Send + Sync {
@@ -81,7 +79,7 @@ where
     }
 
     pub async fn ping_mgw(&mut self) -> Result<(), anyhow::Error> {
-        let route = route_url(self.config, "mgw-monitoring-api/1.0.0/health");
+        let route = format!("https://{}:{}/swift/mgw/{}", self.config.remote_ip(), self.config.remote_port(), "mgw-monitoring-api/1.0.0/health");
         match self.client.get(route).send().await {
             Ok(res) => {
                 let mut app = self.app.lock().await;
