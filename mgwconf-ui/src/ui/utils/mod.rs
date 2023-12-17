@@ -1,4 +1,3 @@
-use mgwconf_network::AppConfig;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
@@ -7,15 +6,11 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::UiAppTrait;
-
 pub const SMALL_TERMINAL_HEIGHT: u16 = 45;
 
-pub fn draw_selectable_list<A, S, C>(f: &mut Frame, _app: &A, layout_chunk: Rect, title: &str, items: &[S], highlight_state: (bool, bool), selected_index: Option<usize>, borders: Borders)
+pub fn draw_selectable_list<S>(f: &mut Frame, layout_chunk: Rect, title: &str, items: &[S], highlight_state: (bool, bool), selected_index: Option<usize>, borders: Borders)
 where
-    A: UiAppTrait<C>,
     S: std::convert::AsRef<str>,
-    C: AppConfig,
 {
     let mut state = ListState::default();
     state.select(selected_index);
@@ -25,10 +20,13 @@ where
     let list = List::new(lst_items)
         .block(Block::default().title(Span::styled(title, get_color(highlight_state))).borders(borders).border_style(get_color(highlight_state)))
         .style(Style::default().fg(Color::Reset))
-        .highlight_style(get_color(highlight_state).add_modifier(Modifier::BOLD));
+        .highlight_style(get_color(highlight_state).add_modifier(Modifier::BOLD | Modifier::DIM));
     f.render_stateful_widget(list, layout_chunk, &mut state);
 }
 
+/// helper function to get the color based on active or hovered
+///
+/// * _ (bool, bool) : (is_active, is_hovered)
 pub fn get_color((is_active, is_hovered): (bool, bool)) -> Style {
     match (is_active, is_hovered) {
         (true, _) => Style::default().fg(Color::Cyan),

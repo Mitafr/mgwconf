@@ -146,7 +146,5 @@ where
     A: UiAppTrait<C>,
     C: AppConfig,
 {
-    match key {
-        _ => {}
-    }
+    if key == &Key::Enter {}
 }

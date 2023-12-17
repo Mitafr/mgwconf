@@ -12,7 +12,7 @@ where
     A: UiAppTrait<C>,
     C: AppConfig,
 {
-    draw_selectable_list(f, app, layout_chunk, "", &CONFIGURATION_USER_TAB, (true, true), Some(app.get_configuration_state().current_tab()), Borders::ALL);
+    draw_selectable_list(f, layout_chunk, "", &CONFIGURATION_USER_TAB, (true, true), Some(app.get_configuration_state().current_tab()), Borders::ALL);
 }
 
 pub fn draw_configuration<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
@@ -65,7 +65,7 @@ where
     let mut sags_str = Vec::new();
     sags_str.push("Add SAG".to_owned());
     sags_str.extend(sags.iter().map(|s| s.hostname.to_owned()).collect::<Vec<String>>());
-    draw_selectable_list(f, app, layout_chunk, "", &sags_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+    draw_selectable_list(f, layout_chunk, "", &sags_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_configuration_certificates<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
@@ -77,7 +77,7 @@ where
     let mut certificates_str = Vec::new();
     certificates_str.push("Add Certificate".to_owned());
     certificates_str.extend(certificates.iter().map(|s| s.alias.to_owned()).collect::<Vec<String>>());
-    draw_selectable_list(f, app, layout_chunk, "", &certificates_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+    draw_selectable_list(f, layout_chunk, "", &certificates_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_configuration_business_applications<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
@@ -89,7 +89,7 @@ where
     let mut business_applications_str = Vec::new();
     business_applications_str.push("Add Business Application".to_owned());
     business_applications_str.extend(business_applications.iter().map(|s| s.application_name.to_owned()).collect::<Vec<String>>());
-    draw_selectable_list(f, app, layout_chunk, "", &business_applications_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+    draw_selectable_list(f, layout_chunk, "", &business_applications_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_configuration_profiles<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
@@ -101,7 +101,7 @@ where
     let mut profiles_str = Vec::new();
     profiles_str.push("Add Profile".to_owned());
     profiles_str.extend(profiles.iter().map(|s| s.profile_name.to_owned()).collect::<Vec<String>>());
-    draw_selectable_list(f, app, layout_chunk, "", &profiles_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+    draw_selectable_list(f, layout_chunk, "", &profiles_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_configuration_api_proxies<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
@@ -118,7 +118,7 @@ where
             .map(|s: &mgwconf_network::model::configuration::ForwardProxyEntity| s.hostname.to_owned())
             .collect::<Vec<String>>(),
     );
-    draw_selectable_list(f, app, layout_chunk, "", &api_proxies_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+    draw_selectable_list(f, layout_chunk, "", &api_proxies_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_detailed_entity<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
