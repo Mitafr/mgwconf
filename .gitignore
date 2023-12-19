@@ -8,3 +8,4 @@ passwords
 *.pem
 logs
 mgw
+vault/*
