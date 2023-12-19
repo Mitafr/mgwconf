@@ -108,11 +108,11 @@ impl SecretsVault {
     pub fn read_secret_from_file(&mut self, stype: SecretType) -> Result<(), error::VaultError> {
         let buf = std::fs::read(format!("./vault/vault.{}", stype))?;
         let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
-        let salt: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[16..32]);
-        let cipher = &mut buf.clone()[32..];
-        match argon2::hash_raw(self.master.as_bytes(), salt, &Config::rfc9106_low_mem()) {
+        let salt: &GenericArray<u8, typenum::U32> = GenericArray::from_slice(&buf[16..48]);
+        let cipher = &mut buf.clone()[48..];
+        match argon2::hash_raw(self.master.as_bytes(), salt, &Config::rfc9106()) {
             Ok(hash) => {
-                if !argon2::verify_raw(self.master.as_bytes(), salt, &hash, &Config::rfc9106_low_mem())? {
+                if !argon2::verify_raw(self.master.as_bytes(), salt, &hash, &Config::rfc9106())? {
                     return Err(error::VaultError::MasterPasswordVerifyError);
                 }
                 Aes256CbcDec::new(GenericArray::from_slice(&hash), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
@@ -137,7 +137,7 @@ impl SecretsVault {
     /// This function will panic if one of vaults can't be read
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
-            self.read_secret_from_file(*stype).unwrap_or_else(|_| panic!("Can't open vault {stype}"));
+            self.read_secret_from_file(*stype).unwrap_or_else(|e| panic!("Can't open vault {stype} : {e}"));
         }
         self.initialized = true;
         // We remove the master key from memory there
