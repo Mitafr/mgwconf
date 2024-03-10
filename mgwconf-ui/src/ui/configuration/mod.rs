@@ -127,6 +127,8 @@ where
     C: AppConfig,
 {
     let entity: Box<&dyn InnerEntityTrait> = app.get_configuration_state().selected_entity().unwrap();
+    let configuration = Block::default().title(format!("{} - {}", entity.as_ref().entity_type(), entity.as_ref().name())).title_alignment(Alignment::Left);
+    f.render_widget(configuration, layout_chunk);
     let area = centered_rect(100, 95, layout_chunk);
     let paragraph = Paragraph::new(entity.to_string()).style(Style::default().bg(Color::Reset).fg(Color::White)).wrap(Wrap { trim: false });
     f.render_widget(paragraph, area);

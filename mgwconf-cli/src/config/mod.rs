@@ -5,8 +5,6 @@ use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::Subs
 
 use clap::Parser;
 
-use crate::command::Command;
-
 #[derive(Parser, Debug, Default, Clone)]
 #[clap(author, version, about, long_about = None)]
 pub struct Args {
@@ -19,8 +17,8 @@ pub struct Args {
     /// pass vault key
     #[clap(short = 'k')]
     pub vault_key: Option<String>,
-    #[clap(required = false)]
-    pub commands: Option<Vec<Command>>,
+    #[clap(required = true)]
+    pub commands: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -32,7 +30,7 @@ pub struct Config {
     pub root_ca_path: String,
 
     pub tick_rate: u64,
-    pub commands: Vec<Command>,
+    pub commands: Vec<String>,
 }
 
 impl Config {

@@ -38,7 +38,7 @@ where
     C: AppConfig + Sized,
 {
     async fn init(&mut self) -> Result<()>;
-    async fn dispatch(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error>;
+    async fn dispatch(&self, io_event: IoEvent) -> Result<(), anyhow::Error>;
 
     fn ask_secrets(master: &str) -> Result<()>;
     fn ask_secret(master: &str, s: &mut String, stype: SecretType);
@@ -99,6 +99,7 @@ where
     }
 
     async fn handle_io_event(&mut self, io_event: &IoEvent) -> Result<(), anyhow::Error> {
+        info!("Network handling {io_event:?}");
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => {
@@ -215,6 +216,41 @@ where
                 .await?;
                 app.handle_network_response(IoEvent::GetAllProfiles, entities);
             }
+            IoEvent::GetAllApplicationProfileEntity => {
+                let mut app = self.app.lock().await;
+                let entities = api::configuration::business_application_api::business_application_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await?;
+                app.handle_network_response(IoEvent::GetAllApplicationProfileEntity, entities);
+            }
+            IoEvent::GetAllForwardProxyEntity => {
+                let mut app = self.app.lock().await;
+                let entities = api::configuration::forward_proxy_api::forward_proxies_info_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                    None,
+                )
+                .await?;
+                app.handle_network_response(IoEvent::GetAllForwardProxyEntity, entities);
+            }
             // IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
             _ => {}
         };
@@ -238,18 +274,17 @@ where
     pub async fn handle_network_event(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
-            _ => {}
-            // IoEvent::GetAllSags => self.app.lock().await.configuration_state.sags = model::sag::SagEntities::get_all(self.app.lock().await, &self.client, self.config).await?, //sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::PostSag => model::sag::SagEntities::post(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteSag => model::sag::SagEntities::delete(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::GetAllCertificates => self.app.lock().await.configuration_state.certificates = model::certificate::CertificateEntities::get_all(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteCertificate => model::certificate::CertificateEntities::delete(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::GetAllBusinessApplications => {
-            //     self.app.lock().await.configuration_state.business_applications = model::business_application::BusinessApplications::get_all(self.app.lock().await, &self.client, self.config).await?
-            // }
-            // IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteBusinessApplication => model::business_application::BusinessApplications::delete(self.app.lock().await, &self.client, self.config).await?,
+            _ => {} // IoEvent::GetAllSags => self.app.lock().await.configuration_state.sags = model::sag::SagEntities::get_all(self.app.lock().await, &self.client, self.config).await?, //sag::get_all_sags(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::PostSag => model::sag::SagEntities::post(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::DeleteSag => model::sag::SagEntities::delete(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::GetAllCertificates => self.app.lock().await.configuration_state.certificates = model::certificate::CertificateEntities::get_all(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::PostCertificate => model::certificate::CertificateEntities::post(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::DeleteCertificate => model::certificate::CertificateEntities::delete(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::GetAllBusinessApplications => {
+                    //     self.app.lock().await.configuration_state.business_applications = model::business_application::BusinessApplications::get_all(self.app.lock().await, &self.client, self.config).await?
+                    // }
+                    // IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(self.app.lock().await, &self.client, self.config).await?,
+                    // IoEvent::DeleteBusinessApplication => model::business_application::BusinessApplications::delete(self.app.lock().await, &self.client, self.config).await?,
         };
         Ok(())
     }
