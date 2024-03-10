@@ -17,7 +17,7 @@ pub struct Args {
     /// pass vault key
     #[clap(short = 'k')]
     pub vault_key: Option<String>,
-    #[clap(required = true)]
+    #[clap(required = false)]
     pub commands: Option<Vec<String>>,
 }
 

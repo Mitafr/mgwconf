@@ -46,13 +46,7 @@ fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 32]), error::VaultError> {
     let mut rng = rand::thread_rng();
     let mut salt: [u8; 32] = [0; 32];
     salt.iter_mut().for_each(|s| *s = rng.gen());
-    let config = {
-        if cfg!(debug_assertions) {
-            Config::owasp1()
-        } else {
-            Config::rfc9106()
-        }
-    };
+    let config = { Config::owasp5() };
     Ok((argon2::hash_raw(s.as_bytes(), &salt, &config)?, salt))
 }
 
@@ -117,9 +111,9 @@ impl SecretsVault {
         let iv: &GenericArray<u8, typenum::U16> = GenericArray::from_slice(&buf[..16]);
         let salt: &GenericArray<u8, typenum::U32> = GenericArray::from_slice(&buf[16..48]);
         let cipher = &mut buf.clone()[48..];
-        match argon2::hash_raw(self.master.as_bytes(), salt, &Config::rfc9106()) {
+        match argon2::hash_raw(self.master.as_bytes(), salt, &Config::owasp5()) {
             Ok(hash) => {
-                if !argon2::verify_raw(self.master.as_bytes(), salt, &hash, &Config::rfc9106())? {
+                if !argon2::verify_raw(self.master.as_bytes(), salt, &hash, &Config::owasp5())? {
                     return Err(error::VaultError::MasterPasswordVerifyError);
                 }
                 Aes256CbcDec::new(GenericArray::from_slice(&hash), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
