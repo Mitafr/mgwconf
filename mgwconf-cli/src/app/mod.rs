@@ -1,7 +1,7 @@
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use core::panic;
-use log::{error, info};
+use log::{debug, error};
 use mgwconf_network::{event::IoEvent, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use std::{
@@ -123,7 +123,7 @@ where
     }
 
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
-        info!("Receiving from io_event {event:?} {}", self.waiting_res);
+        debug!("Receiving response from network for io_event {event:?}");
         match event {
             IoEvent::GetAllForwardProxyEntity => writeln!(GetSag::output_file(), "GetAllForwardProxyEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             IoEvent::GetAllBusinessApplications => writeln!(GetSag::output_file(), "GetAllBusinessApplications: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),

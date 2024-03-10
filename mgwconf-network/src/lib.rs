@@ -13,6 +13,7 @@ use api::configuration::configuration::ApiKey;
 use api::configuration::configuration::Configuration;
 use async_trait::async_trait;
 use event::IoEvent;
+use log::debug;
 use log::{error, info};
 use mgwconf_vault::{SecretType, SecretsVault};
 use model::configuration::SagEntity;
@@ -99,7 +100,7 @@ where
     }
 
     async fn handle_io_event(&mut self, io_event: &IoEvent) -> Result<(), anyhow::Error> {
-        info!("Network handling {io_event:?}");
+        debug!("Network handling {io_event:?}");
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags => {
