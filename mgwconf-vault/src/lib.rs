@@ -46,10 +46,17 @@ fn generate_hash(s: &str) -> Result<(Vec<u8>, [u8; 32]), error::VaultError> {
     let mut rng = rand::thread_rng();
     let mut salt: [u8; 32] = [0; 32];
     salt.iter_mut().for_each(|s| *s = rng.gen());
-    Ok((argon2::hash_raw(s.as_bytes(), &salt, &Config::rfc9106())?, salt))
+    let config = {
+        if cfg!(debug_assertions) {
+            Config::owasp1()
+        } else {
+            Config::rfc9106()
+        }
+    };
+    Ok((argon2::hash_raw(s.as_bytes(), &salt, &config)?, salt))
 }
 
-#[derive(Default, Debug, Zeroize, ZeroizeOnDrop)]
+#[derive(Default, Debug, Zeroize, ZeroizeOnDrop, Clone)]
 pub struct SecretsVault {
     configuration: String,
     monitoring: String,

@@ -1,18 +1,22 @@
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use core::panic;
-use log::error;
+use log::{error, info};
 use mgwconf_network::{event::IoEvent, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use std::{
     io::{stdin, stdout, Write},
     sync::Arc,
+    time::Duration,
 };
 use tokio::sync::{mpsc::Sender, Mutex, Notify};
 
-use crate::{command::Command, config::Config};
+use crate::{
+    command::{get_sag::GetSag, registry::Registry},
+    config::Config,
+};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CliApp {
     pub config: Option<Config>,
     pub connectivity_test: bool,
@@ -20,6 +24,7 @@ pub struct CliApp {
     pub vault: Option<SecretsVault>,
 
     initialized: bool,
+    pub waiting_res: usize,
 }
 
 impl CliApp {
@@ -38,17 +43,26 @@ impl CliApp {
             vault: Some(vault),
             initialized: false,
             connectivity_test: false,
+            waiting_res: 0,
         }
     }
 
-    pub async fn run_command(&self, command: Command) {
+    pub async fn run_commands(&mut self) {
         if !AppTrait::<Config>::is_connected(self) {
-            error!("App is not connected, {:?} is aborted", command);
+            error!("App is not connected, cli is aborted");
             return;
         }
-        for command in self.config.as_ref().unwrap().commands.iter() {
-            if !command.run() {
-                error!("Command failed");
+        let config = self.config.clone();
+        let registry = Registry::new(self, config.unwrap().commands.to_owned());
+        if !registry.run().await {
+            error!("Command failed");
+        }
+    }
+
+    fn clear_output_dir() {
+        for entry in std::fs::read_dir("./output").unwrap() {
+            if let Ok(entry) = entry {
+                std::fs::remove_file(entry.path()).unwrap();
             }
         }
     }
@@ -68,7 +82,7 @@ where
         Ok(())
     }
 
-    async fn dispatch(&mut self, io_event: IoEvent) -> Result<()> {
+    async fn dispatch(&self, io_event: IoEvent) -> Result<()> {
         self.io_tx.send(io_event).await?;
         Ok(())
     }
@@ -108,10 +122,18 @@ where
         Box::new(self.config.as_ref().unwrap().clone())
     }
 
-    fn handle_network_response(&mut self, event: IoEvent, _res: serde_json::Value) {
+    fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
+        info!("Receiving from io_event {event:?} {}", self.waiting_res);
         match event {
+            IoEvent::GetAllForwardProxyEntity => writeln!(GetSag::output_file(), "GetAllForwardProxyEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllBusinessApplications => writeln!(GetSag::output_file(), "GetAllBusinessApplications: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllApplicationProfileEntity => writeln!(GetSag::output_file(), "GetAllApplicationProfileEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllCertificates => writeln!(GetSag::output_file(), "GetAllCertificates: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllSags => writeln!(GetSag::output_file(), "GetSags: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllProfiles => writeln!(GetSag::output_file(), "GetAllProfiles: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             _ => todo!(),
         }
+        self.waiting_res -= 1;
     }
 
     fn handle_network_error(&mut self, error: Error) {
@@ -123,10 +145,20 @@ where
         log::info!("Waiting for Network");
         notifier.unwrap().notified().await;
         log::info!("Network initialized, running command");
+        Self::clear_output_dir();
         {
-            let app = &*app.lock().await;
-            let run_command = app.run_command(Command::new());
+            let app = &mut *app.lock().await;
+            let run_command = app.run_commands();
             run_command.await;
+        }
+        'main: loop {
+            {
+                let app = &mut *app.lock().await;
+                if app.waiting_res == 0 {
+                    break 'main;
+                }
+            }
+            std::thread::sleep(Duration::from_millis(100));
         }
         Ok(())
     }

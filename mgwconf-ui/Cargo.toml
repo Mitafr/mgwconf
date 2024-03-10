@@ -9,14 +9,16 @@ edition = "2021"
 mgwconf-network = { path = "../mgwconf-network" }
 mgwconf-vault = { path = "../mgwconf-vault" }
 
-tokio = { version = "1.35", features = ["full"] }
+tokio = { version = "1.36", features = ["full"] }
 log = "0.4"
-whoami = "1.4"
-ratatui = { version = "0.24.0", features = ["crossterm"], default-features = false }
-crossterm = "0.27.0"
+whoami = "1.5"
+ratatui = { version = "0.26", features = [
+    "crossterm",
+], default-features = false }
+crossterm = "0.27"
 anyhow = "1.0"
 async-trait = { version = "^0.1" }
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.5", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
 

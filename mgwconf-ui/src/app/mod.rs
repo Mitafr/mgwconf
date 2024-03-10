@@ -137,7 +137,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         Ok(())
     }
 
-    async fn dispatch(&mut self, io_event: IoEvent) -> Result<(), anyhow::Error> {
+    async fn dispatch(&self, io_event: IoEvent) -> Result<(), anyhow::Error> {
         self.io_tx.send(io_event).await?;
         Ok(())
     }
