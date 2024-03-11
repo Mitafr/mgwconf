@@ -3,33 +3,33 @@ use log::{info, warn};
 
 use crate::app::CliApp;
 
-use super::{get_all::GetAll, get_certificate::GetCertificate, get_sag::GetSag, CommandTrait};
+use super::{get_all::GetAll, get_certificate::GetCertificate, get_sag::GetSag, CommandRegistryTrait, CommandTrait};
 
 lazy_static! {
     pub static ref AVAILABLE_COMMANDS: [&'static str; 3] = ["GET-SAG", "GET-CERTIFICATES", "GET-ALL"];
 }
 
 pub enum CommandVariant {
-    GetAll(Box<GetAll>),
-    GetSag(Box<GetSag>),
-    GetCertificate(Box<GetCertificate>),
+    GetAll(GetAll),
+    GetSag(GetSag),
+    GetCertificate(GetCertificate),
     Unknown,
 }
 
-impl CommandTrait for CommandVariant {
+impl CommandRegistryTrait for CommandVariant {
     fn execute(&self, mut app: CliApp) -> std::pin::Pin<Box<dyn std::future::Future<Output = usize> + Send>> {
         match self {
             CommandVariant::GetAll(_cmd) => Box::pin(async move {
                 GetAll::execute(&mut app).await;
-                4
+                GetAll::num_op()
             }),
             CommandVariant::GetSag(_cmd) => Box::pin(async move {
                 GetSag::execute(&app).await;
-                1
+                GetSag::num_op()
             }),
             CommandVariant::GetCertificate(_cmd) => Box::pin(async move {
                 GetCertificate::execute(&app).await;
-                1
+                GetCertificate::num_op()
             }),
             CommandVariant::Unknown => Box::pin(async { 0 }),
         }
@@ -57,9 +57,9 @@ impl<'a> Registry<'a> {
         let commands = options
             .iter()
             .map(|o| match &o[..] {
-                "GET-ALL" => CommandVariant::GetAll(Box::new(GetAll {})),
-                "GET-SAG" => CommandVariant::GetSag(Box::new(GetSag {})),
-                "GET-CERTIFICATES" => CommandVariant::GetCertificate(Box::new(GetCertificate {})),
+                "GET-ALL" => CommandVariant::GetAll(GetAll {}),
+                "GET-SAG" => CommandVariant::GetSag(GetSag {}),
+                "GET-CERTIFICATES" => CommandVariant::GetCertificate(GetCertificate {}),
                 _ => CommandVariant::Unknown,
             })
             .collect::<Vec<CommandVariant>>();

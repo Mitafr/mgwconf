@@ -1,23 +1,22 @@
-use log::{error, info};
-use mgwconf_network::{event::IoEvent, AppConfig, AppTrait, Network};
-use std::sync::Arc;
-
-use mgwconf_cli::app::CliApp;
-use tokio::sync::mpsc::Sender;
-use tokio::sync::Mutex;
-
-use clap::Parser;
-use mgwconf_cli::config::Config;
-
-use anyhow::Result;
 use std::{
     io::{stdin, stdout, Write},
     panic,
+    sync::Arc,
+    time::Instant,
 };
-use tokio::sync::Notify;
+
+use clap::Parser;
+use log::{error, info};
+use tokio::sync::{mpsc::Sender, Mutex, Notify};
+
+use mgwconf_cli::{app::CliApp, config::Config};
+use mgwconf_network::{event::IoEvent, AppConfig, AppTrait, Network};
+
+use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let now = Instant::now();
     let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
     let (app, config) = create_app(sync_io_tx).await;
     let cloned_app = Arc::clone(&app);
@@ -40,7 +39,7 @@ async fn main() -> Result<()> {
     use mgwconf_cli::app::CliApp;
     use mgwconf_cli::config::Config;
     <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await?;
-    info!("Exiting");
+    info!("Elapsed time : {:.9}s", now.elapsed().as_secs_f64(),);
     Ok(())
 }
 

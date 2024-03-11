@@ -158,7 +158,7 @@ where
                     break 'main;
                 }
             }
-            std::thread::sleep(Duration::from_millis(100));
+            std::thread::sleep(Duration::from_millis(20));
         }
         Ok(())
     }
