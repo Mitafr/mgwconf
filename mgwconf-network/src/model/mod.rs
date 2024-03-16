@@ -1,4 +1,6 @@
-use std::any::Any;
+use std::{any::Any, str::FromStr};
+
+use self::configuration::SagEntity;
 
 pub mod configuration;
 pub mod management;
@@ -23,4 +25,27 @@ pub trait CollectionEntityTrait: std::fmt::Debug {
     fn as_any(&self) -> &dyn Any;
 
     fn get(&self, index: usize) -> Option<Box<dyn InnerEntityTrait>>;
+}
+
+impl FromStr for SagEntity {
+    type Err = serde_json::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        serde_json::from_str::<SagEntity>(s)
+    }
+}
+
+impl Default for SagEntity {
+    fn default() -> Self {
+        SagEntity {
+            hostname: String::from("test3"),
+            port: 48002,
+            message_partner_name: Some(String::from("SAG MP")),
+            user_dns: vec![String::from("cn=apitest,ou=apicore,o=agrifrpp,o=swift")],
+            lau_key: Some(String::from("Abcd1234Abcd1234Abcd1234Abcd1234")),
+            ssl_dn: Some(String::from("ss")),
+            active: Some(false),
+            public_certificate_alias: Some(String::from("test")),
+        }
+    }
 }

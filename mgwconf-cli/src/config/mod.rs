@@ -1,9 +1,13 @@
 use log::{debug, info};
 use mgwconf_network::AppConfig;
 use std::{error::Error, net::IpAddr, path::PathBuf};
-use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{
+    prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
 
 use clap::Parser;
+
+use crate::playbook::Playbook;
 
 #[derive(Parser, Debug, Default, Clone)]
 #[clap(author, version, about, long_about = None)]
@@ -17,8 +21,10 @@ pub struct Args {
     /// pass vault key
     #[clap(short = 'k')]
     pub vault_key: Option<String>,
-    #[clap(required = false)]
+    #[clap(short = 'c', long = "command", required = false)]
     pub commands: Option<Vec<String>>,
+    #[clap(short = 'p', long = "playbook", required = false)]
+    pub playbook: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +37,7 @@ pub struct Config {
 
     pub tick_rate: u64,
     pub commands: Vec<String>,
+    pub playbook: Option<Playbook>,
 }
 
 impl Config {
@@ -44,10 +51,19 @@ impl Config {
             remote_port: 9003,
             root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
             tick_rate: 250,
+            playbook: if let Some(v) = args.playbook.to_owned() {
+                Some(v.into())
+            } else {
+                None
+            },
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);
         Ok(config)
+    }
+
+    pub fn playbook<'a>(&'a self) -> &'a Option<Playbook> {
+        &self.playbook
     }
 
     #[allow(dead_code)]
@@ -65,7 +81,10 @@ impl Config {
             println!("logs directory doesn't exist");
         }
         log_path.push(env!("CARGO_PKG_NAME"));
-        let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
+        let file_appender = tracing_appender::rolling::daily(
+            log_path.parent().unwrap(),
+            log_path.file_name().unwrap(),
+        );
         let appender_format = if self.debug {
             format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc")
         } else {
@@ -74,7 +93,12 @@ impl Config {
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()
             .with(filter)
-            .with(tracing_subscriber::fmt::Layer::new().with_writer(file_appender).with_line_number(true).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::Layer::new()
+                    .with_writer(file_appender)
+                    .with_line_number(true)
+                    .with_ansi(false),
+            )
             .with(tracing_subscriber::fmt::layer())
             .init();
         info!("Config has been loadded successfully");

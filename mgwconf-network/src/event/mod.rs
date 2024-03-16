@@ -1,4 +1,7 @@
-use crate::model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
+use crate::model::configuration::{
+    ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity,
+    SagEntity,
+};
 
 #[derive(Debug)]
 pub enum IoEvent {
@@ -12,8 +15,8 @@ pub enum IoEvent {
     PostBusinessApplication,
     PostForwardProxyEntity,
     PostProfile,
-    PostCertificate,
-    PostSag,
+    PostCertificate(CertificateEntity),
+    PostSag(SagEntity),
     DeleteForwardProxyEntity(ForwardProxyEntity),
     DeleteApplicationProfileEntity(ApplicationProfileEntity),
     DeleteBusinessApplication(BusinessApplicationEntity),
