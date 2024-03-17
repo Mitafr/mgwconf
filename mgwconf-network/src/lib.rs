@@ -55,7 +55,6 @@ where
     fn config(&self) -> Box<dyn AppConfig>;
 
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value);
-
     fn handle_network_error(&mut self, error: Error);
 
     async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>)

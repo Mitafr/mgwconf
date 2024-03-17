@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::{bail, Error, Result};
 use async_trait::async_trait;
 use core::panic;
 use log::{debug, error};
@@ -60,6 +60,7 @@ impl CliApp {
     }
 
     fn clear_output_dir() {
+        log::info!("Clearing output dir");
         for entry in std::fs::read_dir("./output").unwrap() {
             if let Ok(entry) = entry {
                 std::fs::remove_file(entry.path()).unwrap();
@@ -183,6 +184,9 @@ where
         <CliApp as AppTrait<C>>::init(&mut *app.lock().await).await?;
         log::info!("Waiting for Network");
         notifier.unwrap().notified().await;
+        if !AppTrait::<C>::is_connected(&*app.lock().await) {
+            bail!("Network has not been initialized correctly");
+        }
         log::info!("Network initialized, running command");
         {
             let app = &mut *app.lock().await;

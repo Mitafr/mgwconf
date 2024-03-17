@@ -44,9 +44,16 @@ async fn main() -> Result<()> {
     });
     use mgwconf_cli::app::CliApp;
     use mgwconf_cli::config::Config;
-    <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await?;
-    info!("Elapsed time : {:.9}s", now.elapsed().as_secs_f64(),);
-    Ok(())
+    match <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await {
+        Ok(_) => {
+            info!("Elapsed time : {:.9}s", now.elapsed().as_secs_f64(),);
+            Ok(())
+        }
+        Err(e) => {
+            error!("{}, exiting", e);
+            Err(e)
+        }
+    }
 }
 
 pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<CliApp>>, Config) {
