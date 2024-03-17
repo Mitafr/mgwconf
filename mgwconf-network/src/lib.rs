@@ -57,8 +57,7 @@ where
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value);
     fn handle_network_error(&mut self, error: Error);
 
-    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>)
-        -> Result<(), anyhow::Error>;
+    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error>;
 }
 
 #[derive(Clone)]
@@ -79,24 +78,12 @@ where
 {
     pub fn new(app: &'a Arc<Mutex<A>>, config: &'a C) -> Result<Self> {
         let certificate = get_mgw_root_cert(config)?;
-        let client = reqwest::Client::builder()
-            .tls_built_in_root_certs(true)
-            .add_root_certificate(certificate)
-            .build()?;
-        Ok(Network {
-            app,
-            client,
-            config,
-        })
+        let client = reqwest::Client::builder().tls_built_in_root_certs(true).add_root_certificate(certificate).build()?;
+        Ok(Network { app, client, config })
     }
 
     pub async fn ping_mgw(&mut self) -> Result<(), anyhow::Error> {
-        let route = format!(
-            "https://{}:{}/swift/mgw/{}",
-            self.config.remote_ip(),
-            self.config.remote_port(),
-            "mgw-monitoring-api/1.0.0/health"
-        );
+        let route = format!("https://{}:{}/swift/mgw/{}", self.config.remote_ip(), self.config.remote_port(), "mgw-monitoring-api/1.0.0/health");
         match self.client.get(route).send().await {
             Ok(res) => {
                 let mut app = self.app.lock().await;
@@ -105,11 +92,7 @@ where
                 } else {
                     app.set_connected(true);
                 }
-                info!(
-                    "Send ping result : {} -> connected : {}",
-                    res.status(),
-                    app.is_connected()
-                );
+                info!("Send ping result : {} -> connected : {}", res.status(), app.is_connected());
             }
             Err(e) => {
                 error!("{}", e);
@@ -126,34 +109,24 @@ where
             IoEvent::GetAllSags | IoEvent::PostSag(_) | IoEvent::DeleteSag(_) => {
                 SagHandler::handle(&self.client, self.app, io_event).await?;
             }
-            IoEvent::GetAllCertificates
-            | IoEvent::PostCertificate(_)
-            | IoEvent::DeleteCertificate(_) => {
+            IoEvent::GetAllCertificates | IoEvent::PostCertificate(_) | IoEvent::DeleteCertificate(_) => {
                 CertHandler::handle(&self.client, self.app, io_event).await?;
             }
             IoEvent::GetAllBusinessApplications => {
                 let mut app = self.app.lock().await;
-                let entities =
-                    api::configuration::business_application_api::business_application_get(
-                        &Configuration {
-                            base_path: String::from(
-                                "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                            ),
-                            client: self.client.clone(),
-                            api_key: Some(ApiKey {
-                                key: app
-                                    .vault()
-                                    .as_ref()
-                                    .unwrap()
-                                    .get_secret(SecretType::Configuration)
-                                    .to_owned(),
-                                prefix: None,
-                            }),
-                            ..Default::default()
-                        },
-                        None,
-                    )
-                    .await?;
+                let entities = api::configuration::business_application_api::business_application_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await?;
                 app.handle_network_response(IoEvent::GetAllBusinessApplications, entities);
             }
             // IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(&self.app.lock().await, &self.client, self.config).await?,
@@ -162,17 +135,10 @@ where
                 let mut app = self.app.lock().await;
                 let entities = api::configuration::profile_api::application_profile_get(
                     &Configuration {
-                        base_path: String::from(
-                            "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                        ),
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: app
-                                .vault()
-                                .as_ref()
-                                .unwrap()
-                                .get_secret(SecretType::Configuration)
-                                .to_owned(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -185,44 +151,29 @@ where
             }
             IoEvent::GetAllApplicationProfileEntity => {
                 let mut app = self.app.lock().await;
-                let entities =
-                    api::configuration::business_application_api::business_application_get(
-                        &Configuration {
-                            base_path: String::from(
-                                "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                            ),
-                            client: self.client.clone(),
-                            api_key: Some(ApiKey {
-                                key: app
-                                    .vault()
-                                    .as_ref()
-                                    .unwrap()
-                                    .get_secret(SecretType::Configuration)
-                                    .to_owned(),
-                                prefix: None,
-                            }),
-                            ..Default::default()
-                        },
-                        None,
-                    )
-                    .await?;
+                let entities = api::configuration::business_application_api::business_application_get(
+                    &Configuration {
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        client: self.client.clone(),
+                        api_key: Some(ApiKey {
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            prefix: None,
+                        }),
+                        ..Default::default()
+                    },
+                    None,
+                )
+                .await?;
                 app.handle_network_response(IoEvent::GetAllApplicationProfileEntity, entities);
             }
             IoEvent::GetAllForwardProxyEntity => {
                 let mut app = self.app.lock().await;
                 let entities = api::configuration::forward_proxy_api::forward_proxies_info_get(
                     &Configuration {
-                        base_path: String::from(
-                            "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                        ),
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: self.client.clone(),
                         api_key: Some(ApiKey {
-                            key: app
-                                .vault()
-                                .as_ref()
-                                .unwrap()
-                                .get_secret(SecretType::Configuration)
-                                .to_owned(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()

@@ -25,6 +25,7 @@ pub struct CliApp {
 
     initialized: bool,
     pub waiting_res: usize,
+    error: bool,
 }
 
 impl CliApp {
@@ -44,6 +45,7 @@ impl CliApp {
             initialized: false,
             connectivity_test: false,
             waiting_res: 0,
+            error: false,
         }
     }
 
@@ -104,9 +106,7 @@ where
     fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
-        stdin()
-            .read_line(s)
-            .expect("Did not enter a correct string");
+        stdin().read_line(s).expect("Did not enter a correct string");
         s.pop();
         let vault = SecretsVault::new(master).unwrap();
         vault.create_secret(stype, s.to_owned()).unwrap();
@@ -132,42 +132,12 @@ where
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
         debug!("Receiving response from network for io_event {event:?}");
         match event {
-            IoEvent::GetAllForwardProxyEntity => writeln!(
-                GetSag::output_file(),
-                "GetAllForwardProxyEntity: {}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllBusinessApplications => writeln!(
-                GetSag::output_file(),
-                "GetAllBusinessApplications: {}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllApplicationProfileEntity => writeln!(
-                GetSag::output_file(),
-                "GetAllApplicationProfileEntity: {}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllCertificates => writeln!(
-                GetSag::output_file(),
-                "GetAllCertificates: {}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllSags => writeln!(
-                GetSag::output_file(),
-                "GetSags: {}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllProfiles => writeln!(
-                GetSag::output_file(),
-                "GetAllProfiles: {}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
+            IoEvent::GetAllForwardProxyEntity => writeln!(GetSag::output_file(), "GetAllForwardProxyEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllBusinessApplications => writeln!(GetSag::output_file(), "GetAllBusinessApplications: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllApplicationProfileEntity => writeln!(GetSag::output_file(), "GetAllApplicationProfileEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllCertificates => writeln!(GetSag::output_file(), "GetAllCertificates: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllSags => writeln!(GetSag::output_file(), "GetSags: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllProfiles => writeln!(GetSag::output_file(), "GetAllProfiles: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             _ => todo!(),
         }
         self.waiting_res -= 1;
@@ -175,12 +145,10 @@ where
 
     fn handle_network_error(&mut self, error: Error) {
         log::error!("{}", error);
+        self.error = true;
     }
 
-    async fn run(
-        app: Arc<Mutex<Self>>,
-        notifier: Option<Arc<Notify>>,
-    ) -> Result<(), anyhow::Error> {
+    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
         <CliApp as AppTrait<C>>::init(&mut *app.lock().await).await?;
         log::info!("Waiting for Network");
         notifier.unwrap().notified().await;
@@ -194,7 +162,7 @@ where
                 Some(config) => {
                     Self::clear_output_dir();
                     if let Some(playbook) = &config.playbook {
-                        playbook.process(app).await;
+                        playbook.process(app).await?;
                         app.waiting_res += 1;
                     } else {
                         let run_command = app.run_commands();
@@ -207,6 +175,9 @@ where
         'main: loop {
             {
                 let app = &mut *app.lock().await;
+                if app.error {
+                    bail!("An error occured");
+                }
                 if app.waiting_res == 0 {
                     break 'main;
                 }

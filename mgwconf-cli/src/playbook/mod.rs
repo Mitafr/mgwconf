@@ -7,29 +7,32 @@ use serde::{Deserialize, Serialize};
 use crate::app::CliApp;
 use crate::config::Config;
 
+use self::error::PlaybookError;
+
+pub mod error;
+
 #[derive(Debug, Clone)]
 pub struct Playbook {
     pub path: PathBuf,
 }
 
 impl Playbook {
-    pub async fn process(&self, app: &CliApp) {
+    pub async fn process(&self, app: &CliApp) -> Result<(), PlaybookError> {
         log::info!("Loading playbook at {:?}", self.path);
-        let import =
-            serde_yaml::from_reader::<File, Import>(File::open(&self.path).unwrap()).unwrap();
+        let file = File::open(&self.path)?;
+        let import = serde_yaml::from_reader::<File, Import>(file)?;
         for i in import.import {
             match i {
                 ImportType::Sag(s) => {
-                    <CliApp as AppTrait<Config>>::dispatch(
-                        app,
-                        IoEvent::PostSag(SagEntity::from_str(&s.json.unwrap()).unwrap()),
-                    )
-                    .await
-                    .unwrap();
+                    if s.json.is_none() {
+                        return Err(PlaybookError::MalformedPlaybook("Sag import contains empty json"));
+                    }
+                    <CliApp as AppTrait<Config>>::dispatch(app, IoEvent::PostSag(SagEntity::from_str(&s.json.unwrap())?)).await?;
                 }
                 ImportType::Proxy(_p) => todo!(),
             }
         }
+        Ok(())
     }
 }
 
