@@ -20,17 +20,29 @@ impl Playbook {
     pub async fn process(&self, app: &CliApp) -> Result<(), PlaybookError> {
         log::info!("Loading playbook at {:?}", self.path);
         let file = File::open(&self.path)?;
-        let import = serde_yaml::from_reader::<File, Import>(file)?;
-        for i in import.import {
+        let entries = serde_yaml::from_reader::<File, PlaybookEntries>(file)?;
+        for i in entries.commands {
             match i {
-                ImportType::Sag(s) => {
-                    if s.json.is_none() {
-                        return Err(PlaybookError::MalformedPlaybook("Sag import contains empty json"));
-                    }
-                    <CliApp as AppTrait<Config>>::dispatch(app, IoEvent::PostSag(SagEntity::from_str(&s.json.unwrap())?)).await?;
-                }
-                ImportType::Proxy(_p) => todo!(),
+                CommandType::Delete(e) => self.process_delete(e, app).await?,
+                CommandType::Create(e) => self.process_create(e, app).await?,
             }
+        }
+        Ok(())
+    }
+
+    async fn process_delete(&self, _e: EntityType, _app: &CliApp) -> Result<(), PlaybookError> {
+        todo!();
+    }
+
+    async fn process_create(&self, e: EntityType, app: &CliApp) -> Result<(), PlaybookError> {
+        match e {
+            EntityType::Sag(s) => {
+                if s.json.is_none() {
+                    return Err(PlaybookError::MalformedPlaybook("Sag import contains empty json"));
+                }
+                <CliApp as AppTrait<Config>>::dispatch(app, IoEvent::PostSag(SagEntity::from_str(&s.json.unwrap())?)).await?;
+            }
+            EntityType::Proxy(_p) => todo!(),
         }
         Ok(())
     }
@@ -43,13 +55,20 @@ impl From<String> for Playbook {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Import {
-    import: Vec<ImportType>,
+struct PlaybookEntries {
+    commands: Vec<CommandType>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-enum ImportType {
+enum CommandType {
+    Delete(EntityType),
+    Create(EntityType),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "entity_type")]
+enum EntityType {
     Sag(SagImport),
     Proxy(ProxyImport),
 }

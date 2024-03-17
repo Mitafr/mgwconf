@@ -24,27 +24,16 @@ where
     A: AppTrait<C>,
     C: AppConfig,
 {
-    async fn handle(
-        client: &Client,
-        app: &Arc<Mutex<A>>,
-        e: &IoEvent,
-    ) -> Result<(), anyhow::Error> {
+    async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
             IoEvent::GetAllSags => {
                 let entities = api::configuration::sag_api::sag_get(
                     &Configuration {
-                        base_path: String::from(
-                            "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                        ),
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app
-                                .vault()
-                                .as_ref()
-                                .unwrap()
-                                .get_secret(SecretType::Configuration)
-                                .to_owned(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -55,22 +44,14 @@ where
                 .await?;
                 app.handle_network_response(IoEvent::GetAllSags, entities);
             }
-
             IoEvent::PostSag(entity) => {
-                log::info!("handling {:#?}", entity);
+                log::debug!("handling {:#?}", entity);
                 api::configuration::sag_api::sag_create(
                     &Configuration {
-                        base_path: String::from(
-                            "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                        ),
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app
-                                .vault()
-                                .as_ref()
-                                .unwrap()
-                                .get_secret(SecretType::Configuration)
-                                .to_owned(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -78,21 +59,15 @@ where
                     entity.clone(),
                 )
                 .await?;
+                app.handle_network_response(e.clone(), "".into());
             }
             IoEvent::DeleteSag(e) => {
                 api::configuration::sag_api::sag_delete(
                     &Configuration {
-                        base_path: String::from(
-                            "https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0",
-                        ),
+                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app
-                                .vault()
-                                .as_ref()
-                                .unwrap()
-                                .get_secret(SecretType::Configuration)
-                                .to_owned(),
+                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()

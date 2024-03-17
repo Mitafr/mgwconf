@@ -1,9 +1,6 @@
-use crate::model::configuration::{
-    ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity,
-    SagEntity,
-};
+use crate::model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum IoEvent {
     Ping,
     GetAllForwardProxyEntity,

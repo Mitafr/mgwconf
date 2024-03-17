@@ -138,7 +138,7 @@ where
             IoEvent::GetAllCertificates => writeln!(GetSag::output_file(), "GetAllCertificates: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             IoEvent::GetAllSags => writeln!(GetSag::output_file(), "GetSags: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             IoEvent::GetAllProfiles => writeln!(GetSag::output_file(), "GetAllProfiles: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
-            _ => todo!(),
+            _ => {}
         }
         self.waiting_res -= 1;
     }
