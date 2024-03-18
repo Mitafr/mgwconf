@@ -4,7 +4,6 @@ extern crate serde_derive;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
-extern crate url;
 
 use std::any::Any;
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
