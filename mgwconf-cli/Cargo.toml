@@ -4,20 +4,38 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.36", features = ["full"] }
 async-trait = { version = "^0.1" }
 anyhow = "1.0"
 thiserror = { version = "1" }
 log = "0.4"
 clap = { version = "4.5", features = ["string"] }
 lazy_static = "1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0" }
-serde_yaml = { version = "0.9" }
-
-mgwconf-network = { path = "../mgwconf-network", features = ["cli"] }
-mgwconf-vault = { path = "../mgwconf-vault" }
 
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-appender = { version = "0.2" }
+
+[dependencies.mgwconf-vault]
+path = "../mgwconf-vault"
+features = []
+
+[dependencies.mgwconf-network]
+path = "../mgwconf-network"
+features = ["cli"]
+
+[dependencies.serde]
+version = "1"
+features = ["derive"]
+default-features = false
+
+[dependencies.serde_json]
+version = "1.0"
+default-features = false
+
+[dependencies.serde_yaml]
+version = "0.9"
+default-features = false
+
+[dependencies.tokio]
+version = "1.36"
+features = ["full"]
