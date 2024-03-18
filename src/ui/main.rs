@@ -25,7 +25,6 @@ async fn main() -> Result<()> {
     let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
     let (app, config) = create_app(sync_io_tx).await;
     let cloned_app = Arc::clone(&app);
-
     let orig = panic::take_hook();
     panic::set_hook(Box::new(move |panic_info| {
         error!("{}", panic_info);
