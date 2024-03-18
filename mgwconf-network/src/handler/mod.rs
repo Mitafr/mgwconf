@@ -4,7 +4,10 @@ use async_trait::async_trait;
 use reqwest::Client;
 use tokio::sync::Mutex;
 
+pub(super) mod business_application;
 pub(super) mod cert;
+pub(super) mod forward_proxy;
+pub(super) mod profile;
 pub(super) mod sag;
 
 use crate::{event::IoEvent, AppConfig, AppTrait};
@@ -15,6 +18,5 @@ where
     A: AppTrait<C>,
     C: AppConfig,
 {
-    async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent)
-        -> Result<(), anyhow::Error>;
+    async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent) -> Result<(), anyhow::Error>;
 }

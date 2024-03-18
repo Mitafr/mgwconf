@@ -5,7 +5,7 @@ use ratatui::widgets::Wrap;
 use crate::app::state::State;
 use crate::ui::prelude::*;
 
-pub const CONFIGURATION_USER_TAB: [&str; 5] = ["Certificates", "SAGs", "Business Application", "Profiles", "Api Proxy"];
+pub const CONFIGURATION_USER_TAB: [&str; 6] = ["Certificates", "SAGs", "Business Application", "Profiles", "Api Proxy", "Forward Proxy"];
 
 pub fn draw_configuration_user_block<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
 where
@@ -32,6 +32,7 @@ where
         2 => draw_configuration_business_applications(f, app, area),
         3 => draw_configuration_profiles(f, app, area),
         4 => draw_configuration_api_proxies(f, app, area),
+        5 => draw_configuration_forward_proxies(f, app, area),
         _ => {}
     }
 }
@@ -115,10 +116,27 @@ where
     api_proxies_str.extend(
         api_proxies
             .iter()
-            .map(|s: &mgwconf_network::model::configuration::ForwardProxyEntity| s.hostname.to_owned())
+            .map(|s: &mgwconf_network::model::configuration::ApiGatewayInfoEntity| s.environment.to_string())
             .collect::<Vec<String>>(),
     );
     draw_selectable_list(f, layout_chunk, "", &api_proxies_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
+}
+
+pub fn draw_configuration_forward_proxies<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)
+where
+    A: UiAppTrait<C>,
+    C: AppConfig,
+{
+    let forward_proxies = &app.get_configuration_state().forwardproxy;
+    let mut forward_proxies_str = Vec::new();
+    forward_proxies_str.push("Add Forward Proxy".to_owned());
+    forward_proxies_str.extend(
+        forward_proxies
+            .iter()
+            .map(|s: &mgwconf_network::model::configuration::ForwardProxyEntity| s.hostname.to_owned())
+            .collect::<Vec<String>>(),
+    );
+    draw_selectable_list(f, layout_chunk, "", &forward_proxies_str, (true, true), Some(app.get_configuration_state().current_pan()), Borders::NONE);
 }
 
 pub fn draw_detailed_entity<A, C>(f: &mut Frame, app: &A, layout_chunk: Rect)

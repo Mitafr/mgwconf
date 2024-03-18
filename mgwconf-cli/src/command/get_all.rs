@@ -15,13 +15,13 @@ impl CommandTrait for GetAll {
             <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllBusinessApplications),
             <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllCertificates),
             <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllSags),
-            // <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllProfiles),
+            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllProfiles),
             // <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllApplicationProfileEntity),
         )
         .unwrap();
     }
 
     fn num_op() -> usize {
-        4
+        5
     }
 }

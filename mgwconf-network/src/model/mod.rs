@@ -1,4 +1,4 @@
-use std::{any::Any, str::FromStr};
+use std::any::Any;
 
 use self::configuration::SagEntity;
 
@@ -25,14 +25,6 @@ pub trait CollectionEntityTrait: std::fmt::Debug {
     fn as_any(&self) -> &dyn Any;
 
     fn get(&self, index: usize) -> Option<Box<dyn InnerEntityTrait>>;
-}
-
-impl FromStr for SagEntity {
-    type Err = serde_json::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str::<SagEntity>(s)
-    }
 }
 
 impl Default for SagEntity {

@@ -3,15 +3,18 @@ use log::{info, warn};
 
 use crate::app::CliApp;
 
-use super::{get_all::GetAll, get_certificate::GetCertificate, get_sag::GetSag, CommandRegistryTrait, CommandTrait};
+use super::{get_all::GetAll, get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, CommandRegistryTrait, CommandTrait};
 
 lazy_static! {
-    pub static ref AVAILABLE_COMMANDS: [&'static str; 3] = ["GET-SAG", "GET-CERTIFICATES", "GET-ALL"];
+    pub static ref AVAILABLE_COMMANDS: [&'static str; 4] = ["GET-SAGS", "GET-CERTIFICATES", "GET-BUSINESS-APPLICATIONS", "GET-ALL"];
 }
 
 pub enum CommandVariant {
     GetAll(GetAll),
     GetSag(GetSag),
+    GetProfile(GetProfile),
+    GetBusinessApplication(GetBusinessApplication),
+    GetProxy(GetProxy),
     GetCertificate(GetCertificate),
     Unknown,
 }
@@ -31,6 +34,18 @@ impl CommandRegistryTrait for CommandVariant {
                 GetCertificate::execute(&app).await;
                 GetCertificate::num_op()
             }),
+            CommandVariant::GetProfile(_cmd) => Box::pin(async move {
+                GetProfile::execute(&app).await;
+                GetProfile::num_op()
+            }),
+            CommandVariant::GetBusinessApplication(_cmd) => Box::pin(async move {
+                GetBusinessApplication::execute(&app).await;
+                GetBusinessApplication::num_op()
+            }),
+            CommandVariant::GetProxy(_cmd) => Box::pin(async move {
+                GetProxy::execute(&app).await;
+                GetProxy::num_op()
+            }),
             CommandVariant::Unknown => Box::pin(async { 0 }),
         }
     }
@@ -40,6 +55,9 @@ impl CommandRegistryTrait for CommandVariant {
             CommandVariant::GetAll(_cmd) => "GetAll",
             CommandVariant::GetSag(_cmd) => "GetSag",
             CommandVariant::GetCertificate(_cmd) => "GetCertificate",
+            CommandVariant::GetProfile(_cmd) => "GetProfile",
+            CommandVariant::GetBusinessApplication(_cmd) => "GetBusinessApplication",
+            CommandVariant::GetProxy(_cmd) => "GetProxy",
             CommandVariant::Unknown => "Unknown",
         }
     }
@@ -58,8 +76,9 @@ impl<'a> Registry<'a> {
             .iter()
             .map(|o| match &o[..] {
                 "GET-ALL" => CommandVariant::GetAll(GetAll {}),
-                "GET-SAG" => CommandVariant::GetSag(GetSag {}),
+                "GET-SAGS" => CommandVariant::GetSag(GetSag {}),
                 "GET-CERTIFICATES" => CommandVariant::GetCertificate(GetCertificate {}),
+                "GET-BUSINESS-APPLICATIONS" => CommandVariant::GetBusinessApplication(GetBusinessApplication {}),
                 _ => CommandVariant::Unknown,
             })
             .collect::<Vec<CommandVariant>>();

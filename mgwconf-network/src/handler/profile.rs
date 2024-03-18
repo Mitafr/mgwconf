@@ -16,10 +16,10 @@ use crate::{
 
 use super::Handler;
 
-pub(crate) struct CertHandler {}
+pub(crate) struct ProfileHandler {}
 
 #[async_trait]
-impl<A, C> Handler<A, C> for CertHandler
+impl<A, C> Handler<A, C> for ProfileHandler
 where
     A: AppTrait<C>,
     C: AppConfig,
@@ -27,8 +27,8 @@ where
     async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
-            IoEvent::GetAllCertificates => {
-                let entities = api::configuration::certificate_api::certificate_get(
+            IoEvent::GetAllProfiles => {
+                let entities = api::configuration::profile_api::application_profile_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -39,13 +39,14 @@ where
                         ..Default::default()
                     },
                     None,
+                    None,
                 )
                 .await?;
-                app.handle_network_response(IoEvent::GetAllCertificates, entities);
+                app.handle_network_response(IoEvent::GetAllProfiles, entities);
             }
-            IoEvent::PostCertificate(entity) => {
+            IoEvent::PostProfile(entity) => {
                 log::debug!("handling {:#?}", entity);
-                api::configuration::certificate_api::certificate_create(
+                api::configuration::profile_api::application_profile_create(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -60,8 +61,8 @@ where
                 .await?;
                 app.handle_network_response(e.clone(), "".into());
             }
-            IoEvent::DeleteCertificate(e) => {
-                api::configuration::certificate_api::certificate_delete(
+            IoEvent::DeleteProfile(e) => {
+                api::configuration::profile_api::application_profile_delete(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -71,7 +72,8 @@ where
                         }),
                         ..Default::default()
                     },
-                    &e.alias,
+                    &e.application_name,
+                    &e.profile_name,
                 )
                 .await?;
             }

@@ -65,7 +65,7 @@ pub enum ApplicationProfileUpdateError {
 pub async fn application_profile_create(
     configuration: &configuration::Configuration,
     application_profile_entity: crate::model::configuration::ApplicationProfileEntity,
-) -> Result<serde_json::Value, Error<ApplicationProfileCreateError>> {
+) -> Result<(), Error<ApplicationProfileCreateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -93,7 +93,7 @@ pub async fn application_profile_create(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<ApplicationProfileCreateError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
@@ -106,7 +106,7 @@ pub async fn application_profile_create(
 }
 
 /// This API is to delete existing application profile for specified business application.
-pub async fn application_profile_delete(configuration: &configuration::Configuration, application_name: &str, profile_name: &str) -> Result<serde_json::Value, Error<ApplicationProfileDeleteError>> {
+pub async fn application_profile_delete(configuration: &configuration::Configuration, application_name: &str, profile_name: &str) -> Result<(), Error<ApplicationProfileDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -135,7 +135,7 @@ pub async fn application_profile_delete(configuration: &configuration::Configura
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<ApplicationProfileDeleteError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {

@@ -66,7 +66,7 @@ pub enum BusinessApplicationUpdateError {
 pub async fn business_application_create(
     configuration: &configuration::Configuration,
     business_application_entity: crate::model::configuration::BusinessApplicationEntity,
-) -> Result<serde_json::Value, Error<BusinessApplicationCreateError>> {
+) -> Result<(), Error<BusinessApplicationCreateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -94,7 +94,7 @@ pub async fn business_application_create(
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<BusinessApplicationCreateError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
@@ -107,7 +107,7 @@ pub async fn business_application_create(
 }
 
 /// This API is to delete existing business application.
-pub async fn business_application_delete(configuration: &configuration::Configuration, application_name: &str) -> Result<serde_json::Value, Error<BusinessApplicationDeleteError>> {
+pub async fn business_application_delete(configuration: &configuration::Configuration, application_name: &str) -> Result<(), Error<BusinessApplicationDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -135,7 +135,7 @@ pub async fn business_application_delete(configuration: &configuration::Configur
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<BusinessApplicationDeleteError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {

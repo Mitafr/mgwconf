@@ -10,7 +10,7 @@ pub struct GetCertificate {}
 
 impl GetCertificate {
     pub fn output_file() -> File {
-        File::create("output/get_certificates").unwrap()
+        File::create("output/certificates").unwrap()
     }
 }
 

@@ -12,7 +12,7 @@ use std::{
 use tokio::sync::{mpsc::Sender, Mutex, Notify};
 
 use crate::{
-    command::{get_sag::GetSag, registry::Registry},
+    command::{get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, registry::Registry},
     config::Config,
 };
 
@@ -132,12 +132,11 @@ where
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
         debug!("Receiving response from network for io_event {event:?}");
         match event {
-            IoEvent::GetAllForwardProxyEntity => writeln!(GetSag::output_file(), "GetAllForwardProxyEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
-            IoEvent::GetAllBusinessApplications => writeln!(GetSag::output_file(), "GetAllBusinessApplications: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
-            IoEvent::GetAllApplicationProfileEntity => writeln!(GetSag::output_file(), "GetAllApplicationProfileEntity: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
-            IoEvent::GetAllCertificates => writeln!(GetSag::output_file(), "GetAllCertificates: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
-            IoEvent::GetAllSags => writeln!(GetSag::output_file(), "GetSags: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
-            IoEvent::GetAllProfiles => writeln!(GetSag::output_file(), "GetAllProfiles: {}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllForwardProxyEntity => writeln!(GetProxy::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllBusinessApplications => writeln!(GetBusinessApplication::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllCertificates => writeln!(GetCertificate::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllSags => writeln!(GetSag::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllProfiles => writeln!(GetProfile::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             _ => {}
         }
         self.waiting_res -= 1;
@@ -160,11 +159,10 @@ where
             let app = &mut *app.lock().await;
             match <CliApp>::config(app) {
                 Some(config) => {
-                    Self::clear_output_dir();
                     if let Some(playbook) = &config.playbook {
-                        playbook.process(app).await?;
-                        app.waiting_res += 1;
+                        app.waiting_res = playbook.process(app).await?;
                     } else {
+                        Self::clear_output_dir();
                         let run_command = app.run_commands();
                         run_command.await;
                     }

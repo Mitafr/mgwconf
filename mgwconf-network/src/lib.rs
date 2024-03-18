@@ -10,8 +10,6 @@ use std::any::Any;
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
 use anyhow::{Error, Result};
-use api::configuration::configuration::ApiKey;
-use api::configuration::configuration::Configuration;
 use async_trait::async_trait;
 use event::IoEvent;
 use log::debug;
@@ -21,7 +19,10 @@ use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
 
+use crate::handler::business_application::BusinessApplicationHandler;
 use crate::handler::cert::CertHandler;
+use crate::handler::forward_proxy::ForwardProxyHandler;
+use crate::handler::profile::ProfileHandler;
 use crate::handler::{sag::SagHandler, Handler};
 
 pub mod api;
@@ -112,79 +113,15 @@ where
             IoEvent::GetAllCertificates | IoEvent::PostCertificate(_) | IoEvent::DeleteCertificate(_) => {
                 CertHandler::handle(&self.client, self.app, io_event).await?;
             }
-            IoEvent::GetAllBusinessApplications => {
-                let mut app = self.app.lock().await;
-                let entities = api::configuration::business_application_api::business_application_get(
-                    &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
-                        client: self.client.clone(),
-                        api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
-                            prefix: None,
-                        }),
-                        ..Default::default()
-                    },
-                    None,
-                )
-                .await?;
-                app.handle_network_response(IoEvent::GetAllBusinessApplications, entities);
+            IoEvent::GetAllProfiles | IoEvent::PostProfile(_) | IoEvent::DeleteProfile(_) => {
+                ProfileHandler::handle(&self.client, self.app, io_event).await?;
             }
-            // IoEvent::PostBusinessApplication => model::business_application::BusinessApplications::post(&self.app.lock().await, &self.client, self.config).await?,
-            // IoEvent::DeleteBusinessApplication(e) => model::business_application::BusinessApplications::delete(&self.app.lock().await, &self.client, self.config, &e).await?,
-            IoEvent::GetAllProfiles => {
-                let mut app = self.app.lock().await;
-                let entities = api::configuration::profile_api::application_profile_get(
-                    &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
-                        client: self.client.clone(),
-                        api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
-                            prefix: None,
-                        }),
-                        ..Default::default()
-                    },
-                    None,
-                    None,
-                )
-                .await?;
-                app.handle_network_response(IoEvent::GetAllProfiles, entities);
+            IoEvent::GetAllForwardProxyEntity | IoEvent::PostForwardProxyEntity(_) | IoEvent::DeleteForwardProxyEntity(_) => {
+                ForwardProxyHandler::handle(&self.client, self.app, io_event).await?;
             }
-            IoEvent::GetAllApplicationProfileEntity => {
-                let mut app = self.app.lock().await;
-                let entities = api::configuration::business_application_api::business_application_get(
-                    &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
-                        client: self.client.clone(),
-                        api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
-                            prefix: None,
-                        }),
-                        ..Default::default()
-                    },
-                    None,
-                )
-                .await?;
-                app.handle_network_response(IoEvent::GetAllApplicationProfileEntity, entities);
+            IoEvent::GetAllBusinessApplications | IoEvent::PostBusinessApplication(_) | IoEvent::DeleteBusinessApplication(_) => {
+                BusinessApplicationHandler::handle(&self.client, self.app, io_event).await?;
             }
-            IoEvent::GetAllForwardProxyEntity => {
-                let mut app = self.app.lock().await;
-                let entities = api::configuration::forward_proxy_api::forward_proxies_info_get(
-                    &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
-                        client: self.client.clone(),
-                        api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
-                            prefix: None,
-                        }),
-                        ..Default::default()
-                    },
-                    None,
-                    None,
-                )
-                .await?;
-                app.handle_network_response(IoEvent::GetAllForwardProxyEntity, entities);
-            }
-            // IoEvent::PostProfile => model::profile::Profiles::post(&self.app.lock().await, &self.client, self.config).await?,
             _ => {}
         };
         Ok(())

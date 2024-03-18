@@ -6,18 +6,18 @@ use crate::{app::CliApp, config::Config};
 
 use super::CommandTrait;
 
-pub struct GetSag {}
+pub struct GetProfile {}
 
-impl GetSag {
+impl GetProfile {
     pub fn output_file() -> File {
-        OpenOptions::new().append(true).create(true).truncate(false).open("output/sags").unwrap()
+        OpenOptions::new().append(true).create(true).truncate(false).open("output/profiles").unwrap()
     }
 }
 
 #[async_trait]
-impl CommandTrait for GetSag {
+impl CommandTrait for GetProfile {
     async fn execute(app: &CliApp) {
-        <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllSags).await.unwrap();
+        <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllProfiles).await.unwrap();
     }
 
     fn num_op() -> usize {

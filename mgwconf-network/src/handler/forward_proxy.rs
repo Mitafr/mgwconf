@@ -16,10 +16,10 @@ use crate::{
 
 use super::Handler;
 
-pub(crate) struct CertHandler {}
+pub(crate) struct ForwardProxyHandler {}
 
 #[async_trait]
-impl<A, C> Handler<A, C> for CertHandler
+impl<A, C> Handler<A, C> for ForwardProxyHandler
 where
     A: AppTrait<C>,
     C: AppConfig,
@@ -27,8 +27,8 @@ where
     async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
-            IoEvent::GetAllCertificates => {
-                let entities = api::configuration::certificate_api::certificate_get(
+            IoEvent::GetAllForwardProxyEntity => {
+                let entities = api::configuration::forward_proxy_api::forward_proxies_info_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -39,13 +39,15 @@ where
                         ..Default::default()
                     },
                     None,
+                    None,
                 )
                 .await?;
-                app.handle_network_response(IoEvent::GetAllCertificates, entities);
+                log::info!("{}", entities);
+                app.handle_network_response(IoEvent::GetAllForwardProxyEntity, entities);
             }
-            IoEvent::PostCertificate(entity) => {
+            IoEvent::PostForwardProxyEntity(entity) => {
                 log::debug!("handling {:#?}", entity);
-                api::configuration::certificate_api::certificate_create(
+                api::configuration::forward_proxy_api::forward_proxy_info_create(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -60,8 +62,8 @@ where
                 .await?;
                 app.handle_network_response(e.clone(), "".into());
             }
-            IoEvent::DeleteCertificate(e) => {
-                api::configuration::certificate_api::certificate_delete(
+            IoEvent::DeleteForwardProxyEntity(e) => {
+                api::configuration::forward_proxy_api::forward_proxy_info_delete(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -71,7 +73,8 @@ where
                         }),
                         ..Default::default()
                     },
-                    &e.alias,
+                    &e.hostname,
+                    &e.port.to_string(),
                 )
                 .await?;
             }

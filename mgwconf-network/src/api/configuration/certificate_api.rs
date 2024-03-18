@@ -61,7 +61,7 @@ pub enum CertificateUpdateError {
 }
 
 /// This API is to create new certificate configuration in Swift Microgateway persistence storage
-pub async fn certificate_create(configuration: &configuration::Configuration, certificate_entity: crate::model::configuration::CertificateEntity) -> Result<serde_json::Value, Error<CertificateCreateError>> {
+pub async fn certificate_create(configuration: &configuration::Configuration, certificate_entity: crate::model::configuration::CertificateEntity) -> Result<(), Error<CertificateCreateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -89,7 +89,7 @@ pub async fn certificate_create(configuration: &configuration::Configuration, ce
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<CertificateCreateError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
@@ -102,7 +102,7 @@ pub async fn certificate_create(configuration: &configuration::Configuration, ce
 }
 
 /// This API is to delete existing certificate configuration in Swift Microgateway persistence storage
-pub async fn certificate_delete(configuration: &configuration::Configuration, alias: &str) -> Result<serde_json::Value, Error<CertificateDeleteError>> {
+pub async fn certificate_delete(configuration: &configuration::Configuration, alias: &str) -> Result<(), Error<CertificateDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
@@ -130,7 +130,7 @@ pub async fn certificate_delete(configuration: &configuration::Configuration, al
     let local_var_content = local_var_resp.text().await?;
 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
-        serde_json::from_str(&local_var_content).map_err(Error::from)
+        Ok(())
     } else {
         let local_var_entity: Option<CertificateDeleteError> = serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {

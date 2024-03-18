@@ -14,7 +14,7 @@ use crate::model::InnerEntityTrait;
 
 /// ForwardProxyEntity : Forward proxy information: host and port, optional user and password
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ForwardProxyEntity {
     #[serde(rename = "hostname")]
     pub hostname: String,

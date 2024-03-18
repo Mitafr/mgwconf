@@ -1,22 +1,24 @@
-use crate::model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
+use crate::model::configuration::{ApiGatewayInfoEntity, ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
 
 #[derive(Debug, Clone)]
 pub enum IoEvent {
     Ping,
+    GetAllApiGatewayInfoEntity,
     GetAllForwardProxyEntity,
     GetAllBusinessApplications,
-    GetAllApplicationProfileEntity,
     GetAllCertificates,
     GetAllSags,
     GetAllProfiles,
-    PostBusinessApplication,
-    PostForwardProxyEntity,
-    PostProfile,
+    PostBusinessApplication(BusinessApplicationEntity),
+    PostApiGatewayInfoEntity(ApiGatewayInfoEntity),
+    PostForwardProxyEntity(ForwardProxyEntity),
+    PostProfile(ApplicationProfileEntity),
     PostCertificate(CertificateEntity),
     PostSag(SagEntity),
+    DeleteApiGatewayInfoEntity(ApiGatewayInfoEntity),
     DeleteForwardProxyEntity(ForwardProxyEntity),
-    DeleteApplicationProfileEntity(ApplicationProfileEntity),
     DeleteBusinessApplication(BusinessApplicationEntity),
     DeleteCertificate(CertificateEntity),
     DeleteSag(SagEntity),
+    DeleteProfile(ApplicationProfileEntity),
 }

@@ -10,6 +10,7 @@ pub enum TabId {
     BUSINESSAPPLICATION = 2,
     PROFILE = 3,
     APIPROXY = 4,
+    FORWARDPROXY = 5,
 }
 
 impl From<usize> for TabId {
@@ -20,6 +21,7 @@ impl From<usize> for TabId {
             x if x == TabId::BUSINESSAPPLICATION as usize => TabId::BUSINESSAPPLICATION,
             x if x == TabId::PROFILE as usize => TabId::PROFILE,
             x if x == TabId::APIPROXY as usize => TabId::APIPROXY,
+            x if x == TabId::FORWARDPROXY as usize => TabId::FORWARDPROXY,
             _ => TabId::CERTIFICATE,
         }
     }
@@ -33,6 +35,7 @@ impl fmt::Display for TabId {
             TabId::BUSINESSAPPLICATION => write!(f, "Business Applications"),
             TabId::PROFILE => write!(f, "Profiles"),
             TabId::APIPROXY => write!(f, "Api Proxy"),
+            TabId::FORWARDPROXY => write!(f, "Forward Proxy"),
         }
     }
 }

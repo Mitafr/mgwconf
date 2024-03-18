@@ -17,7 +17,8 @@ pub struct ConfigurationState {
     pub certificates: Vec<CertificateEntity>,
     pub business_applications: Vec<BusinessApplicationEntity>,
     pub profiles: Vec<ApplicationProfileEntity>,
-    pub apiproxy: Vec<ForwardProxyEntity>,
+    pub apiproxy: Vec<ApiGatewayInfoEntity>,
+    pub forwardproxy: Vec<ForwardProxyEntity>,
 
     current_entity: Option<Box<dyn InnerEntityTrait>>,
 }
@@ -26,7 +27,7 @@ impl Default for ConfigurationState {
     fn default() -> Self {
         ConfigurationState {
             tab_id: 0,
-            tab_len: 5,
+            tab_len: 6,
             selected_tab: None,
             in_panel: false,
             sags: Vec::default(),
@@ -34,6 +35,7 @@ impl Default for ConfigurationState {
             business_applications: Vec::default(),
             profiles: Vec::default(),
             apiproxy: Vec::default(),
+            forwardproxy: Vec::default(),
             pan_id: 0,
             pan_len: 0,
             waiting: false,
@@ -89,6 +91,7 @@ impl State for ConfigurationState {
             TabId::BUSINESSAPPLICATION => Some(Box::new(self.business_applications.get(self.pan_id - 1).unwrap().clone())),
             TabId::PROFILE => Some(Box::new(self.profiles.get(self.pan_id - 1).unwrap().clone())),
             TabId::APIPROXY => Some(Box::new(self.apiproxy.get(self.pan_id - 1).unwrap().clone())),
+            TabId::FORWARDPROXY => Some(Box::new(self.forwardproxy.get(self.pan_id - 1).unwrap().clone())),
         };
         if let Some(e) = entity {
             self.current_entity = Some(e);
@@ -125,6 +128,9 @@ impl State for ConfigurationState {
             0 => self.pan_len = self.certificates.len() + 1,
             1 => self.pan_len = self.sags.len() + 1,
             2 => self.pan_len = self.business_applications.len() + 1,
+            3 => self.pan_len = self.profiles.len() + 1,
+            4 => self.pan_len = self.apiproxy.len() + 1,
+            5 => self.pan_len = self.forwardproxy.len() + 1,
             _ => {}
         }
         if self.pan_len > 0 {

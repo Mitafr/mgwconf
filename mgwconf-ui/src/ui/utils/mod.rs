@@ -29,7 +29,7 @@ where
 /// * _ (bool, bool) : (is_active, is_hovered)
 pub fn get_color((is_active, is_hovered): (bool, bool)) -> Style {
     match (is_active, is_hovered) {
-        (true, _) => Style::default().fg(Color::Cyan),
+        (true, _) => Style::default().fg(Color::Green),
         (false, true) => Style::default().fg(Color::Magenta),
         _ => Style::default().fg(Color::Gray),
     }

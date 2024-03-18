@@ -184,6 +184,8 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
             IoEvent::GetAllBusinessApplications => self.configuration_state.business_applications = serde_json::from_value::<Vec<BusinessApplicationEntity>>(res).unwrap(),
             IoEvent::GetAllCertificates => self.configuration_state.certificates = serde_json::from_value::<Vec<CertificateEntity>>(res).unwrap(),
             IoEvent::GetAllSags => self.configuration_state.sags = serde_json::from_value::<Vec<SagEntity>>(res).unwrap(),
+            IoEvent::GetAllApiGatewayInfoEntity => self.configuration_state.apiproxy = serde_json::from_value::<Vec<ApiGatewayInfoEntity>>(res).unwrap(),
+            IoEvent::GetAllForwardProxyEntity => self.configuration_state.forwardproxy = serde_json::from_value::<Vec<ForwardProxyEntity>>(res).unwrap(),
             //IoEvent::PostBusinessApplication => todo!(),
             //IoEvent::PostCertificate => todo!(),
             //IoEvent::PostSag => todo!(),

@@ -16,10 +16,10 @@ use crate::{
 
 use super::Handler;
 
-pub(crate) struct CertHandler {}
+pub(crate) struct BusinessApplicationHandler {}
 
 #[async_trait]
-impl<A, C> Handler<A, C> for CertHandler
+impl<A, C> Handler<A, C> for BusinessApplicationHandler
 where
     A: AppTrait<C>,
     C: AppConfig,
@@ -27,8 +27,8 @@ where
     async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
-            IoEvent::GetAllCertificates => {
-                let entities = api::configuration::certificate_api::certificate_get(
+            IoEvent::GetAllBusinessApplications => {
+                let entities = api::configuration::business_application_api::business_application_get(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -41,11 +41,11 @@ where
                     None,
                 )
                 .await?;
-                app.handle_network_response(IoEvent::GetAllCertificates, entities);
+                app.handle_network_response(IoEvent::GetAllBusinessApplications, entities);
             }
-            IoEvent::PostCertificate(entity) => {
+            IoEvent::PostBusinessApplication(entity) => {
                 log::debug!("handling {:#?}", entity);
-                api::configuration::certificate_api::certificate_create(
+                api::configuration::business_application_api::business_application_create(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -60,8 +60,8 @@ where
                 .await?;
                 app.handle_network_response(e.clone(), "".into());
             }
-            IoEvent::DeleteCertificate(e) => {
-                api::configuration::certificate_api::certificate_delete(
+            IoEvent::DeleteBusinessApplication(e) => {
+                api::configuration::business_application_api::business_application_delete(
                     &Configuration {
                         base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
                         client: client.clone(),
@@ -71,7 +71,7 @@ where
                         }),
                         ..Default::default()
                     },
-                    &e.alias,
+                    &e.application_name,
                 )
                 .await?;
             }
