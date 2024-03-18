@@ -42,7 +42,6 @@ where
                     None,
                 )
                 .await?;
-                log::info!("{}", entities);
                 app.handle_network_response(IoEvent::GetAllForwardProxyEntity, entities);
             }
             IoEvent::PostForwardProxyEntity(entity) => {
