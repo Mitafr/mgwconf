@@ -36,8 +36,6 @@ async fn main() -> Result<()> {
         let mut net = Network::new(&app, &config).expect("Network Error");
         start_tokio(sync_io_rx, &mut net, notify2);
     });
-    use mgwconf_cli::app::CliApp;
-    use mgwconf_cli::config::Config;
     match <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await {
         Ok(_) => {
             info!("Elapsed time : {:.9}s", now.elapsed().as_secs_f64(),);
