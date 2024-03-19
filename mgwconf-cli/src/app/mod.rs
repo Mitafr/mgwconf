@@ -4,11 +4,7 @@ use core::panic;
 use log::{debug, error};
 use mgwconf_network::{event::IoEvent, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
-use std::{
-    io::{stdin, stdout, Write},
-    sync::Arc,
-    time::Duration,
-};
+use std::{io::Write, sync::Arc, time::Duration};
 use tokio::sync::{broadcast::Sender, Mutex, Notify};
 
 use crate::{
@@ -103,13 +99,20 @@ where
         Ok(())
     }
 
+    #[cfg(not(feature = "store"))]
+    #[allow(unused_variables)]
     fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
+        panic!("To create a vault store you must enable store features");
+    }
+
+    #[cfg(feature = "store")]
+    fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
+        use std::io::{stdin, stdout};
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
         stdin().read_line(s).expect("Did not enter a correct string");
         s.pop();
-        let vault = SecretsVault::new(master).unwrap();
-        vault.create_secret(stype, s.to_owned()).unwrap();
+        SecretsVault::new(master).unwrap().create_secret(stype, s.to_owned()).unwrap();
         s.clear()
     }
 

@@ -84,6 +84,7 @@ pub mod api_client_credentials_api;
 pub mod api_gateway_info_api;
 pub mod business_application_api;
 pub mod certificate_api;
+#[allow(clippy::module_inception)]
 pub mod configuration;
 pub mod forward_proxy_api;
 pub mod profile_api;

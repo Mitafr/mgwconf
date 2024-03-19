@@ -10,10 +10,7 @@ use crossterm::{
 use mgwconf_network::{event::IoEvent, model::configuration::*, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::{
-    io::{stdin, stdout, Write},
-    sync::Arc,
-};
+use std::{io::stdout, sync::Arc};
 use tokio::sync::mpsc::Sender;
 use tokio::sync::{Mutex, Notify};
 
@@ -151,13 +148,20 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         Ok(())
     }
 
+    #[cfg(not(feature = "store"))]
+    #[allow(unused_variables)]
     fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
+        panic!("To create a vault store you must enable store features");
+    }
+
+    #[cfg(feature = "store")]
+    fn ask_secret(master: &str, s: &mut String, stype: SecretType) {
+        use std::io::{stdin, stdout, Write};
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
         stdin().read_line(s).expect("Did not enter a correct string");
         s.pop();
-        let vault = SecretsVault::new(master).unwrap();
-        vault.create_secret(stype, s.to_owned()).unwrap();
+        SecretsVault::new(master).unwrap().create_secret(stype, s.to_owned()).unwrap();
         s.clear()
     }
 

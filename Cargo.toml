@@ -49,6 +49,7 @@ required-features = ["ui"]
 path = "src/ui/main.rs"
 
 [features]
-default = ["ui"]
 ui = ["mgwconf-ui"]
 cli = ["mgwconf-cli"]
+store-ui = ["ui", "mgwconf-ui/store"]
+store-cli = ["cli", "mgwconf-cli/store"]

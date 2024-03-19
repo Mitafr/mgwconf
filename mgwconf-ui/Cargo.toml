@@ -3,8 +3,6 @@ name = "mgwconf-ui"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 mgwconf-network = { path = "../mgwconf-network", default-features = false }
 mgwconf-vault = { path = "../mgwconf-vault" }
@@ -18,10 +16,18 @@ ratatui = { version = "0.26", features = [
 crossterm = { default-features = false, version = "0.27" }
 anyhow = { default-features = false, version = "1.0" }
 async-trait = { version = "^0.1" }
-clap = { version = "4.5", features = ["derive", "std"], default-features = false }
+clap = { version = "4.5", features = [
+    "derive",
+    "std",
+], default-features = false }
 serde = { version = "1.0", default-features = false }
-serde_json = { version = "1.0" , default-features = false }
+serde_json = { version = "1.0", default-features = false }
 
 tracing = { default-features = false, version = "0.1" }
-tracing-subscriber = { version = "0.3", features = ["env-filter"], default-features = false }
+tracing-subscriber = { version = "0.3", features = [
+    "env-filter",
+], default-features = false }
 tracing-appender = { version = "0.2" }
+
+[features]
+store = ["mgwconf-vault/store"]
