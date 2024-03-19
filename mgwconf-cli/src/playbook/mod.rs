@@ -1,9 +1,13 @@
+use std::collections::HashSet;
+use std::fmt::Debug;
 use std::fs::{read_to_string, File};
+use std::hash::Hash;
+use std::net::SocketAddr;
 use std::path::PathBuf;
 
 use mgwconf_network::model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity};
 use mgwconf_network::{event::IoEvent, model::configuration::SagEntity, AppTrait};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::app::CliApp;
 use crate::config::Config;
@@ -84,6 +88,8 @@ impl From<String> for Playbook {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct PlaybookEntries {
+    #[serde(deserialize_with = "deserialize_hosts")]
+    hosts: Vec<SocketAddr>,
     commands: Vec<CommandType>,
 }
 
@@ -132,4 +138,21 @@ struct BusinessApplicationImport {
 struct CertificateImport {
     file: Option<String>,
     json: Option<String>,
+}
+
+fn deserialize_hosts<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de> + Hash + Eq + Clone + Debug,
+{
+    let vec: Vec<T> = Vec::deserialize(deserializer)?;
+    let mut found = HashSet::new();
+    let dup = vec.iter().cloned().filter(|element| !found.insert(element.clone())).collect::<Vec<T>>();
+    if !dup.is_empty() {
+        Err(serde::de::Error::custom(format!("hosts cannot contains duplicate data {dup:#?}")))
+    } else if vec.is_empty() {
+        Err(serde::de::Error::custom("Empty hosts not allowed"))
+    } else {
+        Ok(vec)
+    }
 }
