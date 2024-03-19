@@ -35,6 +35,8 @@ pub trait AppConfig: Send + Sync + Any {
     fn remote_port(&self) -> u16;
     fn root_ca_path(&self) -> String;
     fn tickrate(&self) -> u64;
+
+    fn as_any(&self) -> &dyn Any;
 }
 
 #[async_trait]
@@ -107,19 +109,19 @@ where
         match io_event {
             IoEvent::Ping => self.ping_mgw().await?,
             IoEvent::GetAllSags | IoEvent::PostSag(_) | IoEvent::DeleteSag(_) => {
-                SagHandler::handle(&self.client, self.app, io_event).await?;
+                SagHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             IoEvent::GetAllCertificates | IoEvent::PostCertificate(_) | IoEvent::DeleteCertificate(_) => {
-                CertHandler::handle(&self.client, self.app, io_event).await?;
+                CertHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             IoEvent::GetAllProfiles | IoEvent::PostProfile(_) | IoEvent::DeleteProfile(_) => {
-                ProfileHandler::handle(&self.client, self.app, io_event).await?;
+                ProfileHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             IoEvent::GetAllForwardProxyEntity | IoEvent::PostForwardProxyEntity(_) | IoEvent::DeleteForwardProxyEntity(_) => {
-                ForwardProxyHandler::handle(&self.client, self.app, io_event).await?;
+                ForwardProxyHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             IoEvent::GetAllBusinessApplications | IoEvent::PostBusinessApplication(_) | IoEvent::DeleteBusinessApplication(_) => {
-                BusinessApplicationHandler::handle(&self.client, self.app, io_event).await?;
+                BusinessApplicationHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             _ => {}
         };

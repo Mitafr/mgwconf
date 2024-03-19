@@ -9,11 +9,12 @@ use std::{
     sync::Arc,
     time::Duration,
 };
-use tokio::sync::{mpsc::Sender, Mutex, Notify};
+use tokio::sync::{broadcast::Sender, Mutex, Notify};
 
 use crate::{
     command::{get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, registry::Registry},
     config::Config,
+    playbook::{error::PlaybookError, Playbook},
 };
 
 #[derive(Debug, Clone)]
@@ -63,15 +64,14 @@ impl CliApp {
 
     fn clear_output_dir() {
         log::info!("Clearing output dir");
-        for entry in std::fs::read_dir("./output").unwrap() {
-            if let Ok(entry) = entry {
-                std::fs::remove_file(entry.path()).unwrap();
-            }
+        for entry in std::fs::read_dir("./output").unwrap().flatten() {
+            std::fs::remove_file(entry.path()).unwrap();
         }
     }
 
-    fn config<'a>(&'a self) -> &'a Option<Config> {
-        &self.config
+    async fn run_playbook(&mut self, playbook: &Playbook) -> Result<(), PlaybookError> {
+        self.waiting_res = playbook.process(self).await?;
+        Ok(())
     }
 }
 
@@ -84,13 +84,13 @@ where
         if self.initialized {
             return Ok(());
         }
-        self.io_tx.send(IoEvent::Ping).await?;
+        self.io_tx.send(IoEvent::Ping)?;
         self.initialized = true;
         Ok(())
     }
 
     async fn dispatch(&self, io_event: IoEvent) -> Result<()> {
-        self.io_tx.send(io_event).await?;
+        self.io_tx.send(io_event)?;
         Ok(())
     }
 
@@ -157,17 +157,20 @@ where
         log::info!("Network initialized, running command");
         {
             let app = &mut *app.lock().await;
-            match <CliApp>::config(app) {
+            let config = AppTrait::<C>::config(app);
+            match config.as_any().downcast_ref::<Config>() {
                 Some(config) => {
                     if let Some(playbook) = &config.playbook {
-                        app.waiting_res = playbook.process(app).await?;
+                        app.run_playbook(playbook).await?
                     } else {
                         Self::clear_output_dir();
                         let run_command = app.run_commands();
                         run_command.await;
                     }
                 }
-                None => {}
+                None => {
+                    bail!("Internal error")
+                }
             }
         }
         'main: loop {

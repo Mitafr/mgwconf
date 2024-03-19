@@ -1,6 +1,11 @@
 use log::{debug, info};
 use mgwconf_network::AppConfig;
-use std::{error::Error, net::IpAddr, path::PathBuf};
+use std::{
+    any::Any,
+    error::Error,
+    net::{IpAddr, SocketAddr},
+    path::PathBuf,
+};
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 use clap::{ArgMatches, Parser};
@@ -20,8 +25,8 @@ pub struct Args {
     /// pass ca
     #[clap(long = "ca")]
     pub root_ca_path: Option<String>,
-    #[clap(long = "remote_ip")]
-    pub remote_ip: Option<String>,
+    #[clap(long = "remote_addr")]
+    pub remote_addr: Option<String>,
 }
 
 impl From<ArgMatches> for Args {
@@ -39,8 +44,7 @@ impl From<ArgMatches> for Args {
 pub struct Config {
     pub debug: bool,
     loaded: bool,
-    pub remote_ip: IpAddr,
-    pub remote_port: u16,
+    pub remote_addr: SocketAddr,
     pub root_ca_path: String,
 
     pub tick_rate: u64,
@@ -48,16 +52,15 @@ pub struct Config {
 
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
-        let remote_ip = if let Some(ip) = &args.remote_ip {
-            ip.parse::<IpAddr>().unwrap_or(IpAddr::from([127, 0, 0, 1]))
+        let remote_addr = if let Some(ip) = &args.remote_addr {
+            ip.parse::<SocketAddr>().unwrap_or("127.0.0.1:9003".parse().unwrap())
         } else {
-            IpAddr::from([127, 0, 0, 1])
+            "127.0.0.1:9003".parse().unwrap()
         };
         let config = Config {
             debug: args.debug,
             loaded: false,
-            remote_ip,
-            remote_port: 9003,
+            remote_addr,
             root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
             tick_rate: 160,
         };
@@ -99,11 +102,11 @@ impl Config {
 
 impl AppConfig for Config {
     fn remote_ip(&self) -> IpAddr {
-        self.remote_ip
+        self.remote_addr.ip()
     }
 
     fn remote_port(&self) -> u16 {
-        self.remote_port
+        self.remote_addr.port()
     }
 
     fn root_ca_path(&self) -> String {
@@ -111,5 +114,9 @@ impl AppConfig for Config {
     }
     fn tickrate(&self) -> u64 {
         self.tick_rate
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }

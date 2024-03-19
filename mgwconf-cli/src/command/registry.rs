@@ -20,10 +20,10 @@ pub enum CommandVariant {
 }
 
 impl CommandRegistryTrait for CommandVariant {
-    fn execute(&self, mut app: CliApp) -> std::pin::Pin<Box<dyn std::future::Future<Output = usize> + Send>> {
+    fn execute(&self, app: CliApp) -> std::pin::Pin<Box<dyn std::future::Future<Output = usize> + Send>> {
         match self {
             CommandVariant::GetAll(_cmd) => Box::pin(async move {
-                GetAll::execute(&mut app).await;
+                GetAll::execute(&app).await;
                 GetAll::num_op()
             }),
             CommandVariant::GetSag(_cmd) => Box::pin(async move {

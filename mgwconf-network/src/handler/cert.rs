@@ -14,7 +14,7 @@ use crate::{
     AppConfig, AppTrait,
 };
 
-use super::Handler;
+use super::{base_url, Handler};
 
 pub(crate) struct CertHandler {}
 
@@ -24,13 +24,13 @@ where
     A: AppTrait<C>,
     C: AppConfig,
 {
-    async fn handle(client: &Client, app: &Arc<Mutex<A>>, e: &IoEvent) -> Result<(), anyhow::Error> {
+    async fn handle(client: &Client, app: &Arc<Mutex<A>>, config: &C, e: &IoEvent) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
             IoEvent::GetAllCertificates => {
                 let entities = api::configuration::certificate_api::certificate_get(
                     &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
                         client: client.clone(),
                         api_key: Some(ApiKey {
                             key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
@@ -47,7 +47,7 @@ where
                 log::debug!("handling {:#?}", entity);
                 api::configuration::certificate_api::certificate_create(
                     &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
                         client: client.clone(),
                         api_key: Some(ApiKey {
                             key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
@@ -63,7 +63,7 @@ where
             IoEvent::DeleteCertificate(e) => {
                 api::configuration::certificate_api::certificate_delete(
                     &Configuration {
-                        base_path: String::from("https://localhost:9003/swift/mgw/mgw-configuration-api/2.0.0"),
+                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
                         client: client.clone(),
                         api_key: Some(ApiKey {
                             key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),

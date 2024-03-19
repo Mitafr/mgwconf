@@ -7,16 +7,22 @@ use std::{
 
 use clap::Parser;
 use log::{error, info};
-use tokio::sync::{mpsc::Sender, Mutex, Notify};
+use tokio::sync::{
+    broadcast::{channel, Receiver, Sender},
+    Mutex, Notify,
+};
 
-use mgwconf_cli::{app::CliApp, config::Config};
+use mgwconf_cli::{
+    app::CliApp,
+    config::{Args, Config},
+};
 use mgwconf_network::{event::IoEvent, AppConfig, AppTrait, Network};
 
 use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let (sync_io_tx, sync_io_rx) = tokio::sync::mpsc::channel::<IoEvent>(100);
+    let (sync_io_tx, sync_io_rx) = channel(100);
     let (app, config) = create_app(sync_io_tx).await;
     let cloned_app = Arc::clone(&app);
 
@@ -27,15 +33,29 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }));
     let notify = Arc::new(Notify::new());
-    let notify2 = notify.clone();
     log::info!("Reading secrets from vault");
     cloned_app.lock().await.vault.as_mut().expect("Vault not initialized correctly").read_all_secrets();
     let now = Instant::now();
     log::info!("Starting Network");
-    std::thread::spawn(move || {
-        let mut net = Network::new(&app, &config).expect("Network Error");
-        start_tokio(sync_io_rx, &mut net, notify2);
-    });
+    if let Some(ref playbook) = config.playbook {
+        for host in playbook.entries.hosts.iter() {
+            let notify2 = notify.clone();
+            let sync_io_rx = sync_io_rx.resubscribe();
+            let app = app.clone();
+            let mut config = config.clone();
+            config.remote_addr = *host;
+            std::thread::spawn(move || {
+                let mut net = Network::new(&app, &config).expect("Network Error");
+                start_tokio(sync_io_rx, &mut net, notify2);
+            });
+        }
+    } else {
+        let notify2 = notify.clone();
+        std::thread::spawn(move || {
+            let mut net = Network::new(&app, &config).expect("Network Error");
+            start_tokio(sync_io_rx, &mut net, notify2);
+        });
+    }
     match <CliApp as AppTrait<Config>>::run(cloned_app, Some(notify)).await {
         Ok(_) => {
             info!("Elapsed time : {:.9}s", now.elapsed().as_secs_f64(),);
@@ -49,8 +69,6 @@ async fn main() -> Result<()> {
 }
 
 pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<CliApp>>, Config) {
-    use mgwconf_cli::config::Args;
-
     let args = Args::parse();
     let vault_key = if args.vault_key.is_some() { args.vault_key.as_ref().unwrap().to_owned() } else { ask_master_key() };
     let mut config = Config::init(&args).unwrap();
@@ -62,7 +80,7 @@ pub async fn create_app(io_tx: Sender<IoEvent>) -> (Arc<Mutex<CliApp>>, Config) 
 }
 
 #[tokio::main]
-async fn start_tokio<A: AppTrait<C>, C: AppConfig>(mut io_rx: tokio::sync::mpsc::Receiver<IoEvent>, network: &mut Network<A, C>, pair2: Arc<Notify>) {
+async fn start_tokio<A: AppTrait<C>, C: AppConfig>(mut io_rx: Receiver<IoEvent>, network: &mut Network<A, C>, pair2: Arc<Notify>) {
     info!("Notifying thread");
     loop {
         if let Ok(io_event) = io_rx.try_recv() {
