@@ -24,32 +24,16 @@ jobs:
         run: cargo test --release
       - name: Build
         run: just --set target "x86_64-pc-windows-msvc" release
-      - name: Upload mgwc.exe
-        uses: "actions/github-script@v6"
+      - name: Upload artifact mgwc.exe
+        uses: actions/upload-artifact@v4
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          script: |
-            const fs = require('fs').promises;
-            await github.rest.repos.uploadReleaseAsset({
-              name: 'mgwc.exe',
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.release_id,
-              data: await fs.readFile('./target/x86_64-pc-windows-msvc/release/mgwc.exe')
-            });
-      - name: Upload mgwc_ui.exe
-        uses: "actions/github-script@v6"
+          name: mgwc.exe
+          path: ./target/x86_64-pc-windows-msvc/release/mgwc.exe
+      - name: Upload artifact mgwc_ui.exe
+        uses: actions/upload-artifact@v4
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          script: |
-            const fs = require('fs').promises;
-            await github.rest.repos.uploadReleaseAsset({
-              name: 'mgwc_ui.exe',
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.release_id,
-              data: await fs.readFile('./target/x86_64-pc-windows-msvc/release/mgwc_ui.exe')
-            });
+          name: mgwc_ui.exe
+          path: ./target/x86_64-pc-windows-msvc/release/mgwc_ui.exe
         
   linux:
     runs-on: ubuntu-latest
@@ -62,29 +46,13 @@ jobs:
         run: cargo test --release
       - name: Build
         run: just --set target "x86_64-unknown-linux-gnu" release
-      - name: Upload mgwc
-        uses: "actions/github-script@v6"
+      - name: Upload artifact mgwc.exe
+        uses: actions/upload-artifact@v4
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          script: |
-            const fs = require('fs').promises;
-            await github.rest.repos.uploadReleaseAsset({
-              name: 'mgwc',
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.release_id,
-              data: await fs.readFile('./target/x86_64-unknown-linux-gnu/release/mgwc')
-            });
-      - name: Upload mgwc_ui
-        uses: "actions/github-script@v6"
+          name: mgwc.exe
+          path: ./target/x86_64-unknown-linux-gnu/release/mgwc
+      - name: Upload artifact mgwc_ui.exe
+        uses: actions/upload-artifact@v4
         with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-          script: |
-            const fs = require('fs').promises;
-            await github.rest.repos.uploadReleaseAsset({
-              name: 'mgwc_ui',
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.release_id,
-              data: await fs.readFile('./target/x86_64-unknown-linux-gnu/release/mgwc_ui')
-            });
+          name: mgwc_ui.exe
+          path: ./target/x86_64-unknown-linux-gnu/release/mgwc_ui
