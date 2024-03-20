@@ -18,6 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Install Just
+        uses: extractions/setup-just@v1
       - name: Test
         run: cargo test --release
       - name: Build
@@ -54,6 +56,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: Install Just
+        uses: extractions/setup-just@v1
       - name: Test
         run: cargo test --release
       - name: Build
