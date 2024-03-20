@@ -46,15 +46,15 @@ jobs:
         run: cargo test --release
       - name: Build
         run: just --set target "x86_64-unknown-linux-gnu" release
-      - name: Upload artifact mgwc.exe
+      - name: Upload artifact mgwc
         uses: actions/upload-artifact@v4
         with:
-          name: mgwc.exe
+          name: mgwc
           path: ./target/x86_64-unknown-linux-gnu/release/mgwc
-      - name: Upload artifact mgwc_ui.exe
+      - name: Upload artifact mgwc_ui
         uses: actions/upload-artifact@v4
         with:
-          name: mgwc_ui.exe
+          name: mgwc_ui
           path: ./target/x86_64-unknown-linux-gnu/release/mgwc_ui
     
   release:
