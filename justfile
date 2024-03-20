@@ -5,7 +5,7 @@ profile := "dev"
 store := "store-"
 target := "x86_64-unknown-linux-gnu"
 
-default: lint build test
+default: lint test
 
 clean: 
   cargo clean
