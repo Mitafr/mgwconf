@@ -1,0 +1,28 @@
+name: MGWC ci
+
+on: [push, pull_request]
+
+jobs:
+  build-and-release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install Just
+      run: cargo install just --force
+
+    - name: Run Just Default
+      run: just default
+
+    - name: Build
+      id: build
+      env:
+        VAULTKEY: "N/A"
+      run: |
+        just build
