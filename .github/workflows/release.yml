@@ -34,7 +34,7 @@ jobs:
               name: 'mgwc.exe',
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: ${{ env.RELEASE_ID }},
+              release_id: process.env.release_id,
               data: await fs.readFile('./target/release/mgwc.exe')
             });
       - name: Upload mgwc_ui.exe
@@ -47,7 +47,7 @@ jobs:
               name: 'mgwc_ui.exe',
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: ${{ env.RELEASE_ID }},
+              release_id: process.env.release_id,
               data: await fs.readFile('./target/release/mgwc_ui.exe')
             });
         
@@ -72,7 +72,7 @@ jobs:
               name: 'mgwc',
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: ${{ env.RELEASE_ID }},
+              release_id: process.env.release_id,
               data: await fs.readFile('./target/release/mgwc')
             });
       - name: Upload mgwc_ui
@@ -85,6 +85,6 @@ jobs:
               name: 'mgwc_ui',
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: ${{ env.RELEASE_ID }},
+              release_id: process.env.release_id,
               data: await fs.readFile('./target/release/mgwc_ui')
             });
