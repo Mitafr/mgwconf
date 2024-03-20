@@ -44,7 +44,7 @@ jobs:
         uses: extractions/setup-just@v1
       - name: Install musl
         run: |
-          sudo apt-get install musl-tools
+          sudo apt-get install musl-tools musl musl-dev
       - name: Test
         run: cargo test --release
       - name: Build gnu
