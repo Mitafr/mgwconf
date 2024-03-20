@@ -49,6 +49,8 @@ jobs:
         run: cargo test --release
       - name: Build gnu
         run: just --set target "x86_64-unknown-linux-gnu" release
+      - name: Add target x86_64-unknown-linux-musl
+        run: rustup target add x86_64-unknown-linux-musl
       - name: Build musl
         run: just --set target "x86_64-unknown-linux-musl" release
       - name: Upload artifact mgwc.gnu
