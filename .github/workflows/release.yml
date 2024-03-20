@@ -66,8 +66,10 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Download artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
+        pattern: mgwc*
+        merge-multiple: true
         path: ./binaries
 
     - name: Create a release
