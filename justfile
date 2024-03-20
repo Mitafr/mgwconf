@@ -17,6 +17,10 @@ lint:
 test:
   cargo test --workspace
 
+build-ci:
+  cargo build --bin="mgwc" --no-default-features --features="{{store}}cli"
+  cargo build --bin="mgwc_ui" --no-default-features --features="{{store}}ui"
+
 build:
   cargo build --bin="mgwc" --no-default-features --target={{target}} --features="{{store}}cli"
   cargo build --bin="mgwc_ui" --no-default-features --target={{target}} --features="{{store}}ui"
