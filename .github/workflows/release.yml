@@ -35,7 +35,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: process.env.release_id,
-              data: await fs.readFile('./target/release/mgwc.exe')
+              data: await fs.readFile('./target/x86_64-pc-windows-msvc/mgwc.exe')
             });
       - name: Upload mgwc_ui.exe
         uses: "actions/github-script@v6"
@@ -48,7 +48,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: process.env.release_id,
-              data: await fs.readFile('./target/release/mgwc_ui.exe')
+              data: await fs.readFile('./target/x86_64-pc-windows-msvc/mgwc_ui.exe')
             });
         
   linux:
@@ -73,7 +73,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: process.env.release_id,
-              data: await fs.readFile('./target/release/mgwc')
+              data: await fs.readFile('./target/x86_64-unknown-linux-gnu/mgwc')
             });
       - name: Upload mgwc_ui
         uses: "actions/github-script@v6"
@@ -86,5 +86,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               release_id: process.env.release_id,
-              data: await fs.readFile('./target/release/mgwc_ui')
+              data: await fs.readFile('./target/x86_64-unknown-linux-gnu/mgwc_ui')
             });
