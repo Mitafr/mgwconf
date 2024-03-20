@@ -21,7 +21,7 @@ jobs:
       - name: Test
         run: cargo test --release
       - name: Build
-        run: just --set target "aarch64-apple-darwin" release
+        run: just --set target "x86_64-pc-windows-msvc" release
       - name: Upload mgwc.exe
         uses: "actions/github-script@v6"
         with:
@@ -57,7 +57,7 @@ jobs:
       - name: Test
         run: cargo test --release
       - name: Build
-        run: just --set target "aarch64-apple-darwin" release
+        run: just --set target "x86_64-unknown-linux-gnu" release
       - name: Upload mgwc
         uses: "actions/github-script@v6"
         with:
