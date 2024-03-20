@@ -44,19 +44,30 @@ jobs:
         uses: extractions/setup-just@v1
       - name: Test
         run: cargo test --release
-      - name: Build
+      - name: Build gnu
         run: just --set target "x86_64-unknown-linux-gnu" release
-      - name: Upload artifact mgwc
+      - name: Build musl
+        run: just --set target "x86_64-unknown-linux-musl" release
+      - name: Upload artifact mgwc.gnu
         uses: actions/upload-artifact@v4
         with:
-          name: mgwc
+          name: mgwc.x86_64-unknown-linux-gnu
           path: ./target/x86_64-unknown-linux-gnu/release/mgwc
-      - name: Upload artifact mgwc_ui
+      - name: Upload artifact mgwc.musl
         uses: actions/upload-artifact@v4
         with:
-          name: mgwc_ui
+          name: mgwc.x86_64-unknown-linux-musl
+          path: ./target/x86_64-unknown-linux-musl/release/mgwc
+      - name: Upload artifact mgwc_ui.gnu
+        uses: actions/upload-artifact@v4
+        with:
+          name: mgwc_ui.x86_64-unknown-linux-gnu
           path: ./target/x86_64-unknown-linux-gnu/release/mgwc_ui
-    
+      - name: Upload artifact mgwc_ui.musl
+        uses: actions/upload-artifact@v4
+        with:
+          name: mgwc_ui.x86_64-unknown-linux-musl
+          path: ./target/x86_64-unknown-linux-musl/release/mgwc_ui
   release:
     needs: [windows, linux]
 
