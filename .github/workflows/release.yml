@@ -70,14 +70,13 @@ jobs:
       with:
         pattern: mgwc*
         merge-multiple: true
-        path: ./binaries
 
     - name: Create a release
       uses: softprops/action-gh-release@v1
       with:
         # Artifacts are put in subfolders, hence the `*/*`
         files: |
-          binaries/*/*
+          */*
         fail_on_unmatched_files: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
