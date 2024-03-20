@@ -1,6 +1,6 @@
 #!/usr/bin/env just --justfile
 
-vault_key := env_var('VAULTKEY')
+vault_key := env_var_or_default('VAULTKEY', "N/A")
 profile := "dev"
 store := "store-"
 target := "x86_64-unknown-linux-gnu"
