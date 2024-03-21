@@ -1,8 +1,10 @@
 use log::{debug, info};
-use mgwconf_network::AppConfig;
+use mgwconf_network::{AppConfig, Identity};
 use std::{
     any::Any,
     error::Error,
+    fs::File,
+    io::Read,
     net::{IpAddr, SocketAddr, ToSocketAddrs},
     path::PathBuf,
 };
@@ -27,6 +29,8 @@ pub struct Args {
     pub root_ca_path: Option<String>,
     #[clap(long = "remote_addr")]
     pub remote_addr: Option<String>,
+    #[clap(long = "identity")]
+    pub identity: Option<String>,
 }
 
 impl From<ArgMatches> for Args {
@@ -45,6 +49,7 @@ pub struct Config {
     pub debug: bool,
     loaded: bool,
     pub remote_addr: SocketAddr,
+    pub identity: Option<Identity>,
     pub root_ca_path: String,
 
     pub tick_rate: u64,
@@ -61,12 +66,25 @@ impl Config {
             debug: args.debug,
             loaded: false,
             remote_addr,
+            identity: Self::read_pem(args)?,
             root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
             tick_rate: 160,
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);
         Ok(config)
+    }
+
+    fn read_pem(args: &Args) -> Result<Option<Identity>, std::io::Error> {
+        let mut buf: Vec<u8> = Vec::new();
+        match File::open(args.identity.as_ref().unwrap_or(&"./mgw.pem".to_string())) {
+            Ok(mut f) => f.read_to_end(&mut buf)?,
+            Err(_) => return Ok(None),
+        };
+        match Identity::from_pem(&buf) {
+            Ok(identity) => Ok(Some(identity)),
+            Err(_) => Ok(None),
+        }
     }
 
     #[allow(dead_code)]
@@ -118,5 +136,9 @@ impl AppConfig for Config {
 
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn identity(&self) -> Option<&Identity> {
+        self.identity.as_ref()
     }
 }

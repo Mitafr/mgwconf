@@ -6,6 +6,7 @@ extern crate serde;
 extern crate serde_json;
 
 use std::any::Any;
+use std::time::Duration;
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
 use anyhow::{Error, Result};
@@ -14,6 +15,7 @@ use event::IoEvent;
 use log::debug;
 use log::{error, info};
 use mgwconf_vault::{SecretType, SecretsVault};
+pub use reqwest::Identity;
 use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
@@ -34,6 +36,7 @@ pub trait AppConfig: Send + Sync + Any {
     fn remote_ip(&self) -> IpAddr;
     fn remote_port(&self) -> u16;
     fn root_ca_path(&self) -> String;
+    fn identity(&self) -> Option<&Identity>;
     fn tickrate(&self) -> u64;
 
     fn as_any(&self) -> &dyn Any;
@@ -80,7 +83,13 @@ where
 {
     pub fn new(app: &'a Arc<Mutex<A>>, config: &'a C) -> Result<Self> {
         let certificate = get_mgw_root_cert(config)?;
-        let client = reqwest::Client::builder().tls_built_in_root_certs(true).add_root_certificate(certificate).build()?;
+        let client = reqwest::Client::builder()
+            .tls_built_in_root_certs(true)
+            .user_agent(concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")))
+            .connect_timeout(Duration::from_secs(15))
+            .add_root_certificate(certificate)
+            .https_only(true)
+            .build()?;
         Ok(Network { app, client, config })
     }
 

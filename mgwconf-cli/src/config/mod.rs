@@ -1,6 +1,13 @@
 use log::{debug, info};
-use mgwconf_network::AppConfig;
-use std::{any::Any, error::Error, net::{IpAddr, SocketAddr, ToSocketAddrs}, path::PathBuf};
+use mgwconf_network::{AppConfig, Identity};
+use std::{
+    any::Any,
+    error::Error,
+    fs::File,
+    io::Read,
+    net::{IpAddr, SocketAddr, ToSocketAddrs},
+    path::PathBuf,
+};
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 use clap::Parser;
@@ -25,6 +32,8 @@ pub struct Args {
     pub playbook: Option<String>,
     #[clap(long = "remote_addr")]
     pub remote_addr: Option<String>,
+    #[clap(long = "identity")]
+    pub identity: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -32,6 +41,7 @@ pub struct Config {
     pub debug: bool,
     loaded: bool,
     pub remote_addr: SocketAddr,
+    pub identity: Option<Identity>,
     pub root_ca_path: String,
 
     pub tick_rate: u64,
@@ -51,6 +61,7 @@ impl Config {
             debug: args.debug,
             loaded: false,
             remote_addr,
+            identity: Self::read_pem(args)?,
             root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
             tick_rate: 250,
             playbook: args.playbook.to_owned().map(|v| v.into()),
@@ -58,6 +69,15 @@ impl Config {
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);
         Ok(config)
+    }
+
+    fn read_pem(args: &Args) -> Result<Option<Identity>, std::io::Error> {
+        let mut buf: Vec<u8> = Vec::new();
+        File::open(args.identity.as_ref().unwrap_or(&"./mgw.pem".to_string()))?.read_to_end(&mut buf)?;
+        match Identity::from_pem(&buf) {
+            Ok(identity) => Ok(Some(identity)),
+            Err(_) => Ok(None),
+        }
     }
 
     pub fn playbook(&self) -> &Option<Playbook> {
@@ -114,5 +134,9 @@ impl AppConfig for Config {
 
     fn as_any(&self) -> &dyn Any {
         self
+    }
+
+    fn identity(&self) -> Option<&Identity> {
+        self.identity.as_ref()
     }
 }
