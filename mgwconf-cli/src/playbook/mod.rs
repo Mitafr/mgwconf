@@ -42,6 +42,9 @@ impl Playbook {
                 CommandType::Create(e) => self.process_create(e, app).await?,
             }
         }
+        if num_op == 0 {
+            log::warn!("This playbook seems to be empty");
+        }
         Ok(num_op)
     }
 
