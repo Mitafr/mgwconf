@@ -3,7 +3,7 @@ use mgwconf_network::AppConfig;
 use std::{
     any::Any,
     error::Error,
-    net::{IpAddr, SocketAddr},
+    net::{IpAddr, SocketAddr, ToSocketAddrs},
     path::PathBuf,
 };
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
@@ -53,7 +53,7 @@ pub struct Config {
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_addr = if let Some(ip) = &args.remote_addr {
-            ip.parse::<SocketAddr>().unwrap_or("127.0.0.1:9003".parse().unwrap())
+            ip.to_socket_addrs().expect("Unable to resolve domain").next()
         } else {
             "127.0.0.1:9003".parse().unwrap()
         };
