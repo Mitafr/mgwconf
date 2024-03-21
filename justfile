@@ -21,6 +21,10 @@ build-ci:
   cargo build --bin="mgwc" --no-default-features --features="{{store}}cli"
   cargo build --bin="mgwc_ui" --no-default-features --features="{{store}}ui"
 
+build-ci-release:
+  cargo build --bin="mgwc" --no-default-features --features="{{store}}cli" --release
+  cargo build --bin="mgwc_ui" --no-default-features --features="{{store}}ui" --release
+
 build:
   cargo build --bin="mgwc" --no-default-features --target={{target}} --features="{{store}}cli"
   cargo build --bin="mgwc_ui" --no-default-features --target={{target}} --features="{{store}}ui"
