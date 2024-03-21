@@ -25,6 +25,11 @@ jobs:
       run: |
         just build-ci
 
+    - name: Build Release
+      id: build-release
+      run: |
+        just build-ci-release
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
