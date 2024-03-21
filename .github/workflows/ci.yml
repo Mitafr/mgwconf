@@ -34,4 +34,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: mgwc.${{ matrix.os }}
-        path: ./target/release/mgwc
+        path: |
+          ./target/release/mgwc
+          ./target/release/mgwc.exe
+          ./target/release/mgwc_ui
+          ./target/release/mgwc_ui.exe
