@@ -5,8 +5,9 @@ use argon2::Config;
 use base64::engine::general_purpose;
 use base64::Engine;
 use rand::Rng;
-use std::fs::File;
+use std::fs::{create_dir, File};
 use std::io::Write;
+use std::path::Path;
 use zeroize::Zeroize;
 
 use crate::SecretType;
@@ -57,6 +58,10 @@ impl SecretsVault {
         }
         let enc = Aes256CbcEnc::new(&self.key.into(), &iv.into());
         enc.encrypt_padded_mut::<Pkcs7>(&mut buf, self.pt_len)?;
+        let vault_dir = Path::new("./vault");
+        if !vault_dir.is_dir() {
+            create_dir(vault_dir)?;
+        }
         let mut output = File::create(format!("./vault/vault.{}", stype))?;
         let cipher = [iv.as_slice(), self.key_salt.as_slice(), buf.as_slice()].concat();
         output.write_all(&cipher)?;
