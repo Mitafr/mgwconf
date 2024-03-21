@@ -53,26 +53,42 @@ jobs:
         run: rustup target add x86_64-unknown-linux-musl
       - name: Build musl
         run: just --set target "x86_64-unknown-linux-musl" release
+      #################
+      ##   mgwc.gnu  ##
+      #################
+      - run: mv ./target/x86_64-unknown-linux-gnu/release/mgwc ./target/x86_64-unknown-linux-gnu/release/mgwc.x86_64-unknown-linux-gnu
       - name: Upload artifact mgwc.gnu
         uses: actions/upload-artifact@v4
         with:
           name: mgwc.x86_64-unknown-linux-gnu
-          path: ./target/x86_64-unknown-linux-gnu/release/mgwc
+          path: ./target/x86_64-unknown-linux-gnu/release/mgwc.x86_64-unknown-linux-gnu
+      ##################
+      ##   mgwc.musl  ##
+      ##################
+      - run: mv ./target/x86_64-unknown-linux-musl/release/mgwc ./target/x86_64-unknown-linux-musl/release/mgwc.x86_64-unknown-linux-musl
       - name: Upload artifact mgwc.musl
         uses: actions/upload-artifact@v4
         with:
           name: mgwc.x86_64-unknown-linux-musl
-          path: ./target/x86_64-unknown-linux-musl/release/mgwc
+          path: ./target/x86_64-unknown-linux-musl/release/mgwc.x86_64-unknown-linux-musl
+      ##################
+      ##  mgwc_ui.gnu ##
+      ##################
+      - run: mv ./target/x86_64-unknown-linux-gnu/release/mgwc_ui ./target/x86_64-unknown-linux-gnu/release/mgwc_ui.x86_64-unknown-linux-gnu
       - name: Upload artifact mgwc_ui.gnu
         uses: actions/upload-artifact@v4
         with:
           name: mgwc_ui.x86_64-unknown-linux-gnu
-          path: ./target/x86_64-unknown-linux-gnu/release/mgwc_ui
+          path: ./target/x86_64-unknown-linux-gnu/release/mgwc_ui.x86_64-unknown-linux-gnu
+      ###################
+      ##  mgwc_ui.musl ##
+      ###################
+      - run: mv ./target/x86_64-unknown-linux-musl/release/mgwc_ui ./target/x86_64-unknown-linux-musl/release/mgwc_ui.x86_64-unknown-linux-musl
       - name: Upload artifact mgwc_ui.musl
         uses: actions/upload-artifact@v4
         with:
           name: mgwc_ui.x86_64-unknown-linux-musl
-          path: ./target/x86_64-unknown-linux-musl/release/mgwc_ui
+          path: ./target/x86_64-unknown-linux-musl/release/mgwc_ui.x86_64-unknown-linux-musl
   release:
     needs: [windows, linux]
 
