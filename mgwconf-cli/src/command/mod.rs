@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use crate::app::CliApp;
 
 pub mod get_all;
+pub mod get_api_client_credential;
 pub mod get_business_application;
 pub mod get_certificate;
 pub mod get_profile;

@@ -16,12 +16,12 @@ impl CommandTrait for GetAll {
             <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllCertificates),
             <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllSags),
             <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllProfiles),
-            // <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllApplicationProfileEntity),
+            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllApiClientCredentials),
         )
         .unwrap();
     }
 
     fn num_op() -> usize {
-        5
+        6
     }
 }

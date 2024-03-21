@@ -20,6 +20,7 @@ use reqwest::{Certificate, Client, StatusCode};
 use tokio::sync::Mutex;
 use tokio::sync::Notify;
 
+use crate::handler::api_client_credentials::ApiClientCredentialHandler;
 use crate::handler::business_application::BusinessApplicationHandler;
 use crate::handler::cert::CertHandler;
 use crate::handler::forward_proxy::ForwardProxyHandler;
@@ -131,6 +132,9 @@ where
             }
             IoEvent::GetAllBusinessApplications | IoEvent::PostBusinessApplication(_) | IoEvent::DeleteBusinessApplication(_) => {
                 BusinessApplicationHandler::handle(&self.client, self.app, self.config, io_event).await?;
+            }
+            IoEvent::GetAllApiClientCredentials | IoEvent::PostApiClientCredential(_) => {
+                ApiClientCredentialHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             _ => {}
         };

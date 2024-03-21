@@ -5,7 +5,7 @@ use std::hash::Hash;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
-use mgwconf_network::model::configuration::{ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity};
+use mgwconf_network::model::configuration::{ApiCredentialsEntity, ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity};
 use mgwconf_network::{event::IoEvent, model::configuration::SagEntity, AppTrait};
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -57,7 +57,7 @@ impl Playbook {
         macro_rules! handle {
             ($h:tt, $io:expr, $e:tt) => {
                 if $h.json.is_none() && $h.file.is_none() {
-                    return Err(PlaybookError::MalformedPlaybook("Sag import must contains either file or json input"));
+                    return Err(PlaybookError::MalformedPlaybook("import must contains either file or json input"));
                 }
                 if let Some(j) = &$h.json {
                     <CliApp as AppTrait<Config>>::dispatch(app, $io(serde_json::from_str::<$e>(&j)?)).await?;
@@ -86,6 +86,9 @@ impl Playbook {
             }
             EntityType::Certificate(c) => {
                 handle!(c, IoEvent::PostCertificate, CertificateEntity);
+            }
+            EntityType::ApiClientCredential(a) => {
+                handle!(a, IoEvent::PostApiClientCredential, ApiCredentialsEntity);
             }
         }
         Ok(num_op)
@@ -123,6 +126,7 @@ enum EntityType {
     Profile(ProfileImport),
     BusinessApplication(BusinessApplicationImport),
     Certificate(CertificateImport),
+    ApiClientCredential(ApiClientCredentialImport),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -151,6 +155,12 @@ struct BusinessApplicationImport {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct CertificateImport {
+    file: Option<String>,
+    json: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct ApiClientCredentialImport {
     file: Option<String>,
     json: Option<String>,
 }

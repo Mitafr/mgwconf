@@ -8,10 +8,19 @@ use std::{io::Write, sync::Arc, time::Duration};
 use tokio::sync::{broadcast::Sender, Mutex, Notify};
 
 use crate::{
-    command::{get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, registry::Registry},
+    command::{
+        get_api_client_credential::GetAllApiClientCredential, get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag,
+        registry::Registry,
+    },
     config::Config,
     playbook::{error::PlaybookError, Playbook},
 };
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum CliAppType {
+    Command,
+    Playbook,
+}
 
 #[derive(Debug, Clone)]
 pub struct CliApp {
@@ -23,6 +32,7 @@ pub struct CliApp {
     initialized: bool,
     pub waiting_res: usize,
     error: bool,
+    app_type: CliAppType,
 }
 
 impl CliApp {
@@ -35,6 +45,7 @@ impl CliApp {
                 panic!("Can't decode secret vault");
             }
         };
+        let app_type = if config.playbook.is_some() { CliAppType::Playbook } else { CliAppType::Command };
         CliApp {
             config: Some(config),
             io_tx,
@@ -43,6 +54,7 @@ impl CliApp {
             connectivity_test: false,
             waiting_res: 0,
             error: false,
+            app_type,
         }
     }
 
@@ -140,6 +152,7 @@ where
             IoEvent::GetAllCertificates => writeln!(GetCertificate::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             IoEvent::GetAllSags => writeln!(GetSag::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             IoEvent::GetAllProfiles => writeln!(GetProfile::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
+            IoEvent::GetAllApiClientCredentials => writeln!(GetAllApiClientCredential::output_file(), "{}", serde_json::to_string_pretty(&res).unwrap()).unwrap(),
             _ => {}
         }
         self.waiting_res -= 1;
@@ -147,7 +160,10 @@ where
 
     fn handle_network_error(&mut self, error: Error) {
         log::error!("{}", error);
-        self.error = true;
+        if self.app_type != CliAppType::Playbook {
+            self.error = true;
+        }
+        self.waiting_res -= 1;
     }
 
     async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {

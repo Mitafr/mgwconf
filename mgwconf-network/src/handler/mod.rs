@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use reqwest::Client;
 use tokio::sync::Mutex;
 
+pub(super) mod api_client_credentials;
 pub(super) mod business_application;
 pub(super) mod cert;
 pub(super) mod forward_proxy;
