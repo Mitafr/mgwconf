@@ -42,7 +42,7 @@ pub struct Config {
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_addr = if let Some(ip) = &args.remote_addr {
-            ip.to_socket_addrs().expect("Unable to resolve domain").next()
+            ip.to_socket_addrs().expect("Unable to resolve domain").next().unwrap()
         } else {
             "127.0.0.1:9003".parse().unwrap()
         };
