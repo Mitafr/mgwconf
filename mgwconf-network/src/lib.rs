@@ -6,6 +6,7 @@ extern crate serde;
 extern crate serde_json;
 
 use std::any::Any;
+use std::net::SocketAddr;
 use std::time::Duration;
 use std::{fs::File, io::Read, net::IpAddr, sync::Arc};
 
@@ -34,11 +35,15 @@ pub mod model;
 
 #[async_trait]
 pub trait AppConfig: Send + Sync + Any {
+    fn remote_addr(&self) -> SocketAddr;
     fn remote_ip(&self) -> IpAddr;
     fn remote_port(&self) -> u16;
     fn root_ca_path(&self) -> String;
     fn identity(&self) -> Option<&Identity>;
     fn tickrate(&self) -> u64;
+    fn unsecure(&self) -> bool {
+        false
+    }
 
     fn as_any(&self) -> &dyn Any;
 }
@@ -84,14 +89,15 @@ where
 {
     pub fn new(app: &'a Arc<Mutex<A>>, config: &'a C) -> Result<Self> {
         let certificate = get_mgw_root_cert(config)?;
-        let client = reqwest::Client::builder()
+        let builder = reqwest::Client::builder()
             .tls_built_in_root_certs(true)
             .user_agent(concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")))
             .connect_timeout(Duration::from_secs(15))
             .add_root_certificate(certificate)
             .https_only(true)
-            .build()?;
-        Ok(Network { app, client, config })
+            .danger_accept_invalid_certs(config.unsecure());
+
+        Ok(Network { app, client: builder.build()?, config })
     }
 
     pub async fn ping_mgw(&mut self) -> Result<(), anyhow::Error> {

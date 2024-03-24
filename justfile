@@ -34,13 +34,13 @@ release:
   cargo build --bin="mgwc_ui" --no-default-features --release --target={{target}} --features="{{store}}ui"
 
 command $command:
-  cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- -k {{vault_key}} -c $command
+  cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- --key {{vault_key}} -c $command
 
 playbook $playbook:
-  cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- -k {{vault_key}} -p $playbook
+  cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- --key {{vault_key}} -p $playbook
 
 cli *ARGS:
-  cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- -k {{vault_key}} {{ARGS}}
+  cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- --key {{vault_key}} {{ARGS}}
 
 ui *ARGS:
-  cargo run --bin="mgwc_ui" --no-default-features --features="{{store}}ui" --profile={{profile}} --target={{target}} -- -k {{vault_key}} {{ARGS}}
+  cargo run --bin="mgwc_ui" --no-default-features --features="{{store}}ui" --profile={{profile}} --target={{target}} -- --key {{vault_key}} {{ARGS}}

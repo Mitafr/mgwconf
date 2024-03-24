@@ -24,7 +24,7 @@ pub struct Args {
     #[clap(long = "create_secret", action = clap::ArgAction::SetTrue, default_value = "false")]
     pub create_secret: bool,
     /// pass vault key
-    #[clap(short = 'k')]
+    #[clap(long = "key")]
     pub vault_key: Option<String>,
     #[clap(short = 'c', long = "command", required = false)]
     pub commands: Option<Vec<String>>,
@@ -34,6 +34,8 @@ pub struct Args {
     pub remote_addr: Option<String>,
     #[clap(long = "identity")]
     pub identity: Option<String>,
+    #[clap(short = 'k', action = clap::ArgAction::SetTrue, default_value = "false")]
+    pub unsecure: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +49,7 @@ pub struct Config {
     pub tick_rate: u64,
     pub commands: Vec<String>,
     pub playbook: Option<Playbook>,
+    unsecure: bool,
 }
 
 impl Config {
@@ -65,6 +68,7 @@ impl Config {
             root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
             tick_rate: 250,
             playbook: args.playbook.to_owned().map(|v| v.into()),
+            unsecure: args.unsecure,
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);
@@ -117,6 +121,10 @@ impl Config {
 }
 
 impl AppConfig for Config {
+    fn remote_addr(&self) -> SocketAddr {
+        self.remote_addr
+    }
+
     fn remote_ip(&self) -> IpAddr {
         self.remote_addr.ip()
     }
@@ -138,5 +146,9 @@ impl AppConfig for Config {
 
     fn identity(&self) -> Option<&Identity> {
         self.identity.as_ref()
+    }
+
+    fn unsecure(&self) -> bool {
+        self.unsecure
     }
 }

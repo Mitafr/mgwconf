@@ -22,7 +22,7 @@ pub struct Args {
     #[clap(long = "create_secret", action = clap::ArgAction::SetTrue, default_value = "false")]
     pub create_secret: bool,
     /// pass vault key
-    #[clap(short = 'k')]
+    #[clap(long = "key")]
     pub vault_key: Option<String>,
     /// pass ca
     #[clap(long = "ca")]
@@ -31,6 +31,8 @@ pub struct Args {
     pub remote_addr: Option<String>,
     #[clap(long = "identity")]
     pub identity: Option<String>,
+    #[clap(short = 'k', action = clap::ArgAction::SetTrue, default_value = "false")]
+    pub unsecure: bool,
 }
 
 impl From<ArgMatches> for Args {
@@ -51,6 +53,7 @@ pub struct Config {
     pub remote_addr: SocketAddr,
     pub identity: Option<Identity>,
     pub root_ca_path: String,
+    unsecure: bool,
 
     pub tick_rate: u64,
 }
@@ -69,6 +72,7 @@ impl Config {
             identity: Self::read_pem(args)?,
             root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
             tick_rate: 160,
+            unsecure: args.unsecure,
         };
         info!("Config has been loadded successfully");
         debug!("Config values {:?}", config);
@@ -119,6 +123,10 @@ impl Config {
 }
 
 impl AppConfig for Config {
+    fn remote_addr(&self) -> SocketAddr {
+        self.remote_addr
+    }
+
     fn remote_ip(&self) -> IpAddr {
         self.remote_addr.ip()
     }
@@ -140,5 +148,9 @@ impl AppConfig for Config {
 
     fn identity(&self) -> Option<&Identity> {
         self.identity.as_ref()
+    }
+
+    fn unsecure(&self) -> bool {
+        self.unsecure
     }
 }
