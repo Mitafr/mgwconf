@@ -96,11 +96,13 @@ where
             .add_root_certificate(certificate)
             .https_only(true)
             .danger_accept_invalid_certs(config.unsecure());
-        if let Some(identity) = config.identity() {
-            builder.identity(identity.to_owned());
+        let client = if let Some(identity) = config.identity() {
+            builder.identity(identity.to_owned()).build()?
+        } else {
+            builder.build()?
         }
 
-        Ok(Network { app, client: builder.build()?, config })
+        Ok(Network { app, client, config })
     }
 
     pub async fn ping_mgw(&mut self) -> Result<(), anyhow::Error> {
