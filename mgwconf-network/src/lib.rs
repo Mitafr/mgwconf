@@ -96,6 +96,9 @@ where
             .add_root_certificate(certificate)
             .https_only(true)
             .danger_accept_invalid_certs(config.unsecure());
+        if let Some(identity) = config.identity {
+            builder.identity(identity);
+        }
 
         Ok(Network { app, client: builder.build()?, config })
     }
