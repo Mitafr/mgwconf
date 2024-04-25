@@ -100,7 +100,7 @@ where
             builder.identity(identity.to_owned()).build()?
         } else {
             builder.build()?
-        }
+        };
 
         Ok(Network { app, client, config })
     }
