@@ -61,16 +61,21 @@ pub enum SagUpdateError {
 }
 
 /// This API is to create new SAG configuration in Swift Microgateway persistence storage
-pub async fn sag_create(configuration: &configuration::Configuration, sag_entity: crate::model::configuration::SagEntity) -> Result<(), Error<SagCreateError>> {
+pub async fn sag_create(
+    configuration: &configuration::Configuration,
+    sag_entity: crate::model::configuration::SagEntity,
+) -> Result<(), Error<SagCreateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/sag", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -91,7 +96,8 @@ pub async fn sag_create(configuration: &configuration::Configuration, sag_entity
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<SagCreateError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<SagCreateError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,
@@ -102,18 +108,24 @@ pub async fn sag_create(configuration: &configuration::Configuration, sag_entity
 }
 
 /// This API is to delete existing SAG configuration in Swift Microgateway persistence storage
-pub async fn sag_delete(configuration: &configuration::Configuration, hostname: &str, port: i32) -> Result<(), Error<SagDeleteError>> {
+pub async fn sag_delete(
+    configuration: &configuration::Configuration,
+    hostname: &str,
+    port: i32,
+) -> Result<(), Error<SagDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/sag", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
 
     local_var_req_builder = local_var_req_builder.query(&[("hostname", &hostname.to_string())]);
     local_var_req_builder = local_var_req_builder.query(&[("port", &port.to_string())]);
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -133,7 +145,8 @@ pub async fn sag_delete(configuration: &configuration::Configuration, hostname: 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<SagDeleteError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<SagDeleteError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,
@@ -144,22 +157,30 @@ pub async fn sag_delete(configuration: &configuration::Configuration, hostname: 
 }
 
 /// This API is to get SAG configuration(s) on Swift Microgateway.  Use no parameters to get all available configuration or hostname & port together to get information about some SAG
-pub async fn sag_get(configuration: &configuration::Configuration, hostname: Option<&str>, port: Option<i32>) -> Result<serde_json::Value, Error<SagGetError>> {
+pub async fn sag_get(
+    configuration: &configuration::Configuration,
+    hostname: Option<&str>,
+    port: Option<i32>,
+) -> Result<serde_json::Value, Error<SagGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/sag", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
     if let Some(ref local_var_str) = hostname {
-        local_var_req_builder = local_var_req_builder.query(&[("hostname", &local_var_str.to_string())]);
+        local_var_req_builder =
+            local_var_req_builder.query(&[("hostname", &local_var_str.to_string())]);
     }
     if let Some(ref local_var_str) = port {
-        local_var_req_builder = local_var_req_builder.query(&[("port", &local_var_str.to_string())]);
+        local_var_req_builder =
+            local_var_req_builder.query(&[("port", &local_var_str.to_string())]);
     }
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -190,18 +211,25 @@ pub async fn sag_get(configuration: &configuration::Configuration, hostname: Opt
 }
 
 /// This API is to update existing SAG configuration in Swift Microgateway persistence storage
-pub async fn sag_update(configuration: &configuration::Configuration, hostname: &str, port: i32, sag_entity: crate::model::configuration::SagEntity) -> Result<serde_json::Value, Error<SagUpdateError>> {
+pub async fn sag_update(
+    configuration: &configuration::Configuration,
+    hostname: &str,
+    port: i32,
+    sag_entity: crate::model::configuration::SagEntity,
+) -> Result<serde_json::Value, Error<SagUpdateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/sag", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
 
     local_var_req_builder = local_var_req_builder.query(&[("hostname", &hostname.to_string())]);
     local_var_req_builder = local_var_req_builder.query(&[("port", &port.to_string())]);
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -222,7 +250,8 @@ pub async fn sag_update(configuration: &configuration::Configuration, hostname: 
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<SagUpdateError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<SagUpdateError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,

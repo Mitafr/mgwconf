@@ -25,7 +25,13 @@ pub struct ErrorDefaultResponse {
 }
 
 impl ErrorDefaultResponse {
-    pub fn new(timestamp: i32, status: i32, error: String, message: String, path: String) -> ErrorDefaultResponse {
+    pub fn new(
+        timestamp: i32,
+        status: i32,
+        error: String,
+        message: String,
+        path: String,
+    ) -> ErrorDefaultResponse {
         ErrorDefaultResponse {
             timestamp,
             status,

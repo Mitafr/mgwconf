@@ -1,0 +1,6 @@
+{
+    "yaml.schemas": {
+        "https://json.schemastore.org/yamllint.json": "*.yaml"
+    },
+    "rust-analyzer.showUnlinkedFileNotification": false
+}

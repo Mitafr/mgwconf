@@ -24,16 +24,29 @@ where
     A: AppTrait<C>,
     C: AppConfig,
 {
-    async fn handle(client: &Client, app: &Arc<Mutex<A>>, config: &C, e: &IoEvent) -> Result<(), anyhow::Error> {
+    async fn handle(
+        client: &Client,
+        app: &Arc<Mutex<A>>,
+        config: &C,
+        e: &IoEvent,
+    ) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
             IoEvent::GetAllProfiles => {
                 let entities = api::configuration::profile_api::application_profile_get(
                     &Configuration {
-                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
+                        base_path: format!(
+                            "{}/swift/mgw/mgw-configuration-api/2.0.0",
+                            base_url(config)
+                        ),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            key: app
+                                .vault()
+                                .as_ref()
+                                .unwrap()
+                                .get_secret(SecretType::Configuration)
+                                .to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -48,10 +61,18 @@ where
                 log::debug!("handling {:#?}", entity);
                 api::configuration::profile_api::application_profile_create(
                     &Configuration {
-                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
+                        base_path: format!(
+                            "{}/swift/mgw/mgw-configuration-api/2.0.0",
+                            base_url(config)
+                        ),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            key: app
+                                .vault()
+                                .as_ref()
+                                .unwrap()
+                                .get_secret(SecretType::Configuration)
+                                .to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -64,10 +85,18 @@ where
             IoEvent::DeleteProfile(e) => {
                 api::configuration::profile_api::application_profile_delete(
                     &Configuration {
-                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
+                        base_path: format!(
+                            "{}/swift/mgw/mgw-configuration-api/2.0.0",
+                            base_url(config)
+                        ),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            key: app
+                                .vault()
+                                .as_ref()
+                                .unwrap()
+                                .get_secret(SecretType::Configuration)
+                                .to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()

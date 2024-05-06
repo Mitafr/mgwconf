@@ -37,16 +37,20 @@ pub enum SagActiveUpdateError {
 }
 
 /// This API is to get current active SAG is used by Swift Microgateway
-pub async fn sag_active_get(configuration: &configuration::Configuration) -> Result<crate::model::management::SagEntity, Error<SagActiveGetError>> {
+pub async fn sag_active_get(
+    configuration: &configuration::Configuration,
+) -> Result<crate::model::management::SagEntity, Error<SagActiveGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/sag/active", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -66,7 +70,8 @@ pub async fn sag_active_get(configuration: &configuration::Configuration) -> Res
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<SagActiveGetError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<SagActiveGetError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,
@@ -77,16 +82,21 @@ pub async fn sag_active_get(configuration: &configuration::Configuration) -> Res
 }
 
 /// This API is to change active SAG instance.
-pub async fn sag_active_update(configuration: &configuration::Configuration, sag_entity: crate::model::management::SagEntity) -> Result<serde_json::Value, Error<SagActiveUpdateError>> {
+pub async fn sag_active_update(
+    configuration: &configuration::Configuration,
+    sag_entity: crate::model::management::SagEntity,
+) -> Result<serde_json::Value, Error<SagActiveUpdateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/sag/active", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -107,7 +117,8 @@ pub async fn sag_active_update(configuration: &configuration::Configuration, sag
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<SagActiveUpdateError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<SagActiveUpdateError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,

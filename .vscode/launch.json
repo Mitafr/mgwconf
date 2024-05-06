@@ -30,7 +30,9 @@
                 "args": [
                     "build",
                     "--bin=mgwc",
-                    "--package=mgwconf"
+                    "--package=mgwconf",
+                    "--no-default-features",
+                    "--features=cli"
                 ],
                 "filter": {
                     "name": "mgwc",
@@ -39,8 +41,9 @@
             },
             "args": [
                 "-k",
-                "050a00040e0c0900020608060f0b0005",
-                "-d"
+                "AsBjJ0HPBoCwRWf66rANj2azKVQd1U01",
+                "-p",
+                "playbook.yaml"
             ],
             "cwd": "${workspaceFolder}"
         },

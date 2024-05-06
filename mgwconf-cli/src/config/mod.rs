@@ -1,4 +1,5 @@
 use log::{debug, info};
+<<<<<<< Updated upstream
 use mgwconf_network::{AppConfig, Identity};
 use std::{
     any::Any,
@@ -9,6 +10,13 @@ use std::{
     path::PathBuf,
 };
 use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
+=======
+use mgwconf_network::AppConfig;
+use std::{any::Any, error::Error, net::IpAddr, net::SocketAddr, path::PathBuf};
+use tracing_subscriber::{
+    prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
+>>>>>>> Stashed changes
 
 use clap::Parser;
 
@@ -52,7 +60,12 @@ pub struct Config {
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_addr = if let Some(ip) = &args.remote_addr {
+<<<<<<< Updated upstream
             ip.to_socket_addrs().expect("Unable to resolve domain").next().unwrap()
+=======
+            ip.parse::<SocketAddr>()
+                .unwrap_or("127.0.0.1:9003".parse().unwrap())
+>>>>>>> Stashed changes
         } else {
             "127.0.0.1:9003".parse().unwrap()
         };
@@ -99,7 +112,10 @@ impl Config {
             println!("logs directory doesn't exist");
         }
         log_path.push(env!("CARGO_PKG_NAME"));
-        let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
+        let file_appender = tracing_appender::rolling::daily(
+            log_path.parent().unwrap(),
+            log_path.file_name().unwrap(),
+        );
         let appender_format = if self.debug {
             format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc")
         } else {
@@ -108,7 +124,12 @@ impl Config {
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()
             .with(filter)
-            .with(tracing_subscriber::fmt::Layer::new().with_writer(file_appender).with_line_number(true).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::Layer::new()
+                    .with_writer(file_appender)
+                    .with_line_number(true)
+                    .with_ansi(false),
+            )
             .with(tracing_subscriber::fmt::layer())
             .init();
         info!("Config has been loadded successfully");

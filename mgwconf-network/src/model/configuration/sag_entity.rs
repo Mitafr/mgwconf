@@ -30,7 +30,10 @@ pub struct SagEntity {
     pub ssl_dn: Option<String>,
     #[serde(rename = "active", skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
-    #[serde(rename = "publicCertificateAlias", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "publicCertificateAlias",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub public_certificate_alias: Option<String>,
 }
 

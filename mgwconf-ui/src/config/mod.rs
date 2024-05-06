@@ -8,7 +8,9 @@ use std::{
     net::{IpAddr, SocketAddr, ToSocketAddrs},
     path::PathBuf,
 };
-use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{
+    prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
 
 use clap::{ArgMatches, Parser};
 
@@ -58,7 +60,12 @@ pub struct Config {
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_addr = if let Some(ip) = &args.remote_addr {
+<<<<<<< Updated upstream
             ip.to_socket_addrs().expect("Unable to resolve domain").next().unwrap()
+=======
+            ip.parse::<SocketAddr>()
+                .unwrap_or("127.0.0.1:9003".parse().unwrap())
+>>>>>>> Stashed changes
         } else {
             "127.0.0.1:9003".parse().unwrap()
         };
@@ -66,8 +73,15 @@ impl Config {
             debug: args.debug,
             loaded: false,
             remote_addr,
+<<<<<<< Updated upstream
             identity: Self::read_pem(args)?,
             root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
+=======
+            root_ca_path: args
+                .root_ca_path
+                .clone()
+                .unwrap_or_else(|| "./CA.pem".to_owned()),
+>>>>>>> Stashed changes
             tick_rate: 160,
         };
         info!("Config has been loadded successfully");
@@ -102,7 +116,10 @@ impl Config {
             println!("logs directory doesn't exist");
         }
         log_path.push(env!("CARGO_PKG_NAME"));
-        let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
+        let file_appender = tracing_appender::rolling::daily(
+            log_path.parent().unwrap(),
+            log_path.file_name().unwrap(),
+        );
         let appender_format = if self.debug {
             format!("debug,{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc_ui")
         } else {
@@ -111,7 +128,12 @@ impl Config {
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()
             .with(filter)
-            .with(tracing_subscriber::fmt::Layer::new().with_writer(file_appender).with_line_number(true).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::Layer::new()
+                    .with_writer(file_appender)
+                    .with_line_number(true)
+                    .with_ansi(false),
+            )
             .init();
         info!("Config has been loadded successfully");
         self.loaded = true;

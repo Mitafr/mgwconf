@@ -61,16 +61,21 @@ pub enum CertificateUpdateError {
 }
 
 /// This API is to create new certificate configuration in Swift Microgateway persistence storage
-pub async fn certificate_create(configuration: &configuration::Configuration, certificate_entity: crate::model::configuration::CertificateEntity) -> Result<(), Error<CertificateCreateError>> {
+pub async fn certificate_create(
+    configuration: &configuration::Configuration,
+    certificate_entity: crate::model::configuration::CertificateEntity,
+) -> Result<(), Error<CertificateCreateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/certificate", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::POST, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -91,7 +96,8 @@ pub async fn certificate_create(configuration: &configuration::Configuration, ce
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<CertificateCreateError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<CertificateCreateError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,
@@ -102,17 +108,22 @@ pub async fn certificate_create(configuration: &configuration::Configuration, ce
 }
 
 /// This API is to delete existing certificate configuration in Swift Microgateway persistence storage
-pub async fn certificate_delete(configuration: &configuration::Configuration, alias: &str) -> Result<(), Error<CertificateDeleteError>> {
+pub async fn certificate_delete(
+    configuration: &configuration::Configuration,
+    alias: &str,
+) -> Result<(), Error<CertificateDeleteError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/certificate", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::DELETE, local_var_uri_str.as_str());
 
     local_var_req_builder = local_var_req_builder.query(&[("alias", &alias.to_string())]);
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -132,7 +143,8 @@ pub async fn certificate_delete(configuration: &configuration::Configuration, al
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         Ok(())
     } else {
-        let local_var_entity: Option<CertificateDeleteError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<CertificateDeleteError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,
@@ -143,19 +155,25 @@ pub async fn certificate_delete(configuration: &configuration::Configuration, al
 }
 
 /// This API is to get information about all configured certificates on Swift Microgateway or about specific one by alias.
-pub async fn certificate_get(configuration: &configuration::Configuration, alias: Option<&str>) -> Result<serde_json::Value, Error<CertificateGetError>> {
+pub async fn certificate_get(
+    configuration: &configuration::Configuration,
+    alias: Option<&str>,
+) -> Result<serde_json::Value, Error<CertificateGetError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/certificate", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
     if let Some(ref local_var_str) = alias {
-        local_var_req_builder = local_var_req_builder.query(&[("alias", &local_var_str.to_string())]);
+        local_var_req_builder =
+            local_var_req_builder.query(&[("alias", &local_var_str.to_string())]);
     }
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -175,7 +193,8 @@ pub async fn certificate_get(configuration: &configuration::Configuration, alias
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<CertificateGetError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<CertificateGetError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,
@@ -186,17 +205,23 @@ pub async fn certificate_get(configuration: &configuration::Configuration, alias
 }
 
 /// This API is to update existing certificate configuration in Swift Microgateway persistence storage
-pub async fn certificate_update(configuration: &configuration::Configuration, alias: &str, certificate_entity: crate::model::configuration::CertificateEntity) -> Result<serde_json::Value, Error<CertificateUpdateError>> {
+pub async fn certificate_update(
+    configuration: &configuration::Configuration,
+    alias: &str,
+    certificate_entity: crate::model::configuration::CertificateEntity,
+) -> Result<serde_json::Value, Error<CertificateUpdateError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/certificate", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::PUT, local_var_uri_str.as_str());
 
     local_var_req_builder = local_var_req_builder.query(&[("alias", &alias.to_string())]);
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -217,7 +242,8 @@ pub async fn certificate_update(configuration: &configuration::Configuration, al
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<CertificateUpdateError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<CertificateUpdateError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,

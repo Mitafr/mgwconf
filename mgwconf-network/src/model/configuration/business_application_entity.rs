@@ -25,7 +25,10 @@ pub struct BusinessApplicationEntity {
 impl BusinessApplicationEntity {
     /// Business application information: application name, shared secret
     pub fn new(application_name: String) -> BusinessApplicationEntity {
-        BusinessApplicationEntity { application_name, shared_secret: None }
+        BusinessApplicationEntity {
+            application_name,
+            shared_secret: None,
+        }
     }
 }
 

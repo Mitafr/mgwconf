@@ -21,7 +21,17 @@ pub struct JarVerificationEntity {
 }
 
 impl JarVerificationEntity {
-    pub fn new(file_name: String, valid: bool, reason: String, warnings: String) -> JarVerificationEntity {
-        JarVerificationEntity { file_name, valid, reason, warnings }
+    pub fn new(
+        file_name: String,
+        valid: bool,
+        reason: String,
+        warnings: String,
+    ) -> JarVerificationEntity {
+        JarVerificationEntity {
+            file_name,
+            valid,
+            reason,
+            warnings,
+        }
     }
 }

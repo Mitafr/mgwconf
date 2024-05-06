@@ -17,7 +17,21 @@ lint:
 test:
   cargo test --workspace
 
+<<<<<<< Updated upstream
 build-ci:
+=======
+openapi:
+  docker run --rm \
+    -v ${PWD}/mgwconf-network:/mgwconf-network openapitools/openapi-generator-cli generate \
+    -i /mgwconf-network/oas/SWIFT-API-mgw-configuration-api-2.0.0-swagger.json \
+    -g rust \
+    -o /mgwconf-network/api/configuration \
+    -c /mgwconf-network/codegen.yml \
+    --skip-validate-spec \
+    --additional-properties=enumNameSuffix="TEST",supportMultipleResponses=true,packageName="mgw-configuration"
+
+build:
+>>>>>>> Stashed changes
   cargo build --bin="mgwc" --no-default-features --features="{{store}}cli"
   cargo build --bin="mgwc_ui" --no-default-features --features="{{store}}ui"
 

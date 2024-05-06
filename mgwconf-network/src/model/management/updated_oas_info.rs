@@ -21,6 +21,9 @@ pub struct UpdatedOasInfo {
 impl UpdatedOasInfo {
     /// Returns number of created and deleted OAS
     pub fn new(number_of_new_oas: i32, number_of_deleted_oas: i32) -> UpdatedOasInfo {
-        UpdatedOasInfo { number_of_new_oas, number_of_deleted_oas }
+        UpdatedOasInfo {
+            number_of_new_oas,
+            number_of_deleted_oas,
+        }
     }
 }

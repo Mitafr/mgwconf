@@ -25,19 +25,25 @@ pub enum OasRepositoryPullError {
 }
 
 /// This API is to get last updates from OAS repository
-pub async fn oas_repository_pull(configuration: &configuration::Configuration, source: Option<OasRepository>) -> Result<crate::model::management::UpdatedOasInfo, Error<OasRepositoryPullError>> {
+pub async fn oas_repository_pull(
+    configuration: &configuration::Configuration,
+    source: Option<OasRepository>,
+) -> Result<crate::model::management::UpdatedOasInfo, Error<OasRepositoryPullError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
     let local_var_uri_str = format!("{}/oas-repository", local_var_configuration.base_path);
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
     if let Some(ref local_var_str) = source {
-        local_var_req_builder = local_var_req_builder.query(&[("source", &local_var_str.to_string())]);
+        local_var_req_builder =
+            local_var_req_builder.query(&[("source", &local_var_str.to_string())]);
     }
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -57,7 +63,8 @@ pub async fn oas_repository_pull(configuration: &configuration::Configuration, s
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<OasRepositoryPullError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<OasRepositoryPullError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,

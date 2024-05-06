@@ -25,16 +25,25 @@ pub enum SpecificMetricError {
 }
 
 /// This API is to get information by specific metric. Full list is availble by 'metrics' service.
-pub async fn specific_metric(configuration: &configuration::Configuration, required_metric_name: MetricsList) -> Result<String, Error<SpecificMetricError>> {
+pub async fn specific_metric(
+    configuration: &configuration::Configuration,
+    required_metric_name: MetricsList,
+) -> Result<String, Error<SpecificMetricError>> {
     let local_var_configuration = configuration;
 
     let local_var_client = &local_var_configuration.client;
 
-    let local_var_uri_str = format!("{}/metrics/{requiredMetricName}", local_var_configuration.base_path, requiredMetricName = required_metric_name.to_string());
-    let mut local_var_req_builder = local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
+    let local_var_uri_str = format!(
+        "{}/metrics/{requiredMetricName}",
+        local_var_configuration.base_path,
+        requiredMetricName = required_metric_name.to_string()
+    );
+    let mut local_var_req_builder =
+        local_var_client.request(reqwest::Method::GET, local_var_uri_str.as_str());
 
     if let Some(ref local_var_user_agent) = local_var_configuration.user_agent {
-        local_var_req_builder = local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
+        local_var_req_builder =
+            local_var_req_builder.header(reqwest::header::USER_AGENT, local_var_user_agent.clone());
     }
     if let Some(ref local_var_apikey) = local_var_configuration.api_key {
         let local_var_key = local_var_apikey.key.clone();
@@ -54,7 +63,8 @@ pub async fn specific_metric(configuration: &configuration::Configuration, requi
     if !local_var_status.is_client_error() && !local_var_status.is_server_error() {
         serde_json::from_str(&local_var_content).map_err(Error::from)
     } else {
-        let local_var_entity: Option<SpecificMetricError> = serde_json::from_str(&local_var_content).ok();
+        let local_var_entity: Option<SpecificMetricError> =
+            serde_json::from_str(&local_var_content).ok();
         let local_var_error = ResponseContent {
             status: local_var_status,
             content: local_var_content,

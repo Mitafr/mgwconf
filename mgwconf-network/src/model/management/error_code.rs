@@ -18,7 +18,10 @@ pub struct ErrorCode {
 
 impl ErrorCode {
     pub fn new(error_code: ErrorCodeEnum, error_description: String) -> ErrorCode {
-        ErrorCode { error_code, error_description }
+        ErrorCode {
+            error_code,
+            error_description,
+        }
     }
 }
 

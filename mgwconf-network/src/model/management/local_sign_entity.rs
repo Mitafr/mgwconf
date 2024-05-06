@@ -19,7 +19,15 @@ pub struct LocalSignEntity {
 }
 
 impl LocalSignEntity {
-    pub fn new(jws: String, header: serde_json::Value, payload: serde_json::Value) -> LocalSignEntity {
-        LocalSignEntity { jws, header, payload }
+    pub fn new(
+        jws: String,
+        header: serde_json::Value,
+        payload: serde_json::Value,
+    ) -> LocalSignEntity {
+        LocalSignEntity {
+            jws,
+            header,
+            payload,
+        }
     }
 }

@@ -78,17 +78,25 @@ impl ToString for MetricsList {
         match self {
             Self::HttpPeriodServerPeriodRequests => String::from("http.server.requests"),
             Self::JettyPeriodThreadsPeriodBusy => String::from("jetty.threads.busy"),
-            Self::JettyPeriodThreadsPeriodConfigPeriodMax => String::from("jetty.threads.config.max"),
-            Self::JettyPeriodThreadsPeriodConfigPeriodMin => String::from("jetty.threads.config.min"),
+            Self::JettyPeriodThreadsPeriodConfigPeriodMax => {
+                String::from("jetty.threads.config.max")
+            }
+            Self::JettyPeriodThreadsPeriodConfigPeriodMin => {
+                String::from("jetty.threads.config.min")
+            }
             Self::JettyPeriodThreadsPeriodCurrent => String::from("jetty.threads.current"),
             Self::JettyPeriodThreadsPeriodIdle => String::from("jetty.threads.idle"),
             Self::JettyPeriodThreadsPeriodJobs => String::from("jetty.threads.jobs"),
             Self::JvmPeriodBufferPeriodCount => String::from("jvm.buffer.count"),
             Self::JvmPeriodBufferPeriodMemoryPeriodUsed => String::from("jvm.buffer.memory.used"),
-            Self::JvmPeriodBufferPeriodTotalPeriodCapacity => String::from("jvm.buffer.total.capacity"),
+            Self::JvmPeriodBufferPeriodTotalPeriodCapacity => {
+                String::from("jvm.buffer.total.capacity")
+            }
             Self::JvmPeriodClassesPeriodLoaded => String::from("jvm.classes.loaded"),
             Self::JvmPeriodClassesPeriodUnloaded => String::from("jvm.classes.unloaded"),
-            Self::JvmPeriodGcPeriodLivePeriodDataPeriodSize => String::from("jvm.gc.live.data.size"),
+            Self::JvmPeriodGcPeriodLivePeriodDataPeriodSize => {
+                String::from("jvm.gc.live.data.size")
+            }
             Self::JvmPeriodGcPeriodMaxPeriodDataPeriodSize => String::from("jvm.gc.max.data.size"),
             Self::JvmPeriodGcPeriodMemoryPeriodAllocated => String::from("jvm.gc.memory.allocated"),
             Self::JvmPeriodGcPeriodMemoryPeriodPromoted => String::from("jvm.gc.memory.promoted"),

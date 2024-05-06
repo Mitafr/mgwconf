@@ -27,7 +27,10 @@ pub struct ApiGatewayInfoEntity {
 impl ApiGatewayInfoEntity {
     /// Api Gateway Info with environment and public certificate alias
     pub fn new(environment: Environment, public_cert_alias: String) -> ApiGatewayInfoEntity {
-        ApiGatewayInfoEntity { environment, public_cert_alias }
+        ApiGatewayInfoEntity {
+            environment,
+            public_cert_alias,
+        }
     }
 }
 

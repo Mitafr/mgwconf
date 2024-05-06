@@ -22,7 +22,11 @@ pub struct ApiCredentialsEntity {
 
 impl ApiCredentialsEntity {
     /// API client credential information: application name, consumer key and secret
-    pub fn new(application_name: String, consumer_key: String, consumer_secret: String) -> ApiCredentialsEntity {
+    pub fn new(
+        application_name: String,
+        consumer_key: String,
+        consumer_secret: String,
+    ) -> ApiCredentialsEntity {
         ApiCredentialsEntity {
             application_name,
             consumer_key,

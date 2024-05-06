@@ -31,7 +31,11 @@ pub trait UiAppTrait<C: AppConfig>: AppTrait<C> {
     fn get_current_route(&self) -> &Route;
     fn get_current_route_mut(&mut self) -> &mut Route;
     fn pop_navigation_stack(&mut self);
-    fn set_current_route_state(&mut self, active_block: Option<ActiveBlock>, hovered_block: Option<ActiveBlock>);
+    fn set_current_route_state(
+        &mut self,
+        active_block: Option<ActiveBlock>,
+        hovered_block: Option<ActiveBlock>,
+    );
     fn push_navigation_stack(&mut self, next_route_id: RouteId, next_active_block: ActiveBlock);
     fn reset_navigation_stack(&mut self);
     fn reset_selected_states(&mut self);
@@ -159,9 +163,14 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         use std::io::{stdin, stdout, Write};
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
-        stdin().read_line(s).expect("Did not enter a correct string");
+        stdin()
+            .read_line(s)
+            .expect("Did not enter a correct string");
         s.pop();
-        SecretsVault::new(master).unwrap().create_secret(stype, s.to_owned()).unwrap();
+        SecretsVault::new(master)
+            .unwrap()
+            .create_secret(stype, s.to_owned())
+            .unwrap();
         s.clear()
     }
 
@@ -184,12 +193,30 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
     fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
         match event {
             IoEvent::Ping => todo!(),
-            IoEvent::GetAllProfiles => self.configuration_state.profiles = serde_json::from_value::<Vec<ApplicationProfileEntity>>(res).unwrap(),
-            IoEvent::GetAllBusinessApplications => self.configuration_state.business_applications = serde_json::from_value::<Vec<BusinessApplicationEntity>>(res).unwrap(),
-            IoEvent::GetAllCertificates => self.configuration_state.certificates = serde_json::from_value::<Vec<CertificateEntity>>(res).unwrap(),
-            IoEvent::GetAllSags => self.configuration_state.sags = serde_json::from_value::<Vec<SagEntity>>(res).unwrap(),
-            IoEvent::GetAllApiGatewayInfoEntity => self.configuration_state.apiproxy = serde_json::from_value::<Vec<ApiGatewayInfoEntity>>(res).unwrap(),
-            IoEvent::GetAllForwardProxyEntity => self.configuration_state.forwardproxy = serde_json::from_value::<Vec<ForwardProxyEntity>>(res).unwrap(),
+            IoEvent::GetAllProfiles => {
+                self.configuration_state.profiles =
+                    serde_json::from_value::<Vec<ApplicationProfileEntity>>(res).unwrap()
+            }
+            IoEvent::GetAllBusinessApplications => {
+                self.configuration_state.business_applications =
+                    serde_json::from_value::<Vec<BusinessApplicationEntity>>(res).unwrap()
+            }
+            IoEvent::GetAllCertificates => {
+                self.configuration_state.certificates =
+                    serde_json::from_value::<Vec<CertificateEntity>>(res).unwrap()
+            }
+            IoEvent::GetAllSags => {
+                self.configuration_state.sags =
+                    serde_json::from_value::<Vec<SagEntity>>(res).unwrap()
+            }
+            IoEvent::GetAllApiGatewayInfoEntity => {
+                self.configuration_state.apiproxy =
+                    serde_json::from_value::<Vec<ApiGatewayInfoEntity>>(res).unwrap()
+            }
+            IoEvent::GetAllForwardProxyEntity => {
+                self.configuration_state.forwardproxy =
+                    serde_json::from_value::<Vec<ForwardProxyEntity>>(res).unwrap()
+            }
             //IoEvent::PostBusinessApplication => todo!(),
             //IoEvent::PostCertificate => todo!(),
             //IoEvent::PostSag => todo!(),
@@ -209,7 +236,10 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         }
     }
 
-    async fn run(app: Arc<Mutex<UiApp>>, _notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
+    async fn run(
+        app: Arc<Mutex<UiApp>>,
+        _notifier: Option<Arc<Notify>>,
+    ) -> Result<(), anyhow::Error> {
         use std::time::{Duration, Instant};
 
         use mgwconf_network::AppTrait;
@@ -238,13 +268,18 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
             })?;
 
             let cursor_offset = 2;
-            terminal.backend_mut().execute(MoveTo(cursor_offset, cursor_offset))?;
+            terminal
+                .backend_mut()
+                .execute(MoveTo(cursor_offset, cursor_offset))?;
 
             let current_route = <UiApp as UiAppTrait<C>>::get_current_route(&app);
 
             match events.next().unwrap()? {
                 Event::Input(key) => {
-                    if key == Key::Esc && (current_route.active_block == ActiveBlock::Empty || current_route.active_block == ActiveBlock::Tab) {
+                    if key == Key::Esc
+                        && (current_route.active_block == ActiveBlock::Empty
+                            || current_route.active_block == ActiveBlock::Tab)
+                    {
                         break 'main;
                     }
 
@@ -260,11 +295,18 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                     if <UiApp as UiAppTrait<C>>::get_force_exit(&app) {
                         break 'main;
                     }
-                    if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block == ActiveBlock::Error {
+                    if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block
+                        == ActiveBlock::Error
+                    {
                         std::thread::sleep(Duration::from_secs(2));
                         <UiApp as UiAppTrait<C>>::reset_navigation_stack(&mut app);
-                        <UiApp as UiAppTrait<C>>::push_navigation_stack(&mut app, RouteId::Home, ActiveBlock::Home);
-                        *<UiApp as UiAppTrait<C>>::get_configuration_state_mut(&mut app) = ConfigurationState::default();
+                        <UiApp as UiAppTrait<C>>::push_navigation_stack(
+                            &mut app,
+                            RouteId::Home,
+                            ActiveBlock::Home,
+                        );
+                        *<UiApp as UiAppTrait<C>>::get_configuration_state_mut(&mut app) =
+                            ConfigurationState::default();
                     }
                     <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
                 }
@@ -299,7 +341,11 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
         self.navigation_stack.pop();
     }
 
-    fn set_current_route_state(&mut self, active_block: Option<ActiveBlock>, hovered_block: Option<ActiveBlock>) {
+    fn set_current_route_state(
+        &mut self,
+        active_block: Option<ActiveBlock>,
+        hovered_block: Option<ActiveBlock>,
+    ) {
         let current_route = <UiApp as UiAppTrait<C>>::get_current_route_mut(self);
         if let Some(active_block) = active_block {
             current_route.active_block = active_block;
@@ -310,7 +356,12 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
     }
 
     fn push_navigation_stack(&mut self, next_route_id: RouteId, next_active_block: ActiveBlock) {
-        if !self.navigation_stack.last().map(|last_route| last_route.id == next_route_id).unwrap_or(false) {
+        if !self
+            .navigation_stack
+            .last()
+            .map(|last_route| last_route.id == next_route_id)
+            .unwrap_or(false)
+        {
             self.navigation_stack.push(Route {
                 id: next_route_id,
                 active_block: next_active_block,

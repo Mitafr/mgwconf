@@ -105,7 +105,16 @@ impl fmt::Display for Key {
             Key::Ctrl(c) => write!(f, "<Ctrl+{}>", c),
             Key::Char(c) => write!(f, "{}", c),
             Key::Left | Key::Right | Key::Up | Key::Down => write!(f, "<{:?} Arrow Key>", self),
-            Key::Enter | Key::Tab | Key::Backspace | Key::Esc | Key::Ins | Key::Delete | Key::Home | Key::End | Key::PageUp | Key::PageDown => write!(f, "<{:?}>", self),
+            Key::Enter
+            | Key::Tab
+            | Key::Backspace
+            | Key::Esc
+            | Key::Ins
+            | Key::Delete
+            | Key::Home
+            | Key::End
+            | Key::PageUp
+            | Key::PageDown => write!(f, "<{:?}>", self),
             _ => write!(f, "{:?}", self),
         }
     }
@@ -114,21 +123,66 @@ impl fmt::Display for Key {
 impl From<event::KeyEvent> for Key {
     fn from(key_event: event::KeyEvent) -> Self {
         match key_event {
-            event::KeyEvent { code: event::KeyCode::Esc, .. } => Key::Esc,
-            event::KeyEvent { code: event::KeyCode::Backspace, .. } => Key::Backspace,
-            event::KeyEvent { code: event::KeyCode::Left, .. } => Key::Left,
-            event::KeyEvent { code: event::KeyCode::Right, .. } => Key::Right,
-            event::KeyEvent { code: event::KeyCode::Up, .. } => Key::Up,
-            event::KeyEvent { code: event::KeyCode::Down, .. } => Key::Down,
-            event::KeyEvent { code: event::KeyCode::Home, .. } => Key::Home,
-            event::KeyEvent { code: event::KeyCode::End, .. } => Key::End,
-            event::KeyEvent { code: event::KeyCode::PageUp, .. } => Key::PageUp,
-            event::KeyEvent { code: event::KeyCode::PageDown, .. } => Key::PageDown,
-            event::KeyEvent { code: event::KeyCode::Delete, .. } => Key::Delete,
-            event::KeyEvent { code: event::KeyCode::Insert, .. } => Key::Ins,
-            event::KeyEvent { code: event::KeyCode::F(n), .. } => Key::from_f(n),
-            event::KeyEvent { code: event::KeyCode::Enter, .. } => Key::Enter,
-            event::KeyEvent { code: event::KeyCode::Tab, .. } => Key::Tab,
+            event::KeyEvent {
+                code: event::KeyCode::Esc,
+                ..
+            } => Key::Esc,
+            event::KeyEvent {
+                code: event::KeyCode::Backspace,
+                ..
+            } => Key::Backspace,
+            event::KeyEvent {
+                code: event::KeyCode::Left,
+                ..
+            } => Key::Left,
+            event::KeyEvent {
+                code: event::KeyCode::Right,
+                ..
+            } => Key::Right,
+            event::KeyEvent {
+                code: event::KeyCode::Up,
+                ..
+            } => Key::Up,
+            event::KeyEvent {
+                code: event::KeyCode::Down,
+                ..
+            } => Key::Down,
+            event::KeyEvent {
+                code: event::KeyCode::Home,
+                ..
+            } => Key::Home,
+            event::KeyEvent {
+                code: event::KeyCode::End,
+                ..
+            } => Key::End,
+            event::KeyEvent {
+                code: event::KeyCode::PageUp,
+                ..
+            } => Key::PageUp,
+            event::KeyEvent {
+                code: event::KeyCode::PageDown,
+                ..
+            } => Key::PageDown,
+            event::KeyEvent {
+                code: event::KeyCode::Delete,
+                ..
+            } => Key::Delete,
+            event::KeyEvent {
+                code: event::KeyCode::Insert,
+                ..
+            } => Key::Ins,
+            event::KeyEvent {
+                code: event::KeyCode::F(n),
+                ..
+            } => Key::from_f(n),
+            event::KeyEvent {
+                code: event::KeyCode::Enter,
+                ..
+            } => Key::Enter,
+            event::KeyEvent {
+                code: event::KeyCode::Tab,
+                ..
+            } => Key::Tab,
 
             // First check for char + modifier
             event::KeyEvent {
@@ -142,7 +196,10 @@ impl From<event::KeyEvent> for Key {
                 ..
             } => Key::Ctrl(c),
 
-            event::KeyEvent { code: event::KeyCode::Char(c), .. } => Key::Char(c),
+            event::KeyEvent {
+                code: event::KeyCode::Char(c),
+                ..
+            } => Key::Char(c),
 
             _ => Key::Unknown,
         }
