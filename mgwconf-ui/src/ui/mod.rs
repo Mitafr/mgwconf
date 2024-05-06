@@ -57,9 +57,7 @@ where
             }
         }
         (RouteId::Configuration, ActiveBlock::Detailed) => {
-            if app.get_configuration_state().is_tab_selected()
-                && app.get_configuration_state().selected_entity().is_some()
-            {
+            if app.get_configuration_state().is_tab_selected() && app.get_configuration_state().selected_entity().is_some() {
                 draw_detailed_entity(f, app, layout_chunk);
             }
         }

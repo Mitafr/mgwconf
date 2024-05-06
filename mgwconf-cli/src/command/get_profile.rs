@@ -10,24 +10,14 @@ pub struct GetProfile {}
 
 impl GetProfile {
     pub fn output_file() -> File {
-        OpenOptions::new()
-            .append(true)
-            .create(true)
-            .truncate(false)
-            .open("output/profiles")
-            .unwrap()
+        OpenOptions::new().append(true).create(true).truncate(false).open("output/profiles").unwrap()
     }
 }
 
 #[async_trait]
 impl CommandTrait for GetProfile {
     async fn execute(app: &CliApp) {
-        <CliApp as AppTrait<Config>>::dispatch(
-            app,
-            mgwconf_network::event::IoEvent::GetAllProfiles,
-        )
-        .await
-        .unwrap();
+        <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllProfiles).await.unwrap();
     }
 
     fn num_op() -> usize {

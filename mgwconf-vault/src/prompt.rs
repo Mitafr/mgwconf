@@ -10,9 +10,7 @@ fn ask_pwd(stype: SecretType) -> String {
     let mut s = String::new();
     println!("Pleaser enter {} API KEY", stype);
     let _ = stdout().flush();
-    stdin()
-        .read_line(&mut s)
-        .expect("Did not enter a correct string");
+    stdin().read_line(&mut s).expect("Did not enter a correct string");
     s.pop();
     s
 }
@@ -37,9 +35,7 @@ impl SecretsVault {
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
             match stype {
-                SecretType::Configuration => {
-                    self.configuration = ask_pwd(SecretType::Configuration)
-                }
+                SecretType::Configuration => self.configuration = ask_pwd(SecretType::Configuration),
                 SecretType::Monitoring => self.monitoring = ask_pwd(SecretType::Monitoring),
                 SecretType::Management => self.management = ask_pwd(SecretType::Management),
                 SecretType::Encrypt => self.encrypt = ask_pwd(SecretType::Encrypt),

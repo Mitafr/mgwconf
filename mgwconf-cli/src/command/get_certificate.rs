@@ -17,12 +17,7 @@ impl GetCertificate {
 #[async_trait]
 impl CommandTrait for GetCertificate {
     async fn execute(app: &CliApp) {
-        <CliApp as AppTrait<Config>>::dispatch(
-            app,
-            mgwconf_network::event::IoEvent::GetAllCertificates,
-        )
-        .await
-        .unwrap();
+        <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllCertificates).await.unwrap();
     }
 
     fn num_op() -> usize {

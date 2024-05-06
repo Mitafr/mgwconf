@@ -74,14 +74,11 @@ impl SecretsVault {
                 if !argon2::verify_raw(self.master.as_bytes(), salt, &hash, &Config::owasp5())? {
                     return Err(VaultError::MasterPasswordVerifyError);
                 }
-                Aes256CbcDec::new(GenericArray::from_slice(&hash), iv)
-                    .decrypt_padded_mut::<Pkcs7>(cipher)?;
+                Aes256CbcDec::new(GenericArray::from_slice(&hash), iv).decrypt_padded_mut::<Pkcs7>(cipher)?;
             }
             Err(_) => return Err(VaultError::MasterPasswordVerifyError),
         }
-        let value = String::from_utf8(
-            (general_purpose::STANDARD.decode(&cipher[..self.pt_len]))?[..16].to_vec(),
-        )?;
+        let value = String::from_utf8((general_purpose::STANDARD.decode(&cipher[..self.pt_len]))?[..16].to_vec())?;
         match stype {
             SecretType::Configuration => self.configuration = value,
             SecretType::Monitoring => self.monitoring = value,
@@ -99,8 +96,7 @@ impl SecretsVault {
     /// This function will panic if one of vaults can't be read
     pub fn read_all_secrets(&mut self) {
         for stype in SecretType::iterator() {
-            self.read_secret_from_file(*stype)
-                .unwrap_or_else(|e| panic!("Can't open vault {stype} : {e}"));
+            self.read_secret_from_file(*stype).unwrap_or_else(|e| panic!("Can't open vault {stype} : {e}"));
         }
         self.initialized = true;
         // We remove the master key from memory there

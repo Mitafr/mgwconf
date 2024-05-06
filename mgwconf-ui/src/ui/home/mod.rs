@@ -14,10 +14,7 @@ where
         .vertical_margin(2)
         .split(layout_chunk);
 
-    let welcome = Block::default()
-        .title(Span::styled("Home", Style::default()))
-        .title_alignment(Alignment::Left)
-        .borders(Borders::ALL);
+    let welcome = Block::default().title(Span::styled("Home", Style::default())).title_alignment(Alignment::Left).borders(Borders::ALL);
     let current_user = whoami::username();
     let paragraph = Paragraph::new(format!(
         "Utilisateur : {}\nRemote IP : {}\nRemote Port : {}\nConnectivity : {}\n\n\n{}",
@@ -25,11 +22,7 @@ where
         app.config().remote_ip(),
         app.config().remote_port(),
         if app.is_connected() { "OK" } else { "KO" },
-        if !app.is_connected() {
-            "Appuyer sur Entrer pour rafraichir"
-        } else {
-            "Appuyer sur Entrer pour continuer"
-        }
+        if !app.is_connected() { "Appuyer sur Entrer pour rafraichir" } else { "Appuyer sur Entrer pour continuer" }
     ))
     .style(Style::default().bg(Color::Reset).fg(Color::White))
     .block(Block::default())

@@ -11,15 +11,12 @@ clean:
   cargo clean
 
 lint:
-  cargo fmt --all
+  cargo fmt --all -- --emit stdout
   cargo clippy --all-features -- -Dwarnings
 
 test:
   cargo test --workspace
 
-<<<<<<< Updated upstream
-build-ci:
-=======
 openapi:
   docker run --rm \
     -v ${PWD}/mgwconf-network:/mgwconf-network openapitools/openapi-generator-cli generate \
@@ -30,10 +27,7 @@ openapi:
     --skip-validate-spec \
     --additional-properties=enumNameSuffix="TEST",supportMultipleResponses=true,packageName="mgw-configuration"
 
-build:
->>>>>>> Stashed changes
-  cargo build --bin="mgwc" --no-default-features --features="{{store}}cli"
-  cargo build --bin="mgwc_ui" --no-default-features --features="{{store}}ui"
+  chown -R ${USER} ${PWD}/mgwconf-network/api
 
 build:
   cargo build --bin="mgwc" --no-default-features --target={{target}} --features="{{store}}cli"

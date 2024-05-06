@@ -3,19 +3,10 @@ use log::{info, warn};
 
 use crate::app::CliApp;
 
-use super::{
-    get_all::GetAll, get_business_application::GetBusinessApplication,
-    get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag,
-    CommandRegistryTrait, CommandTrait,
-};
+use super::{get_all::GetAll, get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, CommandRegistryTrait, CommandTrait};
 
 lazy_static! {
-    pub static ref AVAILABLE_COMMANDS: [&'static str; 4] = [
-        "GET-SAGS",
-        "GET-CERTIFICATES",
-        "GET-BUSINESS-APPLICATIONS",
-        "GET-ALL"
-    ];
+    pub static ref AVAILABLE_COMMANDS: [&'static str; 4] = ["GET-SAGS", "GET-CERTIFICATES", "GET-BUSINESS-APPLICATIONS", "GET-ALL"];
 }
 
 pub enum CommandVariant {
@@ -29,10 +20,7 @@ pub enum CommandVariant {
 }
 
 impl CommandRegistryTrait for CommandVariant {
-    fn execute(
-        &self,
-        app: CliApp,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = usize> + Send>> {
+    fn execute(&self, app: CliApp) -> std::pin::Pin<Box<dyn std::future::Future<Output = usize> + Send>> {
         match self {
             CommandVariant::GetAll(_cmd) => Box::pin(async move {
                 GetAll::execute(&app).await;
@@ -90,25 +78,15 @@ impl<'a> Registry<'a> {
                 "GET-ALL" => CommandVariant::GetAll(GetAll {}),
                 "GET-SAGS" => CommandVariant::GetSag(GetSag {}),
                 "GET-CERTIFICATES" => CommandVariant::GetCertificate(GetCertificate {}),
-                "GET-BUSINESS-APPLICATIONS" => {
-                    CommandVariant::GetBusinessApplication(GetBusinessApplication {})
-                }
+                "GET-BUSINESS-APPLICATIONS" => CommandVariant::GetBusinessApplication(GetBusinessApplication {}),
                 _ => CommandVariant::Unknown,
             })
             .collect::<Vec<CommandVariant>>();
-        Registry {
-            app,
-            commands,
-            options,
-        }
+        Registry { app, commands, options }
     }
 
     pub async fn run(self) -> bool {
-        if !self
-            .options
-            .iter()
-            .any(|s| AVAILABLE_COMMANDS.contains(&s.as_str()))
-        {
+        if !self.options.iter().any(|s| AVAILABLE_COMMANDS.contains(&s.as_str())) {
             warn!("Command not recognized {:?}, skipping", self.options);
             info!("Available commands are : {}", AVAILABLE_COMMANDS.join("|"));
             return false;

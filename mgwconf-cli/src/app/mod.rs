@@ -2,16 +2,14 @@ use anyhow::{bail, Error, Result};
 use async_trait::async_trait;
 use core::panic;
 use log::{debug, error};
-use mgwconf_network::{event::IoEvent, AppConfig, AppTrait};
+use mgwconf_network::{event::IoEvent, mgw_configuration::apis::ResponseContent, AppConfig, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
+use serde::{Deserialize, Serialize};
 use std::{io::Write, sync::Arc, time::Duration};
 use tokio::sync::{broadcast::Sender, Mutex, Notify};
 
 use crate::{
-    command::{
-        get_business_application::GetBusinessApplication, get_certificate::GetCertificate,
-        get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, registry::Registry,
-    },
+    command::{get_business_application::GetBusinessApplication, get_certificate::GetCertificate, get_profile::GetProfile, get_proxy::GetProxy, get_sag::GetSag, registry::Registry},
     config::Config,
     playbook::{error::PlaybookError, Playbook},
 };
@@ -113,14 +111,9 @@ where
         use std::io::{stdin, stdout};
         println!("Pleaser enter {} API KEY", stype);
         let _ = stdout().flush();
-        stdin()
-            .read_line(s)
-            .expect("Did not enter a correct string");
+        stdin().read_line(s).expect("Did not enter a correct string");
         s.pop();
-        SecretsVault::new(master)
-            .unwrap()
-            .create_secret(stype, s.to_owned())
-            .unwrap();
+        SecretsVault::new(master).unwrap().create_secret(stype, s.to_owned()).unwrap();
         s.clear()
     }
 
@@ -140,39 +133,14 @@ where
         Box::new(self.config.as_ref().unwrap().clone())
     }
 
-    fn handle_network_response(&mut self, event: IoEvent, res: serde_json::Value) {
+    fn handle_network_response<'a, T: Deserialize<'a> + Serialize>(&mut self, event: IoEvent, res: ResponseContent<T>) {
         debug!("Receiving response from network for io_event {event:?}");
         match event {
-            IoEvent::GetAllForwardProxyEntity => writeln!(
-                GetProxy::output_file(),
-                "{}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllBusinessApplications => writeln!(
-                GetBusinessApplication::output_file(),
-                "{}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllCertificates => writeln!(
-                GetCertificate::output_file(),
-                "{}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllSags => writeln!(
-                GetSag::output_file(),
-                "{}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
-            IoEvent::GetAllProfiles => writeln!(
-                GetProfile::output_file(),
-                "{}",
-                serde_json::to_string_pretty(&res).unwrap()
-            )
-            .unwrap(),
+            IoEvent::GetAllForwardProxyEntity => writeln!(GetProxy::output_file(), "{}", serde_json::to_string_pretty(&res.entity).unwrap()).unwrap(),
+            IoEvent::GetAllBusinessApplications => writeln!(GetBusinessApplication::output_file(), "{}", serde_json::to_string_pretty(&res.entity).unwrap()).unwrap(),
+            IoEvent::GetAllCertificates => writeln!(GetCertificate::output_file(), "{}", serde_json::to_string_pretty(&res.entity).unwrap()).unwrap(),
+            IoEvent::GetAllSags => writeln!(GetSag::output_file(), "{}", serde_json::to_string_pretty(&res.entity).unwrap()).unwrap(),
+            IoEvent::GetAllProfiles => writeln!(GetProfile::output_file(), "{}", serde_json::to_string_pretty(&res.entity).unwrap()).unwrap(),
             _ => {}
         }
         self.waiting_res -= 1;
@@ -183,10 +151,7 @@ where
         self.error = true;
     }
 
-    async fn run(
-        app: Arc<Mutex<Self>>,
-        notifier: Option<Arc<Notify>>,
-    ) -> Result<(), anyhow::Error> {
+    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error> {
         <CliApp as AppTrait<C>>::init(&mut *app.lock().await).await?;
         log::info!("Waiting for Network");
         notifier.unwrap().notified().await;
