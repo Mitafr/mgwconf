@@ -16,6 +16,9 @@ jobs:
 
     - name: Install Just
       uses: extractions/setup-just@v1
+    
+    - name: OpenApi codegen
+      run: just openapi
 
     - name: Run Just Default
       run: just default
