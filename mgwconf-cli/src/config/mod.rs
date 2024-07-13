@@ -8,7 +8,9 @@ use std::{
     net::{IpAddr, SocketAddr, ToSocketAddrs},
     path::PathBuf,
 };
-use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{
+    prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
 
 use clap::Parser;
 
@@ -52,7 +54,10 @@ pub struct Config {
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_addr = if let Some(ip) = &args.remote_addr {
-            ip.to_socket_addrs().expect("Unable to resolve domain").next().unwrap()
+            ip.to_socket_addrs()
+                .expect("Unable to resolve domain")
+                .next()
+                .unwrap()
         } else {
             "127.0.0.1:9003".parse().unwrap()
         };
@@ -73,7 +78,8 @@ impl Config {
 
     fn read_pem(args: &Args) -> Result<Option<Identity>, std::io::Error> {
         let mut buf: Vec<u8> = Vec::new();
-        File::open(args.identity.as_ref().unwrap_or(&"./mgw.pem".to_string()))?.read_to_end(&mut buf)?;
+        File::open(args.identity.as_ref().unwrap_or(&"./mgw.pem".to_string()))?
+            .read_to_end(&mut buf)?;
         match Identity::from_pem(&buf) {
             Ok(identity) => Ok(Some(identity)),
             Err(_) => Ok(None),
@@ -99,7 +105,10 @@ impl Config {
             println!("logs directory doesn't exist");
         }
         log_path.push(env!("CARGO_PKG_NAME"));
-        let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
+        let file_appender = tracing_appender::rolling::daily(
+            log_path.parent().unwrap(),
+            log_path.file_name().unwrap(),
+        );
         let appender_format = if self.debug {
             format!("{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc")
         } else {
@@ -108,7 +117,12 @@ impl Config {
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()
             .with(filter)
-            .with(tracing_subscriber::fmt::Layer::new().with_writer(file_appender).with_line_number(true).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::Layer::new()
+                    .with_writer(file_appender)
+                    .with_line_number(true)
+                    .with_ansi(false),
+            )
             .with(tracing_subscriber::fmt::layer())
             .init();
         info!("Config has been loadded successfully");

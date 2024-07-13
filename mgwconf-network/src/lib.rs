@@ -39,7 +39,7 @@ pub trait AppConfig: Send + Sync + Any {
     fn identity(&self) -> Option<&Identity>;
     fn tickrate(&self) -> u64;
     fn unsecure(&self) -> bool {
-        true
+        false
     }
 
     fn as_any(&self) -> &dyn Any;
@@ -62,10 +62,15 @@ where
     fn vault(&self) -> Option<&SecretsVault>;
     fn config(&self) -> Box<dyn AppConfig>;
 
-    fn handle_network_response<'a, T: Deserialize<'a> + Serialize>(&mut self, event: IoEvent, res: ResponseContent<T>);
+    fn handle_network_response<'a, T: Deserialize<'a> + Serialize>(
+        &mut self,
+        event: IoEvent,
+        res: ResponseContent<T>,
+    );
     fn handle_network_error(&mut self, error: Error);
 
-    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>) -> Result<(), anyhow::Error>;
+    async fn run(app: Arc<Mutex<Self>>, notifier: Option<Arc<Notify>>)
+        -> Result<(), anyhow::Error>;
 }
 
 #[derive(Clone)]
@@ -88,21 +93,34 @@ where
         let certificate = get_mgw_root_cert(config)?;
         let builder = reqwest::Client::builder()
             .tls_built_in_root_certs(true)
-            .user_agent(concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION")))
+            .user_agent(concat!(
+                env!("CARGO_PKG_NAME"),
+                "/",
+                env!("CARGO_PKG_VERSION")
+            ))
             .connect_timeout(Duration::from_secs(15))
             .add_root_certificate(certificate)
             .https_only(true)
             .danger_accept_invalid_certs(config.unsecure());
         let client = if let Some(identity) = config.identity() {
-            builder.identity(identity.to_owned()).build()?
+            builder.identity(identity.to_owned()).build().unwrap()
         } else {
             builder.build()?
         };
-        Ok(Network { app, client, config })
+        Ok(Network {
+            app,
+            client,
+            config,
+        })
     }
 
     pub async fn ping_mgw(&mut self) -> Result<(), anyhow::Error> {
-        let route = format!("https://{}:{}/swift/mgw/{}", self.config.remote_ip(), self.config.remote_port(), "mgw-monitoring-api/1.0.0/health");
+        let route = format!(
+            "https://{}:{}/swift/mgw/{}",
+            self.config.remote_ip(),
+            self.config.remote_port(),
+            "mgw-monitoring-api/1.0.0/health"
+        );
         match self.client.get(route).send().await {
             Ok(res) => {
                 let mut app = self.app.lock().await;
@@ -111,7 +129,11 @@ where
                 } else {
                     app.set_connected(true);
                 }
-                info!("Send ping result : {} -> connected : {}", res.status(), app.is_connected());
+                info!(
+                    "Send ping result : {} -> connected : {}",
+                    res.status(),
+                    app.is_connected()
+                );
             }
             Err(e) => {
                 error!("{}", e);
@@ -128,17 +150,24 @@ where
             IoEvent::GetAllSags | IoEvent::PostSag(_) | IoEvent::DeleteSag(_) => {
                 SagHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
-            IoEvent::GetAllCertificates | IoEvent::PostCertificate(_) | IoEvent::DeleteCertificate(_) => {
+            IoEvent::GetAllCertificates
+            | IoEvent::PostCertificate(_)
+            | IoEvent::DeleteCertificate(_) => {
                 CertHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
             IoEvent::GetAllProfiles | IoEvent::PostProfile(_) | IoEvent::DeleteProfile(_) => {
                 ProfileHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
-            IoEvent::GetAllForwardProxyEntity | IoEvent::PostForwardProxyEntity(_) | IoEvent::DeleteForwardProxyEntity(_) => {
+            IoEvent::GetAllForwardProxyEntity
+            | IoEvent::PostForwardProxyEntity(_)
+            | IoEvent::DeleteForwardProxyEntity(_) => {
                 ForwardProxyHandler::handle(&self.client, self.app, self.config, io_event).await?;
             }
-            IoEvent::GetAllBusinessApplications | IoEvent::PostBusinessApplication(_) | IoEvent::DeleteBusinessApplication(_) => {
-                BusinessApplicationHandler::handle(&self.client, self.app, self.config, io_event).await?;
+            IoEvent::GetAllBusinessApplications
+            | IoEvent::PostBusinessApplication(_)
+            | IoEvent::DeleteBusinessApplication(_) => {
+                BusinessApplicationHandler::handle(&self.client, self.app, self.config, io_event)
+                    .await?;
             }
             _ => {}
         };

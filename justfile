@@ -25,7 +25,7 @@ openapi:
     -o /mgwconf-network/api/configuration \
     -c /mgwconf-network/codegen.yml \
     --skip-validate-spec \
-    --additional-properties=enumNameSuffix="TEST",supportMultipleResponses=true,packageName="mgw-configuration"
+    --additional-properties=enumNameSuffix="MGWCONF",supportMultipleResponses=true,packageName="mgw-configuration"
 
   chown -R ${USER} ${PWD}/mgwconf-network/api
 
@@ -47,4 +47,4 @@ cli *ARGS:
   cargo run --bin="mgwc" --no-default-features --features="{{store}}cli" --profile={{profile}} --target={{target}} -- -k {{vault_key}} {{ARGS}}
 
 ui *ARGS:
-  cargo run --bin="mgwc_ui" --no-default-features --features="{{store}}ui" --profile={{profile}} --target={{target}} -- -k {{vault_key}} {{ARGS}}
+  cargo run --bin="mgwc_ui" --no-default-features --features="{{store}}ui" --profile={{profile}} --target={{target}} -- -k {{vault_key}} --ca=CA.pem {{ARGS}}
