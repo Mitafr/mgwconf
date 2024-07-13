@@ -19,7 +19,12 @@ where
     A: AppTrait<C>,
     C: AppConfig,
 {
-    async fn handle(client: &Client, app: &Arc<Mutex<A>>, config: &C, e: &IoEvent) -> Result<(), anyhow::Error>;
+    async fn handle(
+        client: &Client,
+        app: &Arc<Mutex<A>>,
+        config: &C,
+        e: &IoEvent,
+    ) -> Result<(), anyhow::Error>;
 }
 
 fn base_url<C: AppConfig>(config: &C) -> String {

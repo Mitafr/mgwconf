@@ -1,4 +1,7 @@
-use crate::model::configuration::{ApiCredentialsEntity, ApiGatewayInfoEntity, ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity};
+use mgw_configuration::models::{
+    ApiGatewayInfoEntity, ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity,
+    ForwardProxyEntity, SagEntity,
+};
 
 #[derive(Debug, Clone)]
 pub enum IoEvent {

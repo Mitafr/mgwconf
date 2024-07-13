@@ -11,12 +11,27 @@ pub struct GetAll {}
 impl CommandTrait for GetAll {
     async fn execute(app: &CliApp) {
         tokio::try_join!(
-            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllForwardProxyEntity),
-            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllBusinessApplications),
-            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllCertificates),
-            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllSags),
-            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllProfiles),
-            <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllApiClientCredentials),
+            <CliApp as AppTrait<Config>>::dispatch(
+                app,
+                mgwconf_network::event::IoEvent::GetAllForwardProxyEntity
+            ),
+            <CliApp as AppTrait<Config>>::dispatch(
+                app,
+                mgwconf_network::event::IoEvent::GetAllBusinessApplications
+            ),
+            <CliApp as AppTrait<Config>>::dispatch(
+                app,
+                mgwconf_network::event::IoEvent::GetAllCertificates
+            ),
+            <CliApp as AppTrait<Config>>::dispatch(
+                app,
+                mgwconf_network::event::IoEvent::GetAllSags
+            ),
+            <CliApp as AppTrait<Config>>::dispatch(
+                app,
+                mgwconf_network::event::IoEvent::GetAllProfiles
+            ),
+            // <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllApplicationProfileEntity),
         )
         .unwrap();
     }

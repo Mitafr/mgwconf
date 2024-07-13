@@ -1,0 +1,3 @@
+supportMultipleResponses: true
+enumNameSuffix: "TEST"
+templateDir: "mgwconf-network/templates"

@@ -1,4 +1,4 @@
-use mgwconf_network::model::configuration::*;
+use mgwconf_network::mgw_configuration::models::*;
 pub use std::fmt::Write;
 
 use crate::ui::fmt::FmtModel;
@@ -20,7 +20,9 @@ User DNs : {}
             self.port,
             self.lau_key.as_ref().unwrap_or(&"NULL".to_owned()),
             self.ssl_dn.as_ref().unwrap_or(&"NULL".to_owned()),
-            self.message_partner_name.as_ref().unwrap_or(&"NULL".to_owned()),
+            self.message_partner_name
+                .as_ref()
+                .unwrap_or(&"NULL".to_owned()),
             self.user_dns.join(" ")
         )
         .unwrap();
@@ -47,7 +49,13 @@ CertificateX509 : {}
 impl FmtModel for BusinessApplicationEntity {
     fn to_string(&self) -> String {
         let mut model = String::new();
-        write!(model, "{}\n{}", self.application_name, self.shared_secret.as_ref().unwrap()).unwrap();
+        write!(
+            model,
+            "{}\n{}",
+            self.application_name,
+            self.shared_secret.as_ref().unwrap()
+        )
+        .unwrap();
         model
     }
 }

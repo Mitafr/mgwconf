@@ -8,7 +8,9 @@ use std::{
     net::{IpAddr, SocketAddr, ToSocketAddrs},
     path::PathBuf,
 };
-use tracing_subscriber::{prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{
+    prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
 
 use clap::{ArgMatches, Parser};
 
@@ -61,7 +63,10 @@ pub struct Config {
 impl Config {
     pub fn init(args: &Args) -> Result<Config, Box<dyn Error>> {
         let remote_addr = if let Some(ip) = &args.remote_addr {
-            ip.to_socket_addrs().expect("Unable to resolve domain").next().unwrap()
+            ip.to_socket_addrs()
+                .expect("Unable to resolve domain")
+                .next()
+                .unwrap()
         } else {
             "127.0.0.1:9003".parse().unwrap()
         };
@@ -70,7 +75,10 @@ impl Config {
             loaded: false,
             remote_addr,
             identity: Self::read_pem(args)?,
-            root_ca_path: args.root_ca_path.clone().unwrap_or_else(|| "./CA.pem".to_owned()),
+            root_ca_path: args
+                .root_ca_path
+                .clone()
+                .unwrap_or_else(|| "./CA.pem".to_owned()),
             tick_rate: 160,
             unsecure: args.unsecure,
         };
@@ -80,14 +88,22 @@ impl Config {
     }
 
     fn read_pem(args: &Args) -> Result<Option<Identity>, std::io::Error> {
-        let mut buf: Vec<u8> = Vec::new();
-        match File::open(args.identity.as_ref().unwrap_or(&"./mgw.pem".to_string())) {
-            Ok(mut f) => f.read_to_end(&mut buf)?,
+        let mut buf_pub: Vec<u8> = Vec::new();
+        let mut buf_priv: Vec<u8> = Vec::new();
+        match File::open(args.identity.as_ref().unwrap_or(&"./mgw.key".to_string())) {
+            Ok(mut f) => f.read_to_end(&mut buf_priv)?,
             Err(_) => return Ok(None),
         };
-        match Identity::from_pem(&buf) {
+        match File::open(args.identity.as_ref().unwrap_or(&"./mgw.pub".to_string())) {
+            Ok(mut f) => f.read_to_end(&mut buf_pub)?,
+            Err(_) => return Ok(None),
+        };
+        match Identity::from_pkcs8_pem(&buf_pub, &buf_priv) {
             Ok(identity) => Ok(Some(identity)),
-            Err(_) => Ok(None),
+            Err(e) => {
+                log::error!("{:#?}", e);
+                Ok(None)
+            }
         }
     }
 
@@ -106,7 +122,10 @@ impl Config {
             println!("logs directory doesn't exist");
         }
         log_path.push(env!("CARGO_PKG_NAME"));
-        let file_appender = tracing_appender::rolling::daily(log_path.parent().unwrap(), log_path.file_name().unwrap());
+        let file_appender = tracing_appender::rolling::daily(
+            log_path.parent().unwrap(),
+            log_path.file_name().unwrap(),
+        );
         let appender_format = if self.debug {
             format!("debug,{}=debug,{}=debug", env!("CARGO_PKG_NAME"), "mgwc_ui")
         } else {
@@ -115,7 +134,12 @@ impl Config {
         let filter = EnvFilter::builder().parse(appender_format).unwrap();
         tracing_subscriber::registry()
             .with(filter)
-            .with(tracing_subscriber::fmt::Layer::new().with_writer(file_appender).with_line_number(true).with_ansi(false))
+            .with(
+                tracing_subscriber::fmt::Layer::new()
+                    .with_writer(file_appender)
+                    .with_line_number(true)
+                    .with_ansi(false),
+            )
             .init();
         info!("Config has been loadded successfully");
         self.loaded = true;
@@ -138,6 +162,7 @@ impl AppConfig for Config {
     fn root_ca_path(&self) -> String {
         self.root_ca_path.to_owned()
     }
+
     fn tickrate(&self) -> u64 {
         self.tick_rate
     }

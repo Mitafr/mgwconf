@@ -2,17 +2,14 @@ use mgwconf_vault::SecretType;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use mgw_configuration::apis::{
+    business_application_api,
+    configuration::{ApiKey, Configuration},
+};
 use reqwest::Client;
 use tokio::sync::Mutex;
 
-use crate::{
-    api::{
-        self,
-        configuration::configuration::{ApiKey, Configuration},
-    },
-    event::IoEvent,
-    AppConfig, AppTrait,
-};
+use crate::{event::IoEvent, AppConfig, AppTrait};
 
 use super::{base_url, Handler};
 
@@ -24,16 +21,29 @@ where
     A: AppTrait<C>,
     C: AppConfig,
 {
-    async fn handle(client: &Client, app: &Arc<Mutex<A>>, config: &C, e: &IoEvent) -> Result<(), anyhow::Error> {
+    async fn handle(
+        client: &Client,
+        app: &Arc<Mutex<A>>,
+        config: &C,
+        e: &IoEvent,
+    ) -> Result<(), anyhow::Error> {
         let mut app = app.lock().await;
         match e {
             IoEvent::GetAllBusinessApplications => {
-                let entities = api::configuration::business_application_api::business_application_get(
+                let entities = business_application_api::business_application_get(
                     &Configuration {
-                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
+                        base_path: format!(
+                            "{}/swift/mgw/mgw-configuration-api/2.0.0",
+                            base_url(config)
+                        ),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            key: app
+                                .vault()
+                                .as_ref()
+                                .unwrap()
+                                .get_secret(SecretType::Configuration)
+                                .to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -45,12 +55,20 @@ where
             }
             IoEvent::PostBusinessApplication(entity) => {
                 log::debug!("handling {:#?}", entity);
-                api::configuration::business_application_api::business_application_create(
+                let res = business_application_api::business_application_create(
                     &Configuration {
-                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
+                        base_path: format!(
+                            "{}/swift/mgw/mgw-configuration-api/2.0.0",
+                            base_url(config)
+                        ),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            key: app
+                                .vault()
+                                .as_ref()
+                                .unwrap()
+                                .get_secret(SecretType::Configuration)
+                                .to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()
@@ -58,15 +76,23 @@ where
                     entity.clone(),
                 )
                 .await?;
-                app.handle_network_response(e.clone(), "".into());
+                app.handle_network_response(e.clone(), res);
             }
             IoEvent::DeleteBusinessApplication(e) => {
-                api::configuration::business_application_api::business_application_delete(
+                business_application_api::business_application_delete(
                     &Configuration {
-                        base_path: format!("{}/swift/mgw/mgw-configuration-api/2.0.0", base_url(config)),
+                        base_path: format!(
+                            "{}/swift/mgw/mgw-configuration-api/2.0.0",
+                            base_url(config)
+                        ),
                         client: client.clone(),
                         api_key: Some(ApiKey {
-                            key: app.vault().as_ref().unwrap().get_secret(SecretType::Configuration).to_owned(),
+                            key: app
+                                .vault()
+                                .as_ref()
+                                .unwrap()
+                                .get_secret(SecretType::Configuration)
+                                .to_owned(),
                             prefix: None,
                         }),
                         ..Default::default()

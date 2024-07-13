@@ -10,3 +10,4 @@ logs
 mgw
 vault/*
 output
+playbook.yaml
