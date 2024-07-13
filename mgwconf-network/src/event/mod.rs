@@ -1,6 +1,6 @@
 use mgw_configuration::models::{
-    ApiGatewayInfoEntity, ApplicationProfileEntity, BusinessApplicationEntity, CertificateEntity,
-    ForwardProxyEntity, SagEntity,
+    ApiCredentialsEntity, ApiGatewayInfoEntity, ApplicationProfileEntity,
+    BusinessApplicationEntity, CertificateEntity, ForwardProxyEntity, SagEntity,
 };
 
 #[derive(Debug, Clone)]
