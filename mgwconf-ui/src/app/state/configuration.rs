@@ -86,12 +86,25 @@ impl State for ConfigurationState {
             return;
         }
         let entity: Option<Box<dyn InnerEntityTrait>> = match self.current_selected() {
-            TabId::CERTIFICATE => Some(Box::new(self.certificates.get(self.pan_id - 1).unwrap().clone())),
+            TabId::CERTIFICATE => Some(Box::new(
+                self.certificates.get(self.pan_id - 1).unwrap().clone(),
+            )),
             TabId::SAG => Some(Box::new(self.sags.get(self.pan_id - 1).unwrap().clone())),
-            TabId::BUSINESSAPPLICATION => Some(Box::new(self.business_applications.get(self.pan_id - 1).unwrap().clone())),
-            TabId::PROFILE => Some(Box::new(self.profiles.get(self.pan_id - 1).unwrap().clone())),
-            TabId::APIPROXY => Some(Box::new(self.apiproxy.get(self.pan_id - 1).unwrap().clone())),
-            TabId::FORWARDPROXY => Some(Box::new(self.forwardproxy.get(self.pan_id - 1).unwrap().clone())),
+            TabId::BUSINESSAPPLICATION => Some(Box::new(
+                self.business_applications
+                    .get(self.pan_id - 1)
+                    .unwrap()
+                    .clone(),
+            )),
+            TabId::PROFILE => Some(Box::new(
+                self.profiles.get(self.pan_id - 1).unwrap().clone(),
+            )),
+            TabId::APIPROXY => Some(Box::new(
+                self.apiproxy.get(self.pan_id - 1).unwrap().clone(),
+            )),
+            TabId::FORWARDPROXY => Some(Box::new(
+                self.forwardproxy.get(self.pan_id - 1).unwrap().clone(),
+            )),
         };
         if let Some(e) = entity {
             self.current_entity = Some(e);

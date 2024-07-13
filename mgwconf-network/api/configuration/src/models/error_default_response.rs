@@ -1,7 +1,7 @@
 /*
  * Microgateway configuration API
  *
- * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW 
+ * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW
  *
  * The version of the OpenAPI document: 2.0.0
  * Contact: developer@swift.com
@@ -28,7 +28,13 @@ pub struct ErrorDefaultResponse {
 }
 
 impl ErrorDefaultResponse {
-    pub fn new(timestamp: i32, status: i32, error: String, message: String, path: String) -> ErrorDefaultResponse {
+    pub fn new(
+        timestamp: i32,
+        status: i32,
+        error: String,
+        message: String,
+        path: String,
+    ) -> ErrorDefaultResponse {
         ErrorDefaultResponse {
             timestamp,
             status,
@@ -54,5 +60,3 @@ impl InnerEntityTrait for ErrorDefaultResponse {
         self
     }
 }
-
-

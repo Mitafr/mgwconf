@@ -6,7 +6,9 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
 use mgwconf_network::mgw_configuration::models::BusinessApplicationEntity;
-use mgwconf_network::mgw_configuration::models::{ApplicationProfileEntity, CertificateEntity, ForwardProxyEntity};
+use mgwconf_network::mgw_configuration::models::{
+    ApplicationProfileEntity, CertificateEntity, ForwardProxyEntity,
+};
 use mgwconf_network::{event::IoEvent, mgw_configuration::models::SagEntity, AppTrait};
 use serde::{Deserialize, Deserializer, Serialize};
 
@@ -55,10 +57,16 @@ impl Playbook {
         macro_rules! handle {
             ($h:tt, $io:expr, $e:tt) => {
                 if $h.json.is_none() && $h.file.is_none() {
-                    return Err(PlaybookError::MalformedPlaybook("Sag import must contains either file or json input"));
+                    return Err(PlaybookError::MalformedPlaybook(
+                        "Sag import must contains either file or json input",
+                    ));
                 }
                 if let Some(j) = &$h.json {
-                    <CliApp as AppTrait<Config>>::dispatch(app, $io(serde_json::from_str::<$e>(&j)?)).await?;
+                    <CliApp as AppTrait<Config>>::dispatch(
+                        app,
+                        $io(serde_json::from_str::<$e>(&j)?),
+                    )
+                    .await?;
                 } else {
                     let file = read_to_string::<&str>(&$h.file.as_ref().unwrap())?;
                     let entities: Vec<$e> = serde_json::from_str(&file)?;
@@ -80,7 +88,11 @@ impl Playbook {
                 handle!(p, IoEvent::PostProfile, ApplicationProfileEntity);
             }
             EntityType::BusinessApplication(b) => {
-                handle!(b, IoEvent::PostBusinessApplication, BusinessApplicationEntity);
+                handle!(
+                    b,
+                    IoEvent::PostBusinessApplication,
+                    BusinessApplicationEntity
+                );
             }
             EntityType::Certificate(c) => {
                 handle!(c, IoEvent::PostCertificate, CertificateEntity);
@@ -160,9 +172,15 @@ where
 {
     let vec: Vec<T> = Vec::deserialize(deserializer)?;
     let mut found = HashSet::new();
-    let dup = vec.iter().filter(|&element| !found.insert(element.clone())).cloned().collect::<Vec<T>>();
+    let dup = vec
+        .iter()
+        .filter(|&element| !found.insert(element.clone()))
+        .cloned()
+        .collect::<Vec<T>>();
     if !dup.is_empty() {
-        Err(serde::de::Error::custom(format!("hosts cannot contains duplicate data {dup:#?}")))
+        Err(serde::de::Error::custom(format!(
+            "hosts cannot contains duplicate data {dup:#?}"
+        )))
     } else if vec.is_empty() {
         Err(serde::de::Error::custom("Empty hosts not allowed"))
     } else {

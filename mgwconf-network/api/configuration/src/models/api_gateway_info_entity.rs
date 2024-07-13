@@ -1,7 +1,7 @@
 /*
  * Microgateway configuration API
  *
- * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW 
+ * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW
  *
  * The version of the OpenAPI document: 2.0.0
  * Contact: developer@swift.com
@@ -22,7 +22,10 @@ pub struct ApiGatewayInfoEntity {
 
 impl ApiGatewayInfoEntity {
     /// Api Gateway Info with environment and public certificate alias
-    pub fn new(environment: models::Environment, public_cert_alias: String) -> ApiGatewayInfoEntity {
+    pub fn new(
+        environment: models::Environment,
+        public_cert_alias: String,
+    ) -> ApiGatewayInfoEntity {
         ApiGatewayInfoEntity {
             environment,
             public_cert_alias,
@@ -44,5 +47,3 @@ impl InnerEntityTrait for ApiGatewayInfoEntity {
         self
     }
 }
-
-

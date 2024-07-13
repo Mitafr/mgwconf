@@ -30,7 +30,12 @@ impl std::fmt::Display for SecretType {
 
 impl SecretType {
     pub fn iterator() -> Iter<'static, SecretType> {
-        static SECRETTYPES: [SecretType; 4] = [SecretType::Configuration, SecretType::Monitoring, SecretType::Management, SecretType::Encrypt];
+        static SECRETTYPES: [SecretType; 4] = [
+            SecretType::Configuration,
+            SecretType::Monitoring,
+            SecretType::Management,
+            SecretType::Encrypt,
+        ];
         SECRETTYPES.iter()
     }
 }

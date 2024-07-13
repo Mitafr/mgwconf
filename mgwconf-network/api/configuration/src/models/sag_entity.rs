@@ -1,7 +1,7 @@
 /*
  * Microgateway configuration API
  *
- * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW 
+ * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW
  *
  * The version of the OpenAPI document: 2.0.0
  * Contact: developer@swift.com
@@ -28,7 +28,10 @@ pub struct SagEntity {
     pub ssl_dn: Option<String>,
     #[serde(rename = "active", skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
-    #[serde(rename = "publicCertificateAlias", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "publicCertificateAlias",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub public_certificate_alias: Option<String>,
 }
 
@@ -62,5 +65,3 @@ impl InnerEntityTrait for SagEntity {
         self
     }
 }
-
-

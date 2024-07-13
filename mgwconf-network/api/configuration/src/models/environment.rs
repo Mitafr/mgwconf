@@ -1,7 +1,7 @@
 /*
  * Microgateway configuration API
  *
- * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW 
+ * # Introduction This is the configuration API for Swift Microgateway (MGW). It allows remotly configure Microgateway. # Authentication Use API Key shared between Business Application and Microgateway. # Audience:    * Business analysts and architects to understand the functionality of the Microgateway configuration API and how to integrate the use of the MGW within their organisation   * Software developers using the API to configure MGW
  *
  * The version of the OpenAPI document: 2.0.0
  * Contact: developer@swift.com
@@ -21,7 +21,6 @@ pub enum Environment {
     Test,
     #[serde(rename = "LIVE")]
     Live,
-
 }
 
 impl std::fmt::Display for Environment {
@@ -40,4 +39,3 @@ impl Default for Environment {
         Self::Dev
     }
 }
-

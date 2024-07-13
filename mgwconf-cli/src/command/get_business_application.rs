@@ -10,14 +10,24 @@ pub struct GetBusinessApplication {}
 
 impl GetBusinessApplication {
     pub fn output_file() -> File {
-        OpenOptions::new().append(true).create(true).truncate(false).open("output/business_applications").unwrap()
+        OpenOptions::new()
+            .append(true)
+            .create(true)
+            .truncate(false)
+            .open("output/business_applications")
+            .unwrap()
     }
 }
 
 #[async_trait]
 impl CommandTrait for GetBusinessApplication {
     async fn execute(app: &CliApp) {
-        <CliApp as AppTrait<Config>>::dispatch(app, mgwconf_network::event::IoEvent::GetAllBusinessApplications).await.unwrap();
+        <CliApp as AppTrait<Config>>::dispatch(
+            app,
+            mgwconf_network::event::IoEvent::GetAllBusinessApplications,
+        )
+        .await
+        .unwrap();
     }
 
     fn num_op() -> usize {

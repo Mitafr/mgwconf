@@ -5,7 +5,10 @@ use crossterm::{
 use mgwconf_network::{
     event::IoEvent,
     mgw_configuration::models::BusinessApplicationEntity,
-    mgw_configuration::models::{ApiGatewayInfoEntity, ApplicationProfileEntity, CertificateEntity, ForwardProxyEntity, SagEntity},
+    mgw_configuration::models::{
+        ApiGatewayInfoEntity, ApplicationProfileEntity, CertificateEntity, ForwardProxyEntity,
+        SagEntity,
+    },
     AppConfig,
 };
 
@@ -24,7 +27,9 @@ where
     let route = app.get_current_route();
     match route.active_block {
         ActiveBlock::Tab => handle_tab(&key, app).await,
-        a if a == ActiveBlock::TabSelected && app.get_configuration_state().is_tab_selected() => handle_inner_conf(&key, app).await,
+        a if a == ActiveBlock::TabSelected && app.get_configuration_state().is_tab_selected() => {
+            handle_inner_conf(&key, app).await
+        }
         ActiveBlock::Detailed => handle_detailed(&key, app),
         _ => {}
     }
@@ -42,15 +47,26 @@ where
         k if [Key::Up].contains(k) && !app.get_configuration_state().is_tab_selected() => {
             app.get_configuration_state_mut().back();
         }
-        k if [Key::Enter, Key::Tab].contains(k) && !app.get_configuration_state().is_tab_selected() => {
+        k if [Key::Enter, Key::Tab].contains(k)
+            && !app.get_configuration_state().is_tab_selected() =>
+        {
             app.set_current_route_state(Some(ActiveBlock::TabSelected), None);
             match app.get_configuration_state().current_tab() {
                 0 => app.dispatch(IoEvent::GetAllCertificates).await.unwrap(),
                 1 => app.dispatch(IoEvent::GetAllSags).await.unwrap(),
-                2 => app.dispatch(IoEvent::GetAllBusinessApplications).await.unwrap(),
+                2 => app
+                    .dispatch(IoEvent::GetAllBusinessApplications)
+                    .await
+                    .unwrap(),
                 3 => app.dispatch(IoEvent::GetAllProfiles).await.unwrap(),
-                4 => app.dispatch(IoEvent::GetAllApiGatewayInfoEntity).await.unwrap(),
-                5 => app.dispatch(IoEvent::GetAllForwardProxyEntity).await.unwrap(),
+                4 => app
+                    .dispatch(IoEvent::GetAllApiGatewayInfoEntity)
+                    .await
+                    .unwrap(),
+                5 => app
+                    .dispatch(IoEvent::GetAllForwardProxyEntity)
+                    .await
+                    .unwrap(),
                 _ => {}
             }
             app.get_configuration_state_mut().wait_for_load();
@@ -73,10 +89,12 @@ where
         }
         k if [Key::Down].contains(k) => app.get_configuration_state_mut().next(),
         k if [Key::Up].contains(k) => app.get_configuration_state_mut().back(),
-        k if *k == Key::Enter && app.get_configuration_state().selected_entity().is_none() => match dispatch_post(app).await {
-            Ok(_) => get_all_after(app).await.unwrap(),
-            Err(e) => log::error!("{}", e),
-        },
+        k if *k == Key::Enter && app.get_configuration_state().selected_entity().is_none() => {
+            match dispatch_post(app).await {
+                Ok(_) => get_all_after(app).await.unwrap(),
+                Err(e) => log::error!("{}", e),
+            }
+        }
         k if *k == Key::Enter && app.get_configuration_state().selected_entity().is_some() => {
             execute!(std::io::stdout(), DisableMouseCapture).unwrap();
             app.set_current_route_state(Some(ActiveBlock::Detailed), None);
@@ -85,34 +103,72 @@ where
             let any_entity = app.get_configuration_state().selected_entity().unwrap();
             match app.get_configuration_state().current_selected() {
                 TabId::CERTIFICATE => {
-                    let entity = any_entity.as_any().downcast_ref::<CertificateEntity>().expect("Wasn't a trusty printer!").to_owned();
-                    app.dispatch(IoEvent::DeleteCertificate(entity)).await.unwrap();
+                    let entity = any_entity
+                        .as_any()
+                        .downcast_ref::<CertificateEntity>()
+                        .expect("Wasn't a trusty printer!")
+                        .to_owned();
+                    app.dispatch(IoEvent::DeleteCertificate(entity))
+                        .await
+                        .unwrap();
                     app.dispatch(IoEvent::GetAllCertificates).await.unwrap();
                 }
                 TabId::SAG => {
-                    let entity = any_entity.as_any().downcast_ref::<SagEntity>().expect("Wasn't a trusty printer!").to_owned();
+                    let entity = any_entity
+                        .as_any()
+                        .downcast_ref::<SagEntity>()
+                        .expect("Wasn't a trusty printer!")
+                        .to_owned();
                     app.dispatch(IoEvent::DeleteSag(entity)).await.unwrap();
                     app.dispatch(IoEvent::GetAllSags).await.unwrap();
                 }
                 TabId::BUSINESSAPPLICATION => {
-                    let entity: BusinessApplicationEntity = any_entity.as_any().downcast_ref::<BusinessApplicationEntity>().expect("Wasn't a trusty printer!").to_owned();
-                    app.dispatch(IoEvent::DeleteBusinessApplication(entity)).await.unwrap();
-                    app.dispatch(IoEvent::GetAllBusinessApplications).await.unwrap();
+                    let entity: BusinessApplicationEntity = any_entity
+                        .as_any()
+                        .downcast_ref::<BusinessApplicationEntity>()
+                        .expect("Wasn't a trusty printer!")
+                        .to_owned();
+                    app.dispatch(IoEvent::DeleteBusinessApplication(entity))
+                        .await
+                        .unwrap();
+                    app.dispatch(IoEvent::GetAllBusinessApplications)
+                        .await
+                        .unwrap();
                 }
                 TabId::PROFILE => {
-                    let entity = any_entity.as_any().downcast_ref::<ApplicationProfileEntity>().expect("Wasn't a trusty printer!").to_owned();
+                    let entity = any_entity
+                        .as_any()
+                        .downcast_ref::<ApplicationProfileEntity>()
+                        .expect("Wasn't a trusty printer!")
+                        .to_owned();
                     app.dispatch(IoEvent::DeleteProfile(entity)).await.unwrap();
                     app.dispatch(IoEvent::GetAllProfiles).await.unwrap();
                 }
                 TabId::APIPROXY => {
-                    let entity = any_entity.as_any().downcast_ref::<ApiGatewayInfoEntity>().expect("Wasn't a trusty printer!").to_owned();
-                    app.dispatch(IoEvent::DeleteApiGatewayInfoEntity(entity)).await.unwrap();
-                    app.dispatch(IoEvent::GetAllApiGatewayInfoEntity).await.unwrap();
+                    let entity = any_entity
+                        .as_any()
+                        .downcast_ref::<ApiGatewayInfoEntity>()
+                        .expect("Wasn't a trusty printer!")
+                        .to_owned();
+                    app.dispatch(IoEvent::DeleteApiGatewayInfoEntity(entity))
+                        .await
+                        .unwrap();
+                    app.dispatch(IoEvent::GetAllApiGatewayInfoEntity)
+                        .await
+                        .unwrap();
                 }
                 TabId::FORWARDPROXY => {
-                    let entity = any_entity.as_any().downcast_ref::<ForwardProxyEntity>().expect("Wasn't a trusty printer!").to_owned();
-                    app.dispatch(IoEvent::DeleteForwardProxyEntity(entity)).await.unwrap();
-                    app.dispatch(IoEvent::GetAllForwardProxyEntity).await.unwrap();
+                    let entity = any_entity
+                        .as_any()
+                        .downcast_ref::<ForwardProxyEntity>()
+                        .expect("Wasn't a trusty printer!")
+                        .to_owned();
+                    app.dispatch(IoEvent::DeleteForwardProxyEntity(entity))
+                        .await
+                        .unwrap();
+                    app.dispatch(IoEvent::GetAllForwardProxyEntity)
+                        .await
+                        .unwrap();
                 }
             }
             app.get_configuration_state_mut().reload();
@@ -148,10 +204,28 @@ where
             }))
             .await
             .map_err(anyhow::Error::from),
-        TabId::BUSINESSAPPLICATION => app.dispatch(IoEvent::PostBusinessApplication(BusinessApplicationEntity::default())).await.map_err(anyhow::Error::from),
-        TabId::PROFILE => app.dispatch(IoEvent::PostProfile(ApplicationProfileEntity::default())).await.map_err(anyhow::Error::from),
-        TabId::APIPROXY => app.dispatch(IoEvent::PostApiGatewayInfoEntity(ApiGatewayInfoEntity::default())).await.map_err(anyhow::Error::from),
-        TabId::FORWARDPROXY => app.dispatch(IoEvent::PostForwardProxyEntity(ForwardProxyEntity::default())).await.map_err(anyhow::Error::from),
+        TabId::BUSINESSAPPLICATION => app
+            .dispatch(IoEvent::PostBusinessApplication(
+                BusinessApplicationEntity::default(),
+            ))
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::PROFILE => app
+            .dispatch(IoEvent::PostProfile(ApplicationProfileEntity::default()))
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::APIPROXY => app
+            .dispatch(IoEvent::PostApiGatewayInfoEntity(
+                ApiGatewayInfoEntity::default(),
+            ))
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::FORWARDPROXY => app
+            .dispatch(IoEvent::PostForwardProxyEntity(
+                ForwardProxyEntity::default(),
+            ))
+            .await
+            .map_err(anyhow::Error::from),
     }
 }
 
@@ -162,11 +236,26 @@ where
 {
     match app.get_configuration_state().current_selected() {
         TabId::CERTIFICATE => app.dispatch(IoEvent::GetAllCertificates).await,
-        TabId::SAG => app.dispatch(IoEvent::GetAllSags).await.map_err(anyhow::Error::from),
-        TabId::BUSINESSAPPLICATION => app.dispatch(IoEvent::GetAllBusinessApplications).await.map_err(anyhow::Error::from),
-        TabId::PROFILE => app.dispatch(IoEvent::GetAllProfiles).await.map_err(anyhow::Error::from),
-        TabId::APIPROXY => app.dispatch(IoEvent::GetAllApiGatewayInfoEntity).await.map_err(anyhow::Error::from),
-        TabId::FORWARDPROXY => app.dispatch(IoEvent::GetAllForwardProxyEntity).await.map_err(anyhow::Error::from),
+        TabId::SAG => app
+            .dispatch(IoEvent::GetAllSags)
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::BUSINESSAPPLICATION => app
+            .dispatch(IoEvent::GetAllBusinessApplications)
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::PROFILE => app
+            .dispatch(IoEvent::GetAllProfiles)
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::APIPROXY => app
+            .dispatch(IoEvent::GetAllApiGatewayInfoEntity)
+            .await
+            .map_err(anyhow::Error::from),
+        TabId::FORWARDPROXY => app
+            .dispatch(IoEvent::GetAllForwardProxyEntity)
+            .await
+            .map_err(anyhow::Error::from),
     }
 }
 
