@@ -81,12 +81,22 @@ impl Config {
     }
 
     fn read_pem(args: &Args) -> Result<Option<Identity>, std::io::Error> {
-        let mut buf: Vec<u8> = Vec::new();
-        File::open(args.identity.as_ref().unwrap_or(&"./mgw.pem".to_string()))?
-            .read_to_end(&mut buf)?;
-        match Identity::from_pem(&buf) {
+        let mut buf_pub: Vec<u8> = Vec::new();
+        let mut buf_priv: Vec<u8> = Vec::new();
+        match File::open(args.identity.as_ref().unwrap_or(&"./mgw.key".to_string())) {
+            Ok(mut f) => f.read_to_end(&mut buf_priv)?,
+            Err(_) => return Ok(None),
+        };
+        match File::open(args.identity.as_ref().unwrap_or(&"./mgw.pub".to_string())) {
+            Ok(mut f) => f.read_to_end(&mut buf_pub)?,
+            Err(_) => return Ok(None),
+        };
+        match Identity::from_pkcs8_pem(&buf_pub, &buf_priv) {
             Ok(identity) => Ok(Some(identity)),
-            Err(_) => Ok(None),
+            Err(e) => {
+                log::error!("{:#?}", e);
+                Ok(None)
+            }
         }
     }
 

@@ -104,7 +104,8 @@ where
             .connect_timeout(Duration::from_secs(15))
             .add_root_certificate(certificate)
             .https_only(true)
-            .danger_accept_invalid_certs(config.unsecure());
+            .danger_accept_invalid_certs(config.unsecure())
+            .tls_sni(false);
         let client = if let Some(identity) = config.identity() {
             builder.identity(identity.to_owned()).build().unwrap()
         } else {

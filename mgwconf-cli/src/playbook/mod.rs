@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 use mgwconf_network::mgw_configuration::models::BusinessApplicationEntity;
 use mgwconf_network::mgw_configuration::models::{
-    ApplicationProfileEntity, CertificateEntity, ForwardProxyEntity,
+    ApplicationProfileEntity, CertificateEntity, ForwardProxyEntity, ApiCredentialsEntity
 };
 use mgwconf_network::{event::IoEvent, mgw_configuration::models::SagEntity, AppTrait};
 use serde::{Deserialize, Deserializer, Serialize};
