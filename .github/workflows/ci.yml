@@ -17,47 +17,46 @@ jobs:
       - name: Install Just
         uses: extractions/setup-just@v1
 
-    - name: Install musl
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get install musl-tools musl musl-dev
-
-    - name: Install openssl-dev
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get install libssl-dev
-
-    - name: Add target x86_64-unknown-linux-musl
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: rustup target add x86_64-unknown-linux-musl
-
-    - name: Run Just Default
-      run: just default
-
-    - name: Build
-        id: build
+      - name: Install musl
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
-          just build-ci
+          sudo apt-get install musl-tools musl musl-dev
 
-    - name: Build Release
-      id: build-release
-      run: |
-        just build-ci-release
+      - name: Install openssl-dev
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get install libssl-dev
 
-    - name: Build Release musl
-      id: build-release-musl
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        just --set target "x86_64-unknown-linux-musl" release
-      
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: mgwc.${{ matrix.os }}
-        path: |
-          ./target/release/mgwc
-          ./target/release/mgwc_ui
-          ./target/x86_64-unknown-linux-musl/release/mgwc
-          ./target/x86_64-unknown-linux-musl/release/mgwc_ui
-          ./target/release/mgwc.exe
-          ./target/release/mgwc_ui.exe
+      - name: Add target x86_64-unknown-linux-musl
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: rustup target add x86_64-unknown-linux-musl
+
+      - name: Run Just Default
+        run: just default
+
+      - name: Build
+        id: build
+        run: "just build-ci"
+
+      - name: Build Release
+        id: build-release
+        run: |
+          just build-ci-release
+
+      - name: Build Release musl
+        id: build-release-musl
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          just --set target "x86_64-unknown-linux-musl" release
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mgwc.${{ matrix.os }}
+          path: |
+            ./target/release/mgwc
+            ./target/release/mgwc_ui
+            ./target/x86_64-unknown-linux-musl/release/mgwc
+            ./target/x86_64-unknown-linux-musl/release/mgwc_ui
+            ./target/release/mgwc.exe
+            ./target/release/mgwc_ui.exe
