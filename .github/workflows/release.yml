@@ -12,17 +12,14 @@ jobs:
   windows:
     runs-on: windows-latest
 
-    defaults:
-      run:
-        shell: bash
-
     steps:
       - uses: actions/checkout@v3
       - name: Install Just
         uses: extractions/setup-just@v1
       - name: Install Perl for OpenSSL
+        run: choco install strawberryperl
+      - name: Install required Perl modules for OpenSSL
         run: |
-          choco install strawberryperl
           perl -MCPAN -e "install 'Locale::Maketext::Simple'"
           perl -MLocale::Maketext::Simple -e "print 'Locale::Maketext::Simple module is installed'"
           echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
