@@ -96,7 +96,7 @@ async fn start_tokio<A: AppTrait<C>, C: AppConfig>(
 
 #[cfg(feature = "store-ui")]
 pub fn ask_master_key() -> String {
-    use io::{stdin, stdout, Write};
+    use std::io::{stdin, stdout, Write};
     let mut vault_key = String::new();
     println!("Pleaser enter MASTER VAULT KEY");
     let _ = stdout().flush();
