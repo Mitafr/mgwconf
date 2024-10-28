@@ -50,9 +50,7 @@ async fn main() -> Result<()> {
     });
     use mgwconf_ui::app::UiApp;
     use mgwconf_ui::config::Config;
-    <UiApp as AppTrait<Config>>::run(cloned_app, None)
-        .await
-        .unwrap();
+    <UiApp as AppTrait<Config>>::run(cloned_app, None).await?;
     info!("Exiting");
     Ok(())
 }

@@ -63,7 +63,7 @@ where
     fn set_connected(&mut self, connected: bool);
 
     fn vault(&self) -> Option<&SecretsVault>;
-    fn config(&self) -> Box<dyn AppConfig>;
+    fn config(&self) -> &C;
 
     fn handle_network_response<'a, T: Deserialize<'a> + Serialize>(
         &mut self,

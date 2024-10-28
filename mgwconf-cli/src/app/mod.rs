@@ -2,9 +2,7 @@ use anyhow::{bail, Error, Result};
 use async_trait::async_trait;
 use core::panic;
 use log::{debug, error};
-use mgwconf_network::{
-    event::IoEvent, mgw_configuration::apis::ResponseContent, AppConfig, AppTrait,
-};
+use mgwconf_network::{event::IoEvent, mgw_configuration::apis::ResponseContent, AppTrait};
 use mgwconf_vault::{SecretType, SecretsVault};
 use serde::{Deserialize, Serialize};
 use std::{io::Write, sync::Arc, time::Duration};
@@ -84,17 +82,14 @@ impl CliApp {
         }
     }
 
-    async fn run_playbook(&mut self, playbook: &Playbook) -> Result<(), PlaybookError> {
+    async fn run_playbook(&mut self, playbook: Playbook) -> Result<(), PlaybookError> {
         self.waiting_res = playbook.process(self).await?;
         Ok(())
     }
 }
 
 #[async_trait]
-impl<C> AppTrait<C> for CliApp
-where
-    C: AppConfig,
-{
+impl AppTrait<Config> for CliApp {
     async fn init(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
@@ -112,7 +107,7 @@ where
     fn ask_secrets(master: &str) -> Result<()> {
         let mut secret = String::new();
         for s in SecretType::iterator() {
-            <CliApp as AppTrait<C>>::ask_secret(master, &mut secret, *s);
+            <CliApp as AppTrait<Config>>::ask_secret(master, &mut secret, *s);
         }
         print!("\x1B[2J\x1B[1;1H");
         Ok(())
@@ -152,8 +147,8 @@ where
         self.vault.as_ref()
     }
 
-    fn config(&self) -> Box<dyn AppConfig> {
-        Box::new(self.config.as_ref().unwrap().clone())
+    fn config(&self) -> &Config {
+        self.config.as_ref().unwrap()
     }
 
     fn handle_network_response<'a, T: Deserialize<'a> + Serialize>(
@@ -210,29 +205,25 @@ where
         app: Arc<Mutex<Self>>,
         notifier: Option<Arc<Notify>>,
     ) -> Result<(), anyhow::Error> {
-        <CliApp as AppTrait<C>>::init(&mut *app.lock().await).await?;
+        <CliApp as AppTrait<Config>>::init(&mut *app.lock().await).await?;
         log::info!("Waiting for Network");
         notifier.unwrap().notified().await;
-        if !AppTrait::<C>::is_connected(&*app.lock().await) {
+        if !AppTrait::<Config>::is_connected(&*app.lock().await) {
             bail!("Network has not been initialized correctly");
         }
         log::info!("Network initialized, running command");
         {
+            let playbook = {
+                let app = &mut *app.lock().await;
+                AppTrait::<Config>::config(app).playbook.clone()
+            };
             let app = &mut *app.lock().await;
-            let config = AppTrait::<C>::config(app);
-            match config.as_any().downcast_ref::<Config>() {
-                Some(config) => {
-                    if let Some(playbook) = &config.playbook {
-                        app.run_playbook(playbook).await?
-                    } else {
-                        Self::clear_output_dir();
-                        let run_command = app.run_commands();
-                        run_command.await;
-                    }
-                }
-                None => {
-                    bail!("Internal error")
-                }
+            if let Some(playbook) = playbook {
+                app.run_playbook(playbook).await?
+            } else {
+                Self::clear_output_dir();
+                let run_command = app.run_commands();
+                run_command.await;
             }
         }
         'main: loop {

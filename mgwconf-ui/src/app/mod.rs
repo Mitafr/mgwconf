@@ -131,13 +131,13 @@ impl UiApp {
 }
 
 #[async_trait]
-impl<C: AppConfig> AppTrait<C> for UiApp {
+impl AppTrait<Config> for UiApp {
     async fn init(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
         }
         log::info!("Initilizing UiApp...");
-        self.io_tx.send(IoEvent::Ping).await.unwrap();
+        self.io_tx.send(IoEvent::Ping).await?;
         log::info!("Ping sent...");
         self.initialized = true;
         Ok(())
@@ -151,7 +151,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
     fn ask_secrets(master: &str) -> Result<()> {
         let mut secret = String::new();
         for s in SecretType::iterator() {
-            <UiApp as AppTrait<C>>::ask_secret(master, &mut secret, *s);
+            <UiApp as AppTrait<Config>>::ask_secret(master, &mut secret, *s);
         }
         print!("\x1B[2J\x1B[1;1H");
         Ok(())
@@ -191,8 +191,8 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         self.vault.as_ref()
     }
 
-    fn config(&self) -> Box<(dyn AppConfig)> {
-        Box::new(self.config.as_ref().unwrap().clone())
+    fn config(&self) -> &Config {
+        self.config.as_ref().unwrap()
     }
 
     fn handle_network_response<'a, T: Deserialize<'a> + Serialize>(
@@ -271,8 +271,12 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
     fn handle_network_error(&mut self, error: Error) {
         log::error!("Handling this error : {}", error);
         self.error_queue.push(error);
-        if <UiApp as UiAppTrait<C>>::get_current_route(self).id != RouteId::Home {
-            <UiApp as UiAppTrait<C>>::set_current_route_state(self, Some(ActiveBlock::Error), None);
+        if <UiApp as UiAppTrait<Config>>::get_current_route(self).id != RouteId::Home {
+            <UiApp as UiAppTrait<Config>>::set_current_route_state(
+                self,
+                Some(ActiveBlock::Error),
+                None,
+            );
         }
     }
 
@@ -293,15 +297,15 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
         let mut terminal = Terminal::new(backend)?;
         terminal.hide_cursor()?;
 
-        let config = <UiApp as AppTrait<C>>::config(&*app.lock().await);
+        let tickrate = <UiApp as AppTrait<Config>>::config(&*app.lock().await).tickrate();
 
-        let tick_rate = Duration::from_millis(config.tickrate());
-        let mut events = Events::new(config.tickrate());
+        let tick_rate = Duration::from_millis(tickrate);
+        let mut events = Events::new(tickrate);
         let mut last_tick = Instant::now();
 
         'main: loop {
             let mut app = app.lock().await;
-            <UiApp as AppTrait<C>>::init(&mut app).await?;
+            <UiApp as AppTrait<Config>>::init(&mut app).await?;
 
             terminal.draw(|f| {
                 draw_main_layout::<UiApp, Config>(f, &*app);
@@ -312,7 +316,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                 .backend_mut()
                 .execute(MoveTo(cursor_offset, cursor_offset))?;
 
-            let current_route = <UiApp as UiAppTrait<C>>::get_current_route(&app);
+            let current_route = <UiApp as UiAppTrait<Config>>::get_current_route(&app);
 
             match events.next().unwrap()? {
                 Event::Input(key) => {
@@ -332,23 +336,23 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
                     }
                 }
                 Event::Tick => {
-                    if <UiApp as UiAppTrait<C>>::get_force_exit(&app) {
+                    if <UiApp as UiAppTrait<Config>>::get_force_exit(&app) {
                         break 'main;
                     }
-                    if <UiApp as UiAppTrait<C>>::get_current_route(&app).active_block
+                    if <UiApp as UiAppTrait<Config>>::get_current_route(&app).active_block
                         == ActiveBlock::Error
                     {
                         std::thread::sleep(Duration::from_secs(2));
-                        <UiApp as UiAppTrait<C>>::reset_navigation_stack(&mut app);
-                        <UiApp as UiAppTrait<C>>::push_navigation_stack(
+                        <UiApp as UiAppTrait<Config>>::reset_navigation_stack(&mut app);
+                        <UiApp as UiAppTrait<Config>>::push_navigation_stack(
                             &mut app,
                             RouteId::Home,
                             ActiveBlock::Home,
                         );
-                        *<UiApp as UiAppTrait<C>>::get_configuration_state_mut(&mut app) =
+                        *<UiApp as UiAppTrait<Config>>::get_configuration_state_mut(&mut app) =
                             ConfigurationState::default();
                     }
-                    <UiApp as UiAppTrait<C>>::update_on_tick(&mut app);
+                    <UiApp as UiAppTrait<Config>>::update_on_tick(&mut app);
                 }
             }
 
@@ -365,7 +369,7 @@ impl<C: AppConfig> AppTrait<C> for UiApp {
 }
 
 #[async_trait]
-impl<C: AppConfig> UiAppTrait<C> for UiApp {
+impl UiAppTrait<Config> for UiApp {
     fn get_current_route(&self) -> &Route {
         self.navigation_stack.last().unwrap_or(&DEFAULT_ROUTE)
     }
@@ -386,7 +390,7 @@ impl<C: AppConfig> UiAppTrait<C> for UiApp {
         active_block: Option<ActiveBlock>,
         hovered_block: Option<ActiveBlock>,
     ) {
-        let current_route = <UiApp as UiAppTrait<C>>::get_current_route_mut(self);
+        let current_route = <UiApp as UiAppTrait<Config>>::get_current_route_mut(self);
         if let Some(active_block) = active_block {
             current_route.active_block = active_block;
         }
