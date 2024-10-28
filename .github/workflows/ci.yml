@@ -30,7 +30,12 @@ jobs:
       - name: Install Perl for OpenSSL
         if: ${{ matrix.os == 'windows-latest' }}
         run: choco install strawberryperl
-        
+
+      - name: Install required Perl modules for OpenSSL
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          cpanm Locale::Maketext::Simple
+
       - name: Add target x86_64-unknown-linux-musl
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: rustup target add x86_64-unknown-linux-musl
