@@ -36,6 +36,8 @@ jobs:
         run: |
           perl -MCPAN -e "install 'Locale::Maketext::Simple'"
           perl -MLocale::Maketext::Simple -e "print 'Locale::Maketext::Simple module is installed'"
+          echo "PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          echo "OPENSSL_SRC_PERL=$((where.exe perl)[0])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Add target x86_64-unknown-linux-musl
         if: ${{ matrix.os == 'ubuntu-latest' }}
