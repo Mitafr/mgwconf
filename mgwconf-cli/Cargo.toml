@@ -37,7 +37,7 @@ version = "0.9"
 default-features = false
 
 [dependencies.tokio]
-version = "1.36"
+version = "1"
 features = ["full"]
 
 [features]

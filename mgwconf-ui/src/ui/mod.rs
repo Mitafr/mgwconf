@@ -26,7 +26,7 @@ where
         .direction(Direction::Vertical)
         .constraints([Constraint::Min(1), Constraint::Length(1)].as_ref())
         .margin(0)
-        .split(f.size());
+        .split(f.area());
 
     if app.get_current_route().id == RouteId::Home {
         draw_home(f, app, parent_layout[0]);

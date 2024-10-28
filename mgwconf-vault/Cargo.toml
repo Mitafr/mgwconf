@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 log = "0.4"
-zeroize = { version = "1.7", features = ["zeroize_derive"] }
+zeroize = { version = "1.8", features = ["zeroize_derive"] }
 cbc = { version = "0.1.2", optional = true }
 aes = { version = "0.8", optional = true }
 base64 = { version = "0.22", optional = true }
