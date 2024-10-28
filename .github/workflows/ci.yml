@@ -34,7 +34,8 @@ jobs:
       - name: Install required Perl modules for OpenSSL
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          cpanm Locale::Maketext::Simple
+          perl -MCPAN -e "install 'Locale::Maketext::Simple'"
+          perl -MLocale::Maketext::Simple -e "print 'Locale::Maketext::Simple module is installed'"
 
       - name: Add target x86_64-unknown-linux-musl
         if: ${{ matrix.os == 'ubuntu-latest' }}
