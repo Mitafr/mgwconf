@@ -7,6 +7,101 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Debug unit tests in library 'mgwconf_network'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=mgwconf-network"
+                ],
+                "filter": {
+                    "name": "mgwconf_network",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'mgw_configuration'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=mgw-configuration"
+                ],
+                "filter": {
+                    "name": "mgw_configuration",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'mgwconf_vault'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=mgwconf-vault"
+                ],
+                "filter": {
+                    "name": "mgwconf_vault",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'mgwconf_cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=mgwconf-cli"
+                ],
+                "filter": {
+                    "name": "mgwconf_cli",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'mgwconf_ui'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=mgwconf-ui"
+                ],
+                "filter": {
+                    "name": "mgwconf_ui",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Debug executable 'mgwc'",
             "cargo": {
                 "args": [
@@ -25,32 +120,26 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "CLI - Debug executable 'mgwc' CLI",
+            "name": "Debug unit tests in executable 'mgwc'",
             "cargo": {
                 "args": [
-                    "build",
+                    "test",
+                    "--no-run",
                     "--bin=mgwc",
-                    "--package=mgwconf",
-                    "--no-default-features",
-                    "--features=cli"
+                    "--package=mgwconf"
                 ],
                 "filter": {
                     "name": "mgwc",
                     "kind": "bin"
                 }
             },
-            "args": [
-                "-k",
-                "AsBjJ0HPBoCwRWf66rANj2azKVQd1U01",
-                "-p",
-                "playbook.yaml"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "UI - Debug executable 'mgwc' UI",
+            "name": "Debug executable 'mgwc_ui'",
             "cargo": {
                 "args": [
                     "build",
@@ -63,26 +152,22 @@
                     "kind": "bin"
                 }
             },
-            "args": [
-                "-k",
-                "050a00040e0c0900020608060f0b0005",
-                "-d"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'mgwc'",
+            "name": "Debug unit tests in executable 'mgwc_ui'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=mgwc",
+                    "--bin=mgwc_ui",
                     "--package=mgwconf"
                 ],
                 "filter": {
-                    "name": "mgwc",
+                    "name": "mgwc_ui",
                     "kind": "bin"
                 }
             },
