@@ -70,7 +70,7 @@ impl Config {
             loaded: false,
             remote_addr,
             identity: Self::read_pem(args)?,
-            root_ca_path: "/home/mita/sources/mgwconf/CA.pem".to_owned(),
+            root_ca_path: "CA.pem".to_owned(),
             tick_rate: 250,
             playbook: args.playbook.to_owned().map(|v| v.into()),
             unsecure: args.unsecure,

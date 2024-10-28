@@ -14,10 +14,7 @@ pub use mgwconf_ui::{
 use mgwconf_ui::config::{Args, Config};
 
 use anyhow::Result;
-use std::{
-    io::{stdin, stdout, Write},
-    panic,
-};
+use std::panic;
 use tokio::sync::Notify;
 
 #[tokio::main]
@@ -32,7 +29,7 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }));
     let notify = Arc::new(Notify::new());
-    let notify2 = notify.clone();
+    let notify2: Arc<Notify> = notify.clone();
     println!("Reading secrets from vault");
     cloned_app
         .lock()
@@ -97,7 +94,9 @@ async fn start_tokio<A: AppTrait<C>, C: AppConfig>(
     }
 }
 
+#[cfg(feature = "store-ui")]
 pub fn ask_master_key() -> String {
+    use io::{stdin, stdout, Write};
     let mut vault_key = String::new();
     println!("Pleaser enter MASTER VAULT KEY");
     let _ = stdout().flush();
@@ -107,4 +106,9 @@ pub fn ask_master_key() -> String {
     vault_key.pop();
     print!("\x1B[2J\x1B[1;1H");
     vault_key
+}
+
+#[cfg(not(feature = "store-ui"))]
+pub fn ask_master_key() -> String {
+    String::new()
 }
